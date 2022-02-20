@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>Machine Learning in the Browser</title>
+		<meta charset="UTF-8">
+		<link href="data:" rel="icon">
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script src="https://d3js.org/d3.v7.min.js"></script>
+	</head>
+	<body>
+		<div id="divInputControl" style="border-style:groove;width:256px;height:256px;position:fixed;top:0px;left:0px;">
+			<div>
+				<select id="selectMLtype" style="width:100%;">
+					<option value="image-classification">image-classification</option>
+					<option value="image-segmentation">image-segmentation</option>
+					<option value="signal-classification">signal-classification</option>
+				</select>
+			</div>
+			<div>
+				<input id="inputLoadData" type="file" multiple/>
+			</div>
+			<div>
+				<button id="buttonLoadExampleData" type="button">Load example data</button>
+			</div>
+			<div>
+				<select id="selectModel" style="width:100%;"></select>
+			</div>
+			<div id="divModelDownloadFraction">0%</div>
+			<div id="divModelInputShape"><b>Model input shape</b>: NaN</div>
+			<div id="divModelOutputShape"><b>Model output shape</b>: NaN</div>
+			<button id="buttonPredict" type="button">Predict</button>
+			<div><b>Results:</b></div>
+			<div id="divResults"></div>
+			<div style="position:absolute;bottom:0;">
+				<a href="https://github.com/pbizopoulos/web-based-machine-learning">Source</a>.
+			</div>
+		</div>
+		<div id="divInput" style="border-style:groove;width:256px;height:256px;position:fixed;top:0px;left:256px;">
+		</div>
+		<script src="models.js"></script>
+		<script src="script.js"></script>
+	</body>
+</html>
