@@ -1,5 +1,12 @@
 'use strict';
 
+const configURLarray = [
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/signal2image-modules-in-deep-neural-networks-for-eeg-classification/master/wbml/eeg-classification.json',
+	'https://raw.githubusercontent.com/pbizopoulos/tmp/master/wbml/lung-classification.json',
+]
+
 const canvasWidth = 256;
 const canvasHeight = 256;
 const divInput = document.getElementById('divInput');
@@ -29,9 +36,9 @@ function disableUI(argument) {
 
 let model;
 async function loadModel() {
-	window.selectedModel = modelDetailsArray.find(modelDetails => modelDetails.URL == selectModel.value);
+	window.configSelected = configArray.find(config => config.URL == selectModel.value);
 	let loadModelFunction;
-	await fetch(window.selectedModel.URL)
+	await fetch(window.configSelected.URL)
 		.then(response => response.text())
 		.then((text) => {
 			if (JSON.parse(text).format == 'graph-model') {
@@ -41,7 +48,7 @@ async function loadModel() {
 			}
 		})
 	model = undefined;
-	model = await loadModelFunction(window.selectedModel.URL, {
+	model = await loadModelFunction(window.configSelected.URL, {
 		onProgress: function (fraction) {
 			document.getElementById('divModelDownloadFraction').innerHTML = `Downloading model, please wait ${Math.round(100*fraction)}%.`;
 			document.getElementById('divModelInputShape').innerHTML = '<b>Model input shape</b>: NaN';
@@ -87,7 +94,7 @@ function imageClassificationUI() {
 			const classProbabilities = modelOutput.softmax().mul(100).arraySync();
 			document.getElementById('divResults').innerHTML = '';
 			for (let i = 0; i < classProbabilities[0].length; i++) {
-				document.getElementById('divResults').innerHTML += `<div>${window.selectedModel.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%</div>`;
+				document.getElementById('divResults').innerHTML += `<div>${window.configSelected.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%</div>`;
 			}
 		});
 	}
@@ -96,9 +103,9 @@ function imageClassificationUI() {
 	let image = new Image();
 	imageFileReader.onload = () => image.src = imageFileReader.result;
 
-	buttonLoadExampleData.onclick = () => {
+	buttonLoadModelExampleData.onclick = () => {
 		image.crossOrigin = 'anonymous';
-		image.src = window.selectedModel.exampleData;
+		image.src = window.configSelected.exampleData;
 	}
 
 	image.onload = () => {
@@ -157,9 +164,9 @@ function imageSegmentationUI() {
 	let image = new Image();
 	imageFileReader.onload = () => image.src = imageFileReader.result;
 
-	buttonLoadExampleData.onclick = () => {
+	buttonLoadModelExampleData.onclick = () => {
 		image.crossOrigin = 'anonymous';
-		image.src = window.selectedModel.exampleData;
+		image.src = window.configSelected.exampleData;
 	}
 
 	image.onload = () => {
@@ -190,8 +197,8 @@ function signalClassificationUI() {
 			.attr('d', line(csvDataset.arraySync()));
 	}
 
-	buttonLoadExampleData.onclick = () => {
-		fetch(window.selectedModel.exampleData)
+	buttonLoadModelExampleData.onclick = () => {
+		fetch(window.configSelected.exampleData)
 			.then(response => response.text())
 			.then((text) => {
 				drawSignal(text);
@@ -222,33 +229,40 @@ function signalClassificationUI() {
 		const classProbabilities = modelOutput.softmax().mul(100).arraySync();
 		document.getElementById('divResults').innerHTML = '';
 		for (let i = 0; i < classProbabilities[0].length; i++) {
-			document.getElementById('divResults').innerHTML += `<div>${window.selectedModel.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%</div>`;
+			document.getElementById('divResults').innerHTML += `<div>${window.configSelected.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%</div>`;
 		}
 	}
 	buttonPredict.onclick = () => predictView();
 }
 
-selectMLtype.onchange = function () {
+selectModel.onchange = function () {
 	divInput.innerHTML = '';
-	selectModel.options.length = 0;
-	for (const modelDetails of modelDetailsArray) {
-		if (modelDetails.type == selectMLtype.value) {
-			let option = document.createElement('option');
-			option.value = modelDetails.URL;
-			option.innerHTML = modelDetails.name;
-			selectModel.appendChild(option);
-		}
-	}
-	window.selectedModel = modelDetailsArray.find(modelDetails => modelDetails.URL == selectModel.value);
-	if (window.selectedModel.type == 'image-classification') {
+	window.configSelected = configArray.find(config => config.URL == selectModel.value);
+	if (window.configSelected.type == 'image-classification') {
 		imageClassificationUI();
-	} else if (window.selectedModel.type == 'image-segmentation') {
+	} else if (window.configSelected.type == 'image-segmentation') {
 		imageSegmentationUI();
-	} else if (window.selectedModel.type == 'signal-classification') {
+	} else if (window.configSelected.type == 'signal-classification') {
 		signalClassificationUI();
 	}
-	selectModel.onchange = () => loadModel();
-	selectModel.onchange();
+	loadModel();
 }
 
-selectMLtype.onchange();
+let configArray = [];
+async function init() {
+	for (const [i, configURL] of configURLarray.entries()) {
+		await fetch(configURL)
+			.then(response => response.text())
+			.then((text) => {
+				configArray[i] = JSON.parse(text);
+				let option = document.createElement('option');
+				option.value = configArray[i].URL;
+				option.innerHTML = configArray[i].name;
+				selectModel.appendChild(option);
+			})
+	}
+
+	await selectModel.onchange();
+}
+
+init();
