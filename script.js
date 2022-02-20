@@ -34,38 +34,6 @@ function disableUI(argument) {
 	}
 }
 
-let model;
-async function loadModel() {
-	window.configSelected = configArray.find(config => config.URL == selectModel.value);
-	let loadModelFunction;
-	await fetch(window.configSelected.URL)
-		.then(response => response.text())
-		.then((text) => {
-			if (JSON.parse(text).format == 'graph-model') {
-				loadModelFunction = tf.loadGraphModel;
-			} else if (JSON.parse(text).format == 'layers-model') {
-				loadModelFunction = tf.loadLayersModel;
-			}
-		})
-	model = undefined;
-	model = await loadModelFunction(window.configSelected.URL, {
-		onProgress: function (fraction) {
-			document.getElementById('divModelDownloadFraction').innerHTML = `Downloading model, please wait ${Math.round(100*fraction)}%.`;
-			document.getElementById('divModelInputShape').innerHTML = '<b>Model input shape</b>: NaN';
-			document.getElementById('divModelOutputShape').innerHTML = '<b>Model output shape</b>: NaN';
-			document.getElementById('divResults').innerHTML = '';
-			if (fraction == 1) {
-				document.getElementById('divModelDownloadFraction').innerHTML = 'Model downloaded.';
-			}
-			disableUI(true);
-		}
-	});
-	document.getElementById('divModelInputShape').innerHTML = `<b>Model input shape</b>:${model.inputs[0].shape}`;
-	document.getElementById('divModelOutputShape').innerHTML = `<b>Model output shape</b>:${model.outputs[0].shape}`;
-	document.getElementById('divResults').innerHTML = '';
-	disableUI(false);
-}
-
 function imageClassificationUI() {
 	inputLoadData.onchange = () => imageLoadView();
 	inputLoadData.accept = 'image/*';
@@ -80,7 +48,7 @@ function imageClassificationUI() {
 	const pixelScaling = 3/255;
 	const pixelBaseline = 1.5;
 
-	function predictView() {
+	buttonPredict.onclick = () => {
 		if (model === undefined) {
 			return;
 		}
@@ -98,12 +66,12 @@ function imageClassificationUI() {
 			}
 		});
 	}
-	buttonPredict.onclick = () => predictView();
 
 	let image = new Image();
 	imageFileReader.onload = () => image.src = imageFileReader.result;
 
 	buttonLoadModelExampleData.onclick = () => {
+		disableUI(true);
 		image.crossOrigin = 'anonymous';
 		image.src = window.configSelected.exampleData;
 	}
@@ -111,6 +79,7 @@ function imageClassificationUI() {
 	image.onload = () => {
 		contextImage.clearRect(0, 0, canvasWidth, canvasHeight);
 		contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
+		disableUI(false);
 	};
 }
 
@@ -138,7 +107,7 @@ function imageSegmentationUI() {
 	const pixelScaling = 3/255;
 	const pixelBaseline = 1.5;
 
-	function predictView() {
+	buttonPredict.onclick = () => {
 		if (model === undefined) {
 			return;
 		}
@@ -159,12 +128,12 @@ function imageSegmentationUI() {
 			tf.browser.toPixels(maskToPixels, canvasMask);
 		});
 	}
-	buttonPredict.onclick = () => predictView();
 
 	let image = new Image();
 	imageFileReader.onload = () => image.src = imageFileReader.result;
 
 	buttonLoadModelExampleData.onclick = () => {
+		disableUI(true);
 		image.crossOrigin = 'anonymous';
 		image.src = window.configSelected.exampleData;
 	}
@@ -173,6 +142,7 @@ function imageSegmentationUI() {
 		contextImage.clearRect(0, 0, canvasWidth, canvasHeight);
 		contextMask.clearRect(0, 0, canvasWidth, canvasHeight);
 		contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
+		disableUI(false);
 	};
 }
 
@@ -198,10 +168,12 @@ function signalClassificationUI() {
 	}
 
 	buttonLoadModelExampleData.onclick = () => {
+		disableUI(true);
 		fetch(window.configSelected.exampleData)
 			.then(response => response.text())
 			.then((text) => {
 				drawSignal(text);
+				disableUI(false);
 			})
 	}
 
@@ -215,7 +187,7 @@ function signalClassificationUI() {
 
 	signalFileReader.onload = () => drawSignal(signalFileReader.result);
 
-	async function predictView() {
+	buttonPredict.onclick = async function() {
 		if (csvDataset === undefined) {
 			return;
 		}
@@ -232,24 +204,12 @@ function signalClassificationUI() {
 			document.getElementById('divResults').innerHTML += `<div>${window.configSelected.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%</div>`;
 		}
 	}
-	buttonPredict.onclick = () => predictView();
-}
-
-selectModel.onchange = function () {
-	divInput.innerHTML = '';
-	window.configSelected = configArray.find(config => config.URL == selectModel.value);
-	if (window.configSelected.type == 'image-classification') {
-		imageClassificationUI();
-	} else if (window.configSelected.type == 'image-segmentation') {
-		imageSegmentationUI();
-	} else if (window.configSelected.type == 'signal-classification') {
-		signalClassificationUI();
-	}
-	loadModel();
 }
 
 let configArray = [];
-async function init() {
+let model;
+
+async function initialize() {
 	for (const [i, configURL] of configURLarray.entries()) {
 		await fetch(configURL)
 			.then(response => response.text())
@@ -261,8 +221,42 @@ async function init() {
 				selectModel.appendChild(option);
 			})
 	}
-
-	await selectModel.onchange();
+	selectModel.onchange = async function () {
+		divInput.innerHTML = '';
+		window.configSelected = configArray.find(config => config.URL == selectModel.value);
+		if (window.configSelected.type == 'image-classification') {
+			imageClassificationUI();
+		} else if (window.configSelected.type == 'image-segmentation') {
+			imageSegmentationUI();
+		} else if (window.configSelected.type == 'signal-classification') {
+			signalClassificationUI();
+		}
+		let loadModelFunction;
+		await fetch(window.configSelected.URL)
+			.then(response => response.text())
+			.then((text) => {
+				if (JSON.parse(text).format == 'graph-model') {
+					loadModelFunction = tf.loadGraphModel;
+				} else if (JSON.parse(text).format == 'layers-model') {
+					loadModelFunction = tf.loadLayersModel;
+				}
+			})
+		model = await loadModelFunction(window.configSelected.URL, {
+			onProgress: function (fraction) {
+				document.getElementById('divModelDownloadFraction').innerHTML = `Downloading model, please wait ${Math.round(100*fraction)}%.`;
+				document.getElementById('divModelInputShape').innerHTML = '<b>Model input shape</b>: NaN';
+				document.getElementById('divModelOutputShape').innerHTML = '<b>Model output shape</b>: NaN';
+				document.getElementById('divResults').innerHTML = '';
+				disableUI(true);
+			}
+		});
+		document.getElementById('divModelDownloadFraction').innerHTML = 'Model downloaded.';
+		document.getElementById('divModelInputShape').innerHTML = `<b>Model input shape</b>:${model.inputs[0].shape}`;
+		document.getElementById('divModelOutputShape').innerHTML = `<b>Model output shape</b>:${model.outputs[0].shape}`;
+		document.getElementById('divResults').innerHTML = '';
+		disableUI(false);
+	}
+	selectModel.onchange();
 }
 
-init();
+initialize();
