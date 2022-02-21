@@ -6,14 +6,14 @@ const configURLarray = [
 	'https://raw.githubusercontent.com/pbizopoulos/tmp/master/wbml/lung-classification.json',
 ]
 const divInput = document.getElementById('divInput');
-divInput.style.width = '512px';
-divInput.style.height = '512px';
-const canvasWidth = parseInt(divInput.style.width);
 const canvasHeight = parseInt(divInput.style.height);
+const canvasWidth = parseInt(divInput.style.width);
+const pixelBaseline = 1.5;
+const pixelScaling = 3/255;
+let columns;
 let configArray = [];
 let configSelected;
-let model;
-let columns;
+let image = new Image();
 let imageIndex = 0;
 let imageOffset;
 let imageSize;
@@ -21,19 +21,27 @@ let imageValueMin = 0;
 let imageValueRange = 1;
 let images;
 let masks = [];
+let model;
 let numImages = 0;
 let rows;
-const pixelScaling = 3/255;
-const pixelBaseline = 1.5;
-let csvDataset;
-let image = new Image();
 const imageFileReader = new FileReader();
 imageFileReader.onload = () => image.src = imageFileReader.result;
+document.getElementById('canvasImage').width = canvasWidth;
+document.getElementById('canvasImage').height = canvasHeight;
+const contextImage = canvasImage.getContext('2d');
+document.getElementById('canvasMask').width = canvasWidth;
+document.getElementById('canvasMask').height = canvasHeight;
+const contextMask = canvasMask.getContext('2d');
+
+image.onload = () => {
+	resetData();
+	contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
+	disableUI(false);
+};
 
 document.getElementById('buttonLoadModelExampleData').onclick = () => {
 	disableUI(true);
-	images = undefined;
-	masks = [];
+	resetData();
 	image.crossOrigin = 'anonymous';
 	image.src = configSelected.exampleDataURL;
 }
@@ -47,6 +55,7 @@ document.getElementById('checkboxShowMask').onchange = () => {
 }
 
 document.getElementById('inputLoadData').onchange = () => {
+	resetData();
 	const files = event.currentTarget.files;
 	document.getElementById('spanNumberOfFiles').textContent = files.length;
 	if (files[0] == undefined) {
@@ -101,16 +110,32 @@ function visualizeImageDataImage() {
 			imageDataImage.data[offsetMult4 + 3] = 255;
 		}
 	}
-	let contextImage = canvasImage.getContext('2d');
 	contextImage.putImageData(imageDataImage, 0, 0);
 }
 
 function visualizeImageDataMask() {
-	let contextMask = canvasMask.getContext('2d');
 	contextMask.clearRect(0, 0, canvasWidth, canvasHeight);
 	if (masks[imageIndex]) {
 		tf.browser.toPixels(masks[imageIndex], canvasMask);
 	}
+}
+
+function resetData() {
+	columns = undefined;
+	contextImage.clearRect(0, 0, canvasWidth, canvasHeight);
+	contextMask.clearRect(0, 0, canvasWidth, canvasHeight);
+	imageIndex = 0;
+	images = undefined;
+	masks = [];
+	numImages = 0;
+	rows = undefined;
+}
+
+function updateUI() {
+	document.getElementById('spanFileIndex').textContent = imageIndex;
+	document.getElementById('spanNumberOfFiles').textContent = numImages;
+	document.getElementById('spanFileShape').textContent = numImages;
+	document.getElementById('spanFileShape').textContent = `${rows}x${columns}`;
 }
 
 function resetView() {
@@ -215,19 +240,13 @@ async function initialize() {
 			})
 	}
 	selectModel.onchange = async function () {
-		divInput.textContent = '';
+		resetData();
+		updateUI();
 		configSelected = configArray.find(config => config.modelURL == selectModel.value);
 		document.getElementById('aProjectURL').href = configSelected.projectURL;
 		if (configSelected.machineLearningType == 'image classification') {
 			document.getElementById('inputLoadData').accept = 'image/*,.dcm,.nii,.nii.gz';
 			divCheckboxShowMask.style.display = 'none';
-
-			const canvasImage = document.createElement('canvas');
-			canvasImage.id = 'canvasImage';
-			canvasImage.width = canvasWidth;
-			canvasImage.height = canvasHeight;
-			divInput.appendChild(canvasImage);
-			const contextImage = canvasImage.getContext('2d');
 
 			buttonPredict.onclick = () => {
 				if (model === undefined) {
@@ -249,31 +268,9 @@ async function initialize() {
 					}
 				});
 			}
-
-			image.onload = () => {
-				contextImage.clearRect(0, 0, canvasWidth, canvasHeight);
-				contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
-				disableUI(false);
-			};
 		} else if (configSelected.machineLearningType == 'image segmentation') {
 			document.getElementById('inputLoadData').accept = 'image/*,.dcm,.nii,.nii.gz';
 			divCheckboxShowMask.style.display = '';
-
-			const canvasImage = document.createElement('canvas');
-			canvasImage.id = 'canvasImage';
-			canvasImage.width = canvasWidth;
-			canvasImage.height = canvasHeight;
-			canvasImage.style.position = 'absolute';
-			divInput.appendChild(canvasImage);
-			const contextImage = canvasImage.getContext('2d');
-
-			const canvasMask = document.createElement('canvas');
-			canvasMask.id = 'canvasMask';
-			canvasMask.width = canvasWidth;
-			canvasMask.height = canvasHeight;
-			canvasMask.style.position = 'absolute';
-			divInput.appendChild(canvasMask);
-			const contextMask = canvasMask.getContext('2d');
 
 			buttonPredict.onclick = () => {
 				if (model === undefined) {
@@ -297,13 +294,6 @@ async function initialize() {
 					tf.browser.toPixels(maskToPixels, canvasMask);
 				});
 			}
-
-			image.onload = () => {
-				contextImage.clearRect(0, 0, canvasWidth, canvasHeight);
-				contextMask.clearRect(0, 0, canvasWidth, canvasHeight);
-				contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
-				disableUI(false);
-			};
 		}
 		let loadModelFunction;
 		await fetch(configSelected.modelURL)
