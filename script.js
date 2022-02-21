@@ -3,7 +3,6 @@
 const configURLarray = [
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation.json',
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/signal2image-modules-in-deep-neural-networks-for-eeg-classification/master/wbml/eeg-classification.json',
 	'https://raw.githubusercontent.com/pbizopoulos/tmp/master/wbml/lung-classification.json',
 ]
 const divInput = document.getElementById('divInput');
@@ -30,40 +29,13 @@ let csvDataset;
 let image = new Image();
 const imageFileReader = new FileReader();
 imageFileReader.onload = () => image.src = imageFileReader.result;
-const signalFileReader = new FileReader();
-signalFileReader.onload = () => drawSignal(signalFileReader.result);
-
-function drawSignal(text) {
-	const array = text.match(/\d+(?:\.\d+)?/g).map(Number);
-	csvDataset = tf.tensor(array);
-	const x = d3.scaleLinear()
-		.domain([0, csvDataset.size])
-		.range([0, canvasWidth]);
-	const y = d3.scaleLinear()
-		.domain([csvDataset.min().arraySync(), csvDataset.max().arraySync()])
-		.range([canvasHeight, 0]);
-	const line = d3.line()
-		.x((d,i) => x(i))
-		.y(d => y(d));
-	d3.select('#pathInput')
-		.attr('d', line(csvDataset.arraySync()));
-}
 
 document.getElementById('buttonLoadModelExampleData').onclick = () => {
 	disableUI(true);
 	images = undefined;
 	masks = [];
-	if ((configSelected.machineLearningType == 'image classification') || (configSelected.machineLearningType == 'image segmentation')) {
-		image.crossOrigin = 'anonymous';
-		image.src = configSelected.exampleDataURL;
-	} else if (configSelected.machineLearningType == 'signal classification') {
-		fetch(configSelected.exampleDataURL)
-			.then(response => response.text())
-			.then((text) => {
-				drawSignal(text);
-				disableUI(false);
-			})
-	}
+	image.crossOrigin = 'anonymous';
+	image.src = configSelected.exampleDataURL;
 }
 
 document.getElementById('checkboxShowMask').onchange = () => {
@@ -80,29 +52,23 @@ document.getElementById('inputLoadData').onchange = () => {
 	if (files[0] == undefined) {
 		return;
 	}
-	if ((configSelected.machineLearningType == 'image classification') || (configSelected.machineLearningType == 'image segmentation')) {
-		if (files[0].name.includes('.png') || files[0].name.includes('.jpg')) {
-			imageFileReader.readAsDataURL(files[0]);
-		} else if (files[0].name.includes('.nii')) {
-			readNiiFile(files[0]);
-		} else if (files[0].name.includes('.dcm')) {
-			for (let i = 0; i < files.length; i++) {
-				const reader = new FileReader();
-				reader.readAsArrayBuffer(files[i]);
-			}
-			itk.readImageDICOMFileSeries(files)
-				.then(function ({ image }) {
-					itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
-						.then((data) => {
-							const blob = new Blob([data.arrayBuffer]);
-							readNiiFile(blob);
-						});
-				});
+	if (files[0].name.includes('.png') || files[0].name.includes('.jpg')) {
+		imageFileReader.readAsDataURL(files[0]);
+	} else if (files[0].name.includes('.nii')) {
+		readNiiFile(files[0]);
+	} else if (files[0].name.includes('.dcm')) {
+		for (let i = 0; i < files.length; i++) {
+			const reader = new FileReader();
+			reader.readAsArrayBuffer(files[i]);
 		}
-	} else if (configSelected.machineLearningType == 'signal classification') {
-		if (files[0].name.includes('.txt') || files[0].name.includes('.png')) {
-			signalFileReader.readAsText(files[0]);
-		}
+		itk.readImageDICOMFileSeries(files)
+			.then(function ({ image }) {
+				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
+					.then((data) => {
+						const blob = new Blob([data.arrayBuffer]);
+						readNiiFile(blob);
+					});
+			});
 	}
 }
 
@@ -338,37 +304,6 @@ async function initialize() {
 				contextImage.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvasWidth, canvasHeight);
 				disableUI(false);
 			};
-		} else if (configSelected.machineLearningType == 'signal classification') {
-			document.getElementById('inputLoadData').accept = '.txt,.csv';
-			divCheckboxShowMask.style.display = 'none';
-
-			const svgInput = d3.select('#divInput')
-				.append('svg')
-				.attr('viewBox', [0, 0, canvasWidth, canvasHeight]);
-			svgInput.append('path')
-				.attr('id', 'pathInput')
-				.style('fill', 'none')
-				.style('stroke', 'blue');
-
-			buttonPredict.onclick = async function() {
-				if (model === undefined) {
-					return;
-				}
-				if (csvDataset === undefined) {
-					return;
-				}
-				let csvDatasetTmp = csvDataset.expandDims(0).expandDims(2);
-				csvDatasetTmp = tf.image.resizeBilinear(csvDatasetTmp, [1, model.inputs[0].shape[2]]);
-				csvDatasetTmp = csvDatasetTmp.reshape([1, 1, model.inputs[0].shape[2]]);
-				const modelOutput = await model.executeAsync(csvDatasetTmp);
-				const classProbabilities = modelOutput.softmax().mul(100).arraySync();
-				document.getElementById('divResults').textContent = '';
-				for (let i = 0; i < classProbabilities[0].length; i++) {
-					let divElement = document.createElement('div');
-					divElement.textContent = `${configSelected.classNames[i]}: ${(classProbabilities[0][i]).toFixed(2)}%`
-					document.getElementById('divResults').append(divElement);
-				}
-			}
 		}
 		let loadModelFunction;
 		await fetch(configSelected.modelURL)

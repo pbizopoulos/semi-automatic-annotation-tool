@@ -25,7 +25,7 @@ The TFJS model convertion needs to compile successfully and the converted model 
 {
 	"classNames": ["Array that", "contains", "the names of the classes"],
 	"exampleDataURL": "Optional: url or local file of an example data of this model",
-	"machineLearningType": "type of machine learning algorithm for the model (can be any of image-classification, image-segmentation, signal-classification)",
+	"machineLearningType": "type of machine learning algorithm for the model (can be any of 'image classification', 'image segmentation')",
 	"modelURL": "url or local file model.json",
 	"name": "name of the configuration (e.g. indicate imaging modality and disease)",
 	"projectURL": "Optional: url of the project that has created the model"
