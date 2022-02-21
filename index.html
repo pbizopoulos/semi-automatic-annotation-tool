@@ -5,30 +5,57 @@
 		<meta charset="UTF-8">
 		<link href="data:" rel="icon">
 		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
+		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
 		<script src="https://d3js.org/d3.v7.min.js"></script>
 	</head>
 	<body>
-		<div id="divInputControl" style="border-style:groove;width:256px;height:256px;position:fixed;top:0px;left:0px;">
+		<div id="divInputControl" style="border-style:groove;float:left;width:200px;">
+			<div><b>Model</b></div>
+			<div>
+				<select id="selectModel" style="width:100%;"></select>
+			</div>
+			<div>
+				<a id="aProjectURL">Project URL</a>.
+			</div>
+			<div id="divModelLoadFraction">0%</div>
+			<div>
+				Input shape: <span id="spanModelInputShape">NaN</span>
+			</div>
+			<div>
+				Output shape: <span id="spanModelOutputShape">NaN</span>
+			</div>
+			<div>
+				Trainable: <span id="spanModelTrainable">NaN</span>
+			</div>
+			<hr>
+			<div><b>Data</b></div>
+			<div>
+				<button id="buttonLoadModelExampleData" type="button">Load model example data</button>
+			</div>
 			<div>
 				<input id="inputLoadData" type="file" multiple/>
 			</div>
 			<div>
-				<select id="selectModel" style="width:100%;"></select>
+				File shape: <span id="spanFileShape">NaN</span>
 			</div>
-			<div id="divModelDownloadFraction">0%</div>
-			<div id="divModelInputShape"><b>Model input shape</b>: NaN</div>
-			<div id="divModelOutputShape"><b>Model output shape</b>: NaN</div>
 			<div>
-				<button id="buttonLoadModelExampleData" type="button">Load model example data</button>
+				File index: <span id="spanFileIndex">NaN</span>/<span id="spanNumberOfFiles">NaN</span>
 			</div>
-			<button id="buttonPredict" type="button">Predict</button>
-			<div><b>Results:</b></div>
+			<hr>
+			<div><b>Results</b></div>
+			<div>
+				<button id="buttonPredict" type="button">Predict</button>
+			</div>
+			<div id="divCheckboxShowMask" style="display:none;">
+				<input id="checkboxShowMask" type="checkbox" checked>Show Mask</button>
+			</div>
 			<div id="divResults"></div>
-			<div style="position:absolute;bottom:0;">
+			<div style="bottom:0;position:absolute;">
 				<a href="https://github.com/pbizopoulos/web-based-machine-learning">Source</a>.
 			</div>
 		</div>
-		<div id="divInput" style="border-style:groove;width:256px;height:256px;position:fixed;top:0px;left:256px;">
+		<div id="divInput" style="border-style:groove;float:left;">
 		</div>
 		<script src="script.js"></script>
 	</body>
