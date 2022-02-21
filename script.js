@@ -147,6 +147,24 @@ function visualizeImageDataMask() {
 	}
 }
 
+function resetView() {
+	const imageOffset = imageSize * imageIndex;
+	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
+	let max = -Infinity;
+	let min = Infinity;
+	for (let i = 0; i < imageSlice.length; i++) {
+		if (imageSlice[i] > max) {
+			max = imageSlice[i];
+		}
+		if (imageSlice[i] < min) {
+			min = imageSlice[i];
+		}
+	}
+	imageValueMin = min;
+	imageValueRange = (max - min) / 255;
+	visualizeImageDataMask();
+}
+
 function readNiiFile(file) {
 	const reader = new FileReader();
 	reader.onloadend = function (event) {
@@ -203,6 +221,7 @@ function readNiiFile(file) {
 			canvasImage.width = columns;
 			canvasMask.height = rows;
 			canvasMask.width = columns;
+			resetView();
 			visualizeImageDataImage();
 		}
 		disableUI(false);
