@@ -38,7 +38,7 @@
 				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="simpleDraw()">
 			</div>
 			<div>
-				<button id="buttonSaveMasks" onclick="saveMasks()">Save masks</button>
+				<button id="buttonSaveOutput" onclick="saveOutput()">Save Output</button>
 			</div>
 			<hr>
 			<div>
@@ -50,16 +50,16 @@
 			<div>
 				<button id="buttonTrain" onclick="train()">Train</button>
 			</div>
-			<div>
+			<div id="divNumEpochs">
 				Epochs: <input type="number" id="inputNumEpochs" value=10 style="width:20%;">
 			</div>
-			<div>
+			<div id="divCurrentEpoch">
 				Current epoch: <span id="spanCurrentEpoch"></span>
 			</div>
-			<div>
+			<div id="divLoss">
 				Loss: <span id="spanLoss"></span>
 			</div>
-			<div>
+			<div id="divAccuracy">
 				Accuracy: <span id="spanAccuracy"></span>
 			</div>
 			<hr>
@@ -70,7 +70,7 @@
 				<input type="file" id="inputFile" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
 			</div>
 			<div>
-				<input type="file" id="inputFileMasks" onchange="loadMasks()"/>
+				<input type="file" onchange="loadOutput()"/>
 			</div>
 			<div>
 				Image index: <span id="spanImageIndex"></span>
@@ -91,7 +91,6 @@
 			<div>
 				<button id="buttonResetView" onclick="resetView()">Reset view</button>
 			</div>
-			<hr>
 		</div>
 		<div id="divCanvases">
 			<canvas id="canvasImage" width="512" height="512" style="position:absolute;"></canvas>

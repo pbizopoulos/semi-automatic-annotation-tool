@@ -6,22 +6,22 @@ It has the following advantages:
 2) No installation needed (only a modern browser is needed)
 
 
-Usage instructions for the medical user:
+Usage instructions for the end-user:
 1) Visit https://pbizopoulos.github.io/web-based-machine-learning/ .
-2) Select the model depending on your task.
+2) Select the model depending on the task.
 3) Load the data.
 4) Predict.
-5) If required, correct the results.
-6) Get the data.
+5) Correct the results if needed.
+6) Either train after correcting or get the data.
 
 
 Usage instructions for the AI model developer:
 1) Develop a model in TensorflowJS, Tensorflow or PyTorch.
-When targeting users with low computational capabilities consider designing models with fast inference (recommended <1s per data sample) and small size (recommended maximum 100MB for a saved model).
+When targeting users with low computational capabilities consider designing models with fast inference (recommended less than 1 second per data sample) and small size (recommended maximum 100MB for a saved model).
 2) Convert model to TensorflowJS (TFJS).
-Tensorflow models are straigthforward to convert to TFJS, however PyTorch require some additional work.
-The TFJS model convertion needs to compile successfully and the converted model needs to perform inference without errors.
-3) Prepare a configuration json file as follows:
+Tensorflow models are straigthforward to convert to TFJS, however PyTorch models require additional work.
+3) Test a sample inference on the converted model.
+4) Prepare a configuration json file as follows:
 {
 	"classNames": ["Array that", "contains", "the names of the classes"],
 	"exampleDataURL": "Optional: url or local file of an example data of this model",
@@ -30,7 +30,7 @@ The TFJS model convertion needs to compile successfully and the converted model 
 	"name": "name of the configuration (e.g. indicate imaging modality and disease)",
 	"projectURL": "Optional: url of the project that has created the model"
 }
-4) Test your configuration on a local server by using the local links in the configuration json file.
-5) Upload the model (model.json and shard files) and the example data on a file server (e.g. GitHub, AWS etc.).
-5) Update your configuration json file with url.
-6) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw url of your configuration json file.
+5) Test the configuration on a local server by using the local links in the configuration json file.
+6) Upload the model (model.json and shard files) and the example data on a file server (e.g. GitHub, AWS etc.).
+7) Update the configuration json file with the url links.
+8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw url of the configuration json file.

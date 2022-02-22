@@ -32,10 +32,9 @@ function loadImages() {
 					});
 			});
 	}
-	document.getElementById('spanRowsXColumns').textContent = `${rows}x${columns}`;
 }
 
-function loadMasks() {
+function loadOutput() {
 	const file = event.currentTarget.files[0];
 	if (file == undefined) {
 		return;
@@ -155,7 +154,7 @@ async function train() {
 	});
 }
 
-function saveMasks() {
+function saveOutput() {
 	if (files == undefined) {
 		return;
 	}
@@ -298,12 +297,10 @@ async function selectModelName() {
 		canvasMask.style.display = 'none';
 		canvasBrush.style.display = 'none';
 		divBrushSize.style.display = 'none';
-		buttonSaveMasks.style.display = 'none';
 	} else if (configSelected.machineLearningType == 'image segmentation') {
 		canvasMask.style.display = '';
 		canvasBrush.style.display = '';
 		divBrushSize.style.display = '';
-		buttonSaveMasks.style.display = '';
 	}
 
 	await fetch(selectModel.value)
@@ -329,10 +326,18 @@ async function selectModelName() {
 	document.getElementById('spanModelOutputShape').textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		document.getElementById('spanModelTrainable').textContent = 'True';
-		document.getElementById('buttonTrain').display = 'none';
+		document.getElementById('buttonTrain').style.display = '';
+		document.getElementById('divNumEpochs').style.display = '';
+		document.getElementById('divCurrentEpoch').style.display = '';
+		document.getElementById('divLoss').style.display = '';
+		document.getElementById('divAccuracy').style.display = '';
 	} else {
 		document.getElementById('spanModelTrainable').textContent = 'False';
-		document.getElementById('buttonTrain').display = '';
+		document.getElementById('buttonTrain').style.display = 'none';
+		document.getElementById('divNumEpochs').style.display = 'none';
+		document.getElementById('divCurrentEpoch').style.display = 'none';
+		document.getElementById('divLoss').style.display = 'none';
+		document.getElementById('divAccuracy').style.display = 'none';
 	}
 	document.getElementById('divLabelList').textContent = '';
 	resetView();
@@ -480,7 +485,6 @@ const contextBrush = canvasBrush.getContext('2d');
 const contextImage = canvasImage.getContext('2d');
 const contextMask = canvasMask.getContext('2d');
 const divBrushSize = document.getElementById('divBrushSize');
-const buttonSaveMasks = document.getElementById('buttonSaveMasks');
 const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
 const selectModel = document.getElementById('selectModel');
 
