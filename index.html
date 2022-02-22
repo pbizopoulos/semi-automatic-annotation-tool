@@ -1,21 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>Machine Learning in the Browser</title>
-		<meta charset="UTF-8">
+		<meta charset="UTF-8"/>
+		<title>Web-based Machine Learning</title>
 		<link href="data:" rel="icon">
-		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
 		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
+		<script defer src="script.js"></script>
 	</head>
+
 	<body>
-		<div id="divInputControl" style="border-style:groove;float:left;width:200px;">
-			<div><b>Model</b></div>
+		<div id="divControl" style="border-style:groove;float:left;width:200px;">
 			<div>
-				<select id="selectModel" style="width:100%;"></select>
-			</div>
-			<div>
-				<a id="aProjectURL">Project URL</a>.
+				Model: <select id="selectModel" onchange="selectModelName();" style="width:140px;">
+				</select>
 			</div>
 			<div id="divModelLoadFraction">0%</div>
 			<div>
@@ -27,37 +26,58 @@
 			<div>
 				Trainable: <span id="spanModelTrainable">NaN</span>
 			</div>
-			<hr>
-			<div><b>Data</b></div>
 			<div>
-				<button id="buttonLoadModelExampleData" type="button">Load model example data</button>
+				<button id="buttonPredictAndViewImage" onclick="predictAndViewImage()">Predict current image</button>
 			</div>
 			<div>
-				<input id="inputLoadData" type="file" multiple/>
+				<button id="buttonPredictAndViewAllImages" onclick="predictAndViewAllImages()">Predict all images</button>
 			</div>
-			<div>
-				File shape: <span id="spanFileShape">NaN</span>
-			</div>
-			<div>
-				File index: <span id="spanFileIndex">NaN</span>/<span id="spanNumberOfFiles">NaN</span>
+			<div id="divLabelList"></div>
+			<div id="divBrushSize">
+				Brush size:
+				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="simpleDraw()">
 			</div>
 			<hr>
-			<div><b>Results</b></div>
 			<div>
-				<button id="buttonPredict" type="button">Predict</button>
+				<b>Input</b>
 			</div>
-			<div id="divCheckboxShowMask" style="display:none;">
-				<input id="checkboxShowMask" type="checkbox" checked>Show Mask</button>
+			<div>
+				<input type="file" id="inputFile" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
 			</div>
-			<div id="divResults"></div>
-			<div style="bottom:0;position:absolute;">
-				<a href="https://github.com/pbizopoulos/web-based-machine-learning">Source</a>.
+			<div>
+				<input type="file" id="inputFileMasks" onchange="loadMasks()"/>
+			</div>
+			<div>
+				Image index: <span id="spanImageIndex"></span>
+			</div>
+			<div>
+				RowsXColumns: <span id="spanRowsXColumns"></span>
+			</div>
+			<hr>
+			<div>
+				<b>View</b>
+			</div>
+			<div>
+				Min value: <span id="spanImageValueMin"></span>
+			</div>
+			<div>
+				Max value: <span id="spanImageValueMax"></span>
+			</div>
+			<div>
+				<button id="buttonResetView" onclick="resetView()">Reset view</button>
+			</div>
+			<hr>
+			<div>
+				<b>Output</b>
+			</div>
+			<div>
+				<button id="buttonSaveMasks" onclick="saveMasks()">Save masks</button>
 			</div>
 		</div>
-		<div id="divInput" style="border-style:groove;float:left;height:512px;width:512px;">
-			<canvas id="canvasImage" style="position:absolute;"></canvas>
-			<canvas id="canvasMask" style="position:absolute;"></canvas>
+		<div id="divCanvases">
+			<canvas id="canvasImage" width="512" height="512" style="position:absolute;"></canvas>
+			<canvas id="canvasMask" width="512" height="512" style="position:absolute;opacity:0.5;"></canvas>
+			<canvas id="canvasBrush" width="512" height="512" style="position:absolute;opacity:0.5;"></canvas>
 		</div>
-		<script src="script.js"></script>
 	</body>
 </html>
