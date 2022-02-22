@@ -7,7 +7,6 @@ function loadImages() {
 		disableUI(false);
 		return;
 	}
-	resetData();
 	if (files[0].name.includes('.nii')) {
 		fileName = files[0].name.split('.nii')[0];
 		readNiiFile(files[0]);
@@ -32,6 +31,7 @@ function loadImages() {
 					});
 			});
 	}
+	resetData();
 }
 
 function loadOutput() {
@@ -117,6 +117,7 @@ function predictAndViewAllImages() {
 }
 
 async function train() {
+	disableUI(true);
 	const imageOffset = imageSize * imageIndex;
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
@@ -152,6 +153,7 @@ async function train() {
 			})
 		]
 	});
+	disableUI(false);
 }
 
 function saveOutput() {
@@ -408,6 +410,8 @@ function saveData(data, fileName) {
 }
 
 function resetData() {
+	document.getElementById('inputFile').value = '';
+	document.getElementById('inputLoadOutput').value = '';
 	columns = 512;
 	currentLabel = 1;
 	decompressedFile = null;
