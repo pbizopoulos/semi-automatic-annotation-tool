@@ -117,6 +117,44 @@ function predictAndViewAllImages() {
 	}
 }
 
+async function train() {
+	const imageOffset = imageSize * imageIndex;
+	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
+	imageSlice = new Float32Array(imageSlice);
+	let tensor = tf.tensor(imageSlice);
+	tensor = tf.reshape(tensor, [rows, columns]);
+	const modelInputShape = model.inputs[0].shape.filter(x => x>3);
+	tensor = tensor.expandDims(-1);
+	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
+	const tensorMax = tensor.max();
+	const tensorMin = tensor.min();
+	tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
+	let preProcessedImage;
+	if (configSelected.machineLearningType == 'image segmentation') {
+		preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
+	} else if (configSelected.machineLearningType == 'image classification') {
+		preProcessedImage = tensor.expandDims(0);
+	}
+	model.compile({
+		optimizer: 'adam',
+		loss: 'categoricalCrossentropy',
+		metrics: ['accuracy'],
+	});
+	let output = tf.tensor([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+	await model.fit(preProcessedImage, output.expandDims(0), {
+		epochs: document.getElementById('inputNumEpochs').value,
+		callbacks: [
+			new tf.CustomCallback({
+				onEpochEnd: (epoch, logs) => {
+					document.getElementById('spanCurrentEpoch').textContent = epoch;
+					document.getElementById('spanLoss').textContent = logs.loss;
+					document.getElementById('spanAccuracy').textContent = logs.acc;
+				}
+			})
+		]
+	});
+}
+
 function saveMasks() {
 	if (files == undefined) {
 		return;
@@ -289,10 +327,12 @@ async function selectModelName() {
 	document.getElementById('divModelLoadFraction').textContent = 'Model loaded.';
 	document.getElementById('spanModelInputShape').textContent = model.inputs[0].shape;
 	document.getElementById('spanModelOutputShape').textContent = model.outputs[0].shape;
-	if (model.trainable_) {
+	if (model.trainable) {
 		document.getElementById('spanModelTrainable').textContent = 'True';
+		document.getElementById('buttonTrain').display = 'none';
 	} else {
 		document.getElementById('spanModelTrainable').textContent = 'False';
+		document.getElementById('buttonTrain').display = '';
 	}
 	document.getElementById('divLabelList').textContent = '';
 	resetView();
@@ -306,16 +346,16 @@ async function selectModelName() {
 	disableUI(false);
 }
 
-function predictImage() {
+async function predictImage() {
 	const imageOffset = imageSize * imageIndex;
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
 		let tensor = tf.tensor(imageSlice);
 		tensor = tf.reshape(tensor, [rows, columns]);
-		const modelInput = model.inputs[0].shape.filter(x => x>3);
+		const modelInputShape = model.inputs[0].shape.filter(x => x>3);
 		tensor = tensor.expandDims(-1);
-		tensor = tf.image.resizeBilinear(tensor, modelInput);
+		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 		const tensorMax = tensor.max();
 		const tensorMin = tensor.min();
 		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));

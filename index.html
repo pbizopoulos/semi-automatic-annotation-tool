@@ -13,7 +13,10 @@
 	<body>
 		<div id="divControl" style="border-style:groove;float:left;width:200px;">
 			<div>
-				Model: <select id="selectModel" onchange="selectModelName();" style="width:140px;">
+				<b>Model</b>
+			</div>
+			<div>
+				<select id="selectModel" onchange="selectModelName();" style="width:100%;">
 				</select>
 			</div>
 			<div id="divModelLoadFraction">0%</div>
@@ -22,9 +25,6 @@
 			</div>
 			<div>
 				Output shape: <span id="spanModelOutputShape">NaN</span>
-			</div>
-			<div>
-				Trainable: <span id="spanModelTrainable">NaN</span>
 			</div>
 			<div>
 				<button id="buttonPredictAndViewImage" onclick="predictAndViewImage()">Predict current image</button>
@@ -36,6 +36,31 @@
 			<div id="divBrushSize">
 				Brush size:
 				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="simpleDraw()">
+			</div>
+			<div>
+				<button id="buttonSaveMasks" onclick="saveMasks()">Save masks</button>
+			</div>
+			<hr>
+			<div>
+				<b>Training</b>
+			</div>
+			<div>
+				Trainable: <span id="spanModelTrainable">NaN</span>
+			</div>
+			<div>
+				<button id="buttonTrain" onclick="train()">Train</button>
+			</div>
+			<div>
+				Epochs: <input type="number" id="inputNumEpochs" value=10 style="width:20%;">
+			</div>
+			<div>
+				Current epoch: <span id="spanCurrentEpoch"></span>
+			</div>
+			<div>
+				Loss: <span id="spanLoss"></span>
+			</div>
+			<div>
+				Accuracy: <span id="spanAccuracy"></span>
 			</div>
 			<hr>
 			<div>
@@ -67,12 +92,6 @@
 				<button id="buttonResetView" onclick="resetView()">Reset view</button>
 			</div>
 			<hr>
-			<div>
-				<b>Output</b>
-			</div>
-			<div>
-				<button id="buttonSaveMasks" onclick="saveMasks()">Save masks</button>
-			</div>
 		</div>
 		<div id="divCanvases">
 			<canvas id="canvasImage" width="512" height="512" style="position:absolute;"></canvas>
