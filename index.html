@@ -38,7 +38,7 @@
 				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="simpleDraw()">
 			</div>
 			<div>
-				<button id="buttonSaveOutput" onclick="saveOutput()">Save Output</button>
+				<button id="buttonSaveOutputToDisk" onclick="saveOutputToDisk()">Save Output to Disk</button>
 			</div>
 			<hr>
 			<div>
@@ -61,6 +61,9 @@
 			</div>
 			<div id="divAccuracy">
 				Accuracy: <span id="spanAccuracy"></span>
+			</div>
+			<div>
+				<button id="buttonSaveModelToDisk" onclick="saveModelToDisk()">Save model to disk</button>
 			</div>
 			<hr>
 			<div>

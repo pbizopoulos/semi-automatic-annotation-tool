@@ -67,9 +67,15 @@ function addLabel(labelText) {
 	divLabelColor.style.float = 'left';
 	divLabelColor.id = `divLabelColor${numLabels}`;
 	divLabelColor.onclick = function (event) {
-		document.getElementById(`divLabelColor${currentLabel}`).style.opacity = 0.3;
+		const nodeList = document.querySelectorAll('*[id^="divLabelColor"]')
+		for (let i = 0; i < nodeList.length; i++) {
+			  nodeList[i].style.opacity = 0.3;
+		}
 		event.currentTarget.style.opacity = 1;
 		currentLabel = parseInt(event.currentTarget.id.match(/\d+/)[0]);
+		if (configSelected.machineLearningType == 'image classification') {
+			classes[imageIndex] = currentLabel;
+		}
 		visualizeImageDataMask();
 	};
 	divLabel.appendChild(divLabelColor);
@@ -156,7 +162,11 @@ async function train() {
 	disableUI(false);
 }
 
-function saveOutput() {
+async function saveModelToDisk() {
+	const saveResults = await model.save('downloads://saved-model');
+}
+
+function saveOutputToDisk() {
 	if (files == undefined) {
 		return;
 	}
@@ -217,7 +227,6 @@ function readNiiFile(file) {
 				default:
 					return;
 			}
-			masks = new Uint8Array(images.length);
 			numImages = niftiHeader.dims[3] - 1;
 			imageIndex = 0;
 			rows = niftiHeader.dims[2];
@@ -225,10 +234,15 @@ function readNiiFile(file) {
 			imageSize = rows * columns;
 			canvasImage.height = rows;
 			canvasImage.width = columns;
-			canvasMask.height = rows;
-			canvasMask.width = columns;
-			canvasBrush.height = rows;
-			canvasBrush.width = columns;
+			if (configSelected.machineLearningType == 'image segmentation') {
+				canvasMask.height = rows;
+				canvasMask.width = columns;
+				canvasBrush.height = rows;
+				canvasBrush.width = columns;
+				masks = new Uint8Array(images.length);
+			} else if (configSelected.machineLearningType == 'image classification') {
+				classes = classes.slice(0, numImages+1);
+			}
 			updateUI();
 			resetView();
 		}
@@ -530,6 +544,8 @@ document.getElementById('divCanvases').addEventListener('wheel', function (event
 	} else {
 		return;
 	}
+	currentLabel = classes[imageIndex];
+	document.getElementById(`divLabelColor${currentLabel}`).click();
 	imageOffset = imageSize * imageIndex;
 	updateUI();
 	drawCanvas();
@@ -594,6 +610,7 @@ let valueRangeActivated = false;
 let imageSize = rows * columns;
 let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
+let classes = new Uint8Array(1000).fill(1); // tmp hardcoded max value, remove later
 for (let i = 1; i < hexValueList.length; i++) {
 	labelsColormap[i] = hexToRgb(hexValueList[i]);
 }
