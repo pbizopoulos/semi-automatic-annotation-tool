@@ -31,7 +31,6 @@ function loadImages() {
 					});
 			});
 	}
-	resetData();
 }
 
 function loadOutput() {
@@ -44,8 +43,10 @@ function loadOutput() {
 		if (event.target.readyState === FileReader.DONE) {
 			const niftiHeader = nifti.readHeader(event.target.result);
 			const niftiImage = nifti.readImage(niftiHeader, event.target.result);
+			if (configSelected.machineLearningType == 'image segmentation') {
 			masks = new Uint8Array(niftiImage);
 			drawCanvas();
+			}
 		}
 		disableUI(false);
 	};
@@ -76,7 +77,10 @@ function addLabel(labelText) {
 		if (configSelected.machineLearningType == 'image classification') {
 			classes[imageIndex] = currentLabel;
 		}
-		visualizeImageDataMask();
+
+		if (configSelected.machineLearningType == 'image segmentation') {
+			visualizeImageDataMask();
+		}
 	};
 	divLabel.appendChild(divLabelColor);
 	const divLabelText = document.createElement('text');
@@ -106,7 +110,7 @@ function resetView() {
 	imageValueRange = (max - min) / 255;
 	document.getElementById('spanImageValueMin').textContent = Math.round(min);
 	document.getElementById('spanImageValueMax').textContent = Math.round(max);
-	requestAnimationFrame(drawCanvas);
+	drawCanvas();
 }
 
 function predictAndViewImage() {
@@ -124,30 +128,27 @@ function predictAndViewAllImages() {
 
 async function train() {
 	disableUI(true);
-	const imageOffset = imageSize * imageIndex;
-	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
-	imageSlice = new Float32Array(imageSlice);
-	let tensor = tf.tensor(imageSlice);
-	tensor = tf.reshape(tensor, [rows, columns]);
-	const modelInputShape = model.inputs[0].shape.filter(x => x>3);
+	let tensor = tf.tensor(images).reshape([numImages + 1, rows, columns]);
 	tensor = tensor.expandDims(-1);
 	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 	const tensorMax = tensor.max();
 	const tensorMin = tensor.min();
 	tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
 	let preProcessedImage;
+	let output;
 	if (configSelected.machineLearningType == 'image segmentation') {
 		preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
+		output = tf.tensor(masks);
 	} else if (configSelected.machineLearningType == 'image classification') {
-		preProcessedImage = tensor.expandDims(0);
+		preProcessedImage = tensor;
+		output = tf.oneHot(classes, numLabels);
 	}
 	model.compile({
 		optimizer: 'adam',
 		loss: 'categoricalCrossentropy',
 		metrics: ['accuracy'],
 	});
-	let output = tf.tensor([0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	await model.fit(preProcessedImage, output.expandDims(0), {
+	await model.fit(preProcessedImage, output, {
 		epochs: document.getElementById('inputNumEpochs').value,
 		callbacks: [
 			new tf.CustomCallback({
@@ -163,7 +164,11 @@ async function train() {
 }
 
 async function saveModelToDisk() {
-	const saveResults = await model.save('downloads://saved-model');
+	await model.save('downloads://saved-model');
+}
+
+async function uploadModelToServer() {
+	await model.save('http://172.17.0.2:5000/upload');
 }
 
 function saveOutputToDisk() {
@@ -253,8 +258,10 @@ function readNiiFile(file) {
 
 function drawCanvas() {
 	visualizeImageDataImage();
-	visualizeImageDataMask();
-	draw(offsetX, offsetY);
+	if (configSelected.machineLearningType == 'image segmentation') {
+		visualizeImageDataMask();
+		draw(offsetX, offsetY);
+	}
 }
 
 function visualizeImageDataImage() {
@@ -280,11 +287,13 @@ function visualizeImageDataMask() {
 	const imageDataMask = new ImageData(columns, rows);
 	for (let i = 0; i < imageSize; i++) {
 		const maskValue = masks[imageOffset + i];
+		imageDataMask.data[4*i] = labelsColormap[maskValue][0];
+		imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
+		imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
 		if (maskValue > 0) {
-			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
-			imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
-			imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
 			imageDataMask.data[4*i + 3] = 255;
+		} else {
+			imageDataMask.data[4*i + 3] = 0;
 		}
 	}
 	contextMask.putImageData(imageDataMask, 0, 0);
@@ -337,8 +346,15 @@ async function selectModelName() {
 			disableUI(true);
 		}
 	});
+	modelInputShape = model.inputs[0].shape.filter(x => x>3);
+	canvasImage.width = modelInputShape[0];
+	canvasImage.height = modelInputShape[1];
+	canvasMask.width = modelInputShape[0];
+	canvasMask.height = modelInputShape[1];
+	canvasBrush.width = modelInputShape[0];
+	canvasBrush.height = modelInputShape[1];
 	document.getElementById('divModelLoadFraction').textContent = 'Model loaded.';
-	document.getElementById('spanModelInputShape').textContent = model.inputs[0].shape;
+	document.getElementById('spanModelInputShape').textContent = modelInputShape;
 	document.getElementById('spanModelOutputShape').textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		document.getElementById('spanModelTrainable').textContent = 'True';
@@ -347,6 +363,7 @@ async function selectModelName() {
 		document.getElementById('divCurrentEpoch').style.display = '';
 		document.getElementById('divLoss').style.display = '';
 		document.getElementById('divAccuracy').style.display = '';
+		document.getElementById('buttonSaveModelToDisk').style.display = '';
 	} else {
 		document.getElementById('spanModelTrainable').textContent = 'False';
 		document.getElementById('buttonTrain').style.display = 'none';
@@ -354,15 +371,14 @@ async function selectModelName() {
 		document.getElementById('divCurrentEpoch').style.display = 'none';
 		document.getElementById('divLoss').style.display = 'none';
 		document.getElementById('divAccuracy').style.display = 'none';
+		document.getElementById('buttonSaveModelToDisk').style.display = 'none';
 	}
 	document.getElementById('divLabelList').textContent = '';
 	resetView();
 	resetData();
 	updateUI();
 	for (const labelText of configSelected.classNames) {
-		if (labelText != "None") { // remove after updating the protocol
-			addLabel(labelText);
-		}
+		addLabel(labelText);
 	}
 	disableUI(false);
 }
@@ -374,7 +390,6 @@ async function predictImage() {
 	tf.tidy(() => {
 		let tensor = tf.tensor(imageSlice);
 		tensor = tf.reshape(tensor, [rows, columns]);
-		const modelInputShape = model.inputs[0].shape.filter(x => x>3);
 		tensor = tensor.expandDims(-1);
 		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 		const tensorMax = tensor.max();
@@ -404,11 +419,9 @@ async function predictImage() {
 			console.log(classProbabilities[0]);
 		}
 	});
-	visualizeImageDataMask();
-}
-
-function simpleDraw() {
-	draw(offsetX, offsetY);
+	if (configSelected.machineLearningType == 'image segmentation') {
+		visualizeImageDataMask();
+	}
 }
 
 function saveData(data, fileName) {
@@ -426,8 +439,8 @@ function saveData(data, fileName) {
 function resetData() {
 	document.getElementById('inputFile').value = '';
 	document.getElementById('inputLoadOutput').value = '';
-	columns = 512;
-	currentLabel = 1;
+	columns;
+	currentLabel = 0;
 	decompressedFile = null;
 	imageIndex = 0;
 	imageOffset = 0;
@@ -437,8 +450,8 @@ function resetData() {
 	images = new Uint8Array(imageSize);
 	masks = new Uint8Array(imageSize);
 	numImages = 0;
-	numLabels = 1;
-	rows = 512;
+	numLabels = 0;
+	rows;
 }
 
 function draw(offsetX, offsetY) {
@@ -450,14 +463,10 @@ function draw(offsetX, offsetY) {
 	const imageDataBrush = contextBrush.getImageData(0, 0, columns, rows);
 	contextBrush.putImageData(imageDataBrush, 0, 0);
 	if (drawActivated) {
-		let currentLabelTmp = currentLabel;
-		if (eraseActivated) {
-			currentLabelTmp = 0;
-		}
 		const imageOffset = imageSize * imageIndex;
 		for (let i = 0; i < imageDataBrush.data.length; i += 4) {
 			if (imageDataBrush.data[i] > 0) {
-				masks[imageOffset + i / 4] = currentLabelTmp;
+				masks[imageOffset + i / 4] = currentLabel;
 			}
 		}
 		visualizeImageDataMask();
@@ -472,7 +481,7 @@ function hexToRgb(hex) {
 }
 
 const hexValueList = [
-	null,
+	'#FFFFFF',
 	'#1f77b4',
 	'#aec7e8',
 	'#ff7f0e',
@@ -512,7 +521,6 @@ canvasBrush.addEventListener('mousedown', (event) => {
 	} else if (event.button === 1) {
 		valueRangeActivated = true;
 	} else if (event.button === 2 && !event.ctrlKey) {
-		eraseActivated = true;
 		drawActivated = true;
 	}
 });
@@ -525,21 +533,20 @@ canvasBrush.addEventListener('mousemove', (event) => {
 		imageValueRange = rangeTmp;
 		document.getElementById('spanImageValueMin').textContent = Math.round(imageValueMin);
 		document.getElementById('spanImageValueMax').textContent = Math.round(imageValueRange + rangeTmp);
-		requestAnimationFrame(drawCanvas);
 	} else {
 		offsetX = event.offsetX;
 		offsetY = event.offsetY;
-		requestAnimationFrame(simpleDraw);
 	}
+	requestAnimationFrame(drawCanvas);
 });
 
 window.addEventListener('contextmenu', function (event) {
 	event.preventDefault();
 }, false);
-document.getElementById('divCanvases').addEventListener('wheel', function (event) {
-	if (event.deltaY > 0 && (imageIndex > 0)) {
+window.addEventListener('keydown', function (event) {
+	if (event.code == 'ArrowUp' && (imageIndex > 0)) {
 		imageIndex--;
-	} else if (event.deltaY < 0 && (imageIndex < numImages)) {
+	} else if (event.code == 'ArrowDown' && (imageIndex < numImages)) {
 		imageIndex++;
 	} else {
 		return;
@@ -552,12 +559,10 @@ document.getElementById('divCanvases').addEventListener('wheel', function (event
 });
 window.addEventListener('mouseleave', () => {
 	drawActivated = false;
-	eraseActivated = false;
 	valueRangeActivated = false;
 });
 window.addEventListener('mouseup', () => {
 	drawActivated = false;
-	eraseActivated = false;
 	valueRangeActivated = false;
 });
 
@@ -573,7 +578,6 @@ async function initialize() {
 				selectModel.appendChild(option);
 			})
 	}
-	resetView();
 	resetData();
 	updateUI();
 	selectModelName();
@@ -585,33 +589,33 @@ const configURLarray = [
 	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/wbml/lung-classification.json',
 ]
 
-let columns;
+let columns = 1;
 let configArray = [];
 let configSelected;
-let currentLabel = 1;
+let currentLabel = 0;
 let decompressedFile;
 let drawActivated = false;
-let eraseActivated = false;
 let fileName;
 let files;
 let imageIndex;
 let imageOffset;
 let imageValueMin;
 let imageValueRange;
-let labelsColormap = [ null ];
+let labelsColormap = [];
 let model;
 let numImages;
-let numLabels = 1;
+let numLabels = 0;
 let offsetX = undefined;
 let offsetY = undefined;
-let rows;
+let rows = 1;
 let valueRangeActivated = false;
+let modelInputShape;
 
 let imageSize = rows * columns;
 let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
 let classes = new Uint8Array(1000).fill(1); // tmp hardcoded max value, remove later
-for (let i = 1; i < hexValueList.length; i++) {
+for (let i = 0; i < hexValueList.length; i++) {
 	labelsColormap[i] = hexToRgb(hexValueList[i]);
 }
 

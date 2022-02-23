@@ -1,0 +1,9 @@
+# Makefile requirements
+autoflake
+autopep8
+coverage
+isort
+
+# document requirements
+Flask-Cors==3.0.10
+tensorflowjs==3.13.0
