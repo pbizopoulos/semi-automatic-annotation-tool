@@ -53,19 +53,18 @@ function resetView() {
 	const imageOffset = imageSize * imageCurrentIndex;
 	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	let max = -Infinity;
-	let min = Infinity;
+	imageValueMin = Infinity;
 	for (let i = 0; i < imageSlice.length; i++) {
 		if (imageSlice[i] > max) {
 			max = imageSlice[i];
 		}
-		if (imageSlice[i] < min) {
-			min = imageSlice[i];
+		if (imageSlice[i] < imageValueMin) {
+			imageValueMin = imageSlice[i];
 		}
 	}
-	imageValueMin = min;
-	imageValueRange = (max - min) / 255;
+	imageValueRange = (max - imageValueMin) / 255;
 	spanImageValueMax.textContent = Math.round(max);
-	spanImageValueMin.textContent = Math.round(min);
+	spanImageValueMin.textContent = Math.round(imageValueMin);
 	drawCanvas();
 }
 
@@ -501,13 +500,13 @@ canvasBrush.addEventListener('mousedown', (event) => {
 
 canvasBrush.addEventListener('mousemove', (event) => {
 	if (valueRangeActivated) {
-		let rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
+		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
 		let midTmp = imageValueMin + imageValueRange / 2;
 		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
 		imageValueMin = midTmp - rangeTmp / 2;
 		imageValueRange = rangeTmp;
+		spanImageValueMax.textContent = Math.round(2*imageValueRange);
 		spanImageValueMin.textContent = Math.round(imageValueMin);
-		spanImageValueMax.textContent = Math.round(imageValueRange + rangeTmp);
 	} else {
 		offsetX = event.offsetX;
 		offsetY = event.offsetY;
