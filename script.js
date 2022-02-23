@@ -8,26 +8,23 @@ function loadImages() {
 		return;
 	}
 	if (files[0].name.includes('.nii')) {
-		fileName = files[0].name.split('.nii')[0];
-		readNiiFile(files[0]);
+		readNiftiFile(files[0]);
 	} else if (files[0].name.includes('.dcm')) {
-		fileName = files[0].name;
 		itk.readImageDICOMFileSeries(files)
 			.then(function ({ image }) {
 				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
-						readNiiFile(blob);
+						readNiftiFile(blob);
 					});
 			});
 	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
-		fileName = files[0].name;
 		itk.readImageFileSeries(files)
 			.then(function ({ image }) {
 				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
-						readNiiFile(blob);
+						readNiftiFile(blob);
 					});
 			});
 	}
@@ -41,56 +38,15 @@ function loadOutput() {
 	const reader = new FileReader();
 	reader.onloadend = function (event) {
 		if (event.target.readyState === FileReader.DONE) {
-			const niftiHeader = nifti.readHeader(event.target.result);
-			const niftiImage = nifti.readImage(niftiHeader, event.target.result);
 			if (configSelected.machineLearningType == 'image segmentation') {
-			masks = new Uint8Array(niftiImage);
-			drawCanvas();
+				const niftiHeader = nifti.readHeader(event.target.result);
+				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
+				masks = new Uint8Array(niftiImage);
+				drawCanvas();
 			}
 		}
-		disableUI(false);
 	};
 	reader.readAsArrayBuffer(file);
-}
-
-function addLabel(labelText) {
-	if (numLabels >= maxNumLabels) {
-		return;
-	}
-	const divLabel = document.createElement('div');
-	divLabel.id = `divLabel${numLabels}`;
-	document.getElementById('divLabelList').appendChild(divLabel);
-	const divLabelColor = document.createElement('div');
-	divLabelColor.style.height = '15px';
-	divLabelColor.style.width = '15px';
-	divLabelColor.style.opacity = 0.3;
-	divLabelColor.style.backgroundColor = hexValueList[numLabels];
-	divLabelColor.style.float = 'left';
-	divLabelColor.id = `divLabelColor${numLabels}`;
-	divLabelColor.onclick = function (event) {
-		const nodeList = document.querySelectorAll('*[id^="divLabelColor"]')
-		for (let i = 0; i < nodeList.length; i++) {
-			  nodeList[i].style.opacity = 0.3;
-		}
-		event.currentTarget.style.opacity = 1;
-		currentLabel = parseInt(event.currentTarget.id.match(/\d+/)[0]);
-		if (configSelected.machineLearningType == 'image classification') {
-			classes[imageIndex] = currentLabel;
-		}
-
-		if (configSelected.machineLearningType == 'image segmentation') {
-			visualizeImageDataMask();
-		}
-	};
-	divLabel.appendChild(divLabelColor);
-	const divLabelText = document.createElement('text');
-	divLabelText.textContent = labelText;
-	divLabelText.style.right = '50%';
-	divLabelText.style.width = '30%';
-	divLabelText.id = `divLabelText${numLabels}`;
-	divLabel.appendChild(divLabelText);
-	divLabelColor.click();
-	numLabels++;
 }
 
 function resetView() {
@@ -108,8 +64,8 @@ function resetView() {
 	}
 	imageValueMin = min;
 	imageValueRange = (max - min) / 255;
-	document.getElementById('spanImageValueMin').textContent = Math.round(min);
-	document.getElementById('spanImageValueMax').textContent = Math.round(max);
+	spanImageValueMax.textContent = Math.round(max);
+	spanImageValueMin.textContent = Math.round(min);
 	drawCanvas();
 }
 
@@ -141,7 +97,7 @@ async function train() {
 		output = tf.tensor(masks);
 	} else if (configSelected.machineLearningType == 'image classification') {
 		preProcessedImage = tensor;
-		output = tf.oneHot(classes, numLabels);
+		output = tf.oneHot(classes, configSelected.classNames.length);
 	}
 	model.compile({
 		optimizer: 'adam',
@@ -177,10 +133,10 @@ function saveOutputToDisk() {
 	}
 	const niftiHeaderTmp = decompressedFile.slice(0, 352);
 	const data = [new Uint8Array(niftiHeaderTmp, 0, niftiHeaderTmp.length), new Uint8Array(masks.buffer, 0, masks.buffer.length)];
-	saveData(data, `${fileName}-masks.nii`);
+	saveData(data, 'masks.nii');
 }
 
-function readNiiFile(file) {
+function readNiftiFile(file) {
 	const reader = new FileReader();
 	reader.onloadend = function (event) {
 		if (event.target.readyState === FileReader.DONE) {
@@ -248,7 +204,8 @@ function readNiiFile(file) {
 			} else if (configSelected.machineLearningType == 'image classification') {
 				classes = classes.slice(0, numImages+1);
 			}
-			updateUI();
+			spanImageIndex.textContent = `${imageIndex}/${numImages}`;
+			spanRowsXColumns.textContent = `${rows}x${columns}`;
 			resetView();
 		}
 		disableUI(false);
@@ -257,14 +214,6 @@ function readNiiFile(file) {
 }
 
 function drawCanvas() {
-	visualizeImageDataImage();
-	if (configSelected.machineLearningType == 'image segmentation') {
-		visualizeImageDataMask();
-		draw(offsetX, offsetY);
-	}
-}
-
-function visualizeImageDataImage() {
 	const imageOffset = imageSize * imageIndex;
 	const imageDataImage = new ImageData(columns, rows);
 	for (let i = 0; i < rows; i++) {
@@ -280,23 +229,37 @@ function visualizeImageDataImage() {
 		}
 	}
 	contextImage.putImageData(imageDataImage, 0, 0);
-}
-
-function visualizeImageDataMask() {
-	const imageOffset = imageSize * imageIndex;
-	const imageDataMask = new ImageData(columns, rows);
-	for (let i = 0; i < imageSize; i++) {
-		const maskValue = masks[imageOffset + i];
-		imageDataMask.data[4*i] = labelsColormap[maskValue][0];
-		imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
-		imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
-		if (maskValue > 0) {
-			imageDataMask.data[4*i + 3] = 255;
-		} else {
-			imageDataMask.data[4*i + 3] = 0;
+	if (configSelected.machineLearningType == 'image segmentation') {
+		contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
+		contextBrush.fillStyle = `rgb(${labelsColormap[currentLabel]})`;
+		contextBrush.beginPath();
+		contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
+		contextBrush.fill();
+		const imageDataBrush = contextBrush.getImageData(0, 0, columns, rows);
+		contextBrush.putImageData(imageDataBrush, 0, 0);
+		if (drawActivated) {
+			for (let i = 0; i < imageDataBrush.data.length; i += 4) {
+				if (imageDataBrush.data[i] > 0) {
+					masks[imageOffset + i / 4] = currentLabel;
+				}
+			}
 		}
+		contextBrush.drawImage(canvasBrush, 0, 0);
+		contextMask.drawImage(canvasMask, 0, 0);
+		const imageDataMask = new ImageData(columns, rows);
+		for (let i = 0; i < imageSize; i++) {
+			const maskValue = masks[imageOffset + i];
+			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
+			imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
+			imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
+			if (maskValue > 0) {
+				imageDataMask.data[4*i + 3] = 255;
+			} else {
+				imageDataMask.data[4*i + 3] = 0;
+			}
+		}
+		contextMask.putImageData(imageDataMask, 0, 0);
 	}
-	contextMask.putImageData(imageDataMask, 0, 0);
 }
 
 function disableUI(argument) {
@@ -306,16 +269,27 @@ function disableUI(argument) {
 	}
 }
 
-function updateUI() {
-	document.getElementById('spanImageIndex').textContent = `${imageIndex}/${numImages}`;
-	document.getElementById('spanRowsXColumns').textContent = `${rows}x${columns}`;
-}
-
 async function selectModelName() {
+	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
 	contextImage.clearRect(0, 0, canvasImage.width, canvasImage.height);
 	contextMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
-	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-	document.getElementById('inputFile').value = '';
+	currentLabel = 0;
+	decompressedFile = null;
+	divLabelList.textContent = '';
+	imageIndex = 0;
+	imageOffset = 0;
+	imageSize = columns * rows;
+	imageValueMin = 0;
+	imageValueRange = 1;
+	images = new Uint8Array(imageSize);
+	inputFile.value = '';
+	inputLoadOutput.value = '';
+	masks = new Uint8Array(imageSize);
+	numImages = 0;
+	spanImageIndex.textContent = '';
+	spanImageValueMax.textContent = '';
+	spanImageValueMin.textContent = '';
+	spanRowsXColumns.textContent = '';
 	let loadModelFunction;
 	configSelected = configArray.find(config => config.modelURL == selectModel.value);
 	if (configSelected.machineLearningType == 'image classification') {
@@ -373,12 +347,35 @@ async function selectModelName() {
 		document.getElementById('divAccuracy').style.display = 'none';
 		document.getElementById('buttonSaveModelToDisk').style.display = 'none';
 	}
-	document.getElementById('divLabelList').textContent = '';
-	resetView();
-	resetData();
-	updateUI();
-	for (const labelText of configSelected.classNames) {
-		addLabel(labelText);
+	for (const [i, labelText] of configSelected.classNames.entries()) {
+		const divLabel = document.createElement('div');
+		divLabel.id = `divLabel${i}`;
+		document.getElementById('divLabelList').appendChild(divLabel);
+		const divLabelColor = document.createElement('div');
+		divLabelColor.id = `divLabelColor${i}`;
+		divLabelColor.style.backgroundColor = `rgb(${labelsColormap[i]})`;
+		divLabelColor.style.float = 'left';
+		divLabelColor.style.height = '15px';
+		divLabelColor.style.opacity = 0.3;
+		divLabelColor.style.width = '15px';
+		divLabelColor.onclick = function (event) {
+			const nodeList = document.querySelectorAll('*[id^="divLabelColor"]')
+			for (let i = 0; i < nodeList.length; i++) {
+				nodeList[i].style.opacity = 0.3;
+			}
+			event.currentTarget.style.opacity = 1;
+			currentLabel = parseInt(event.currentTarget.id.match(/\d+/)[0]);
+			if (configSelected.machineLearningType == 'image classification') {
+				classes[imageIndex] = currentLabel;
+			}
+		};
+		divLabel.appendChild(divLabelColor);
+		const divLabelText = document.createElement('text');
+		divLabelText.id = `divLabelText${i}`;
+		divLabelText.style.right = '50%';
+		divLabelText.style.width = '30%';
+		divLabelText.textContent = labelText;
+		divLabel.appendChild(divLabelText);
 	}
 	disableUI(false);
 }
@@ -419,9 +416,7 @@ async function predictImage() {
 			console.log(classProbabilities[0]);
 		}
 	});
-	if (configSelected.machineLearningType == 'image segmentation') {
-		visualizeImageDataMask();
-	}
+	drawCanvas();
 }
 
 function saveData(data, fileName) {
@@ -436,74 +431,29 @@ function saveData(data, fileName) {
 	window.URL.revokeObjectURL(url);
 }
 
-function resetData() {
-	document.getElementById('inputFile').value = '';
-	document.getElementById('inputLoadOutput').value = '';
-	columns;
-	currentLabel = 0;
-	decompressedFile = null;
-	imageIndex = 0;
-	imageOffset = 0;
-	imageSize = columns * rows;
-	imageValueMin = 0;
-	imageValueRange = 1;
-	images = new Uint8Array(imageSize);
-	masks = new Uint8Array(imageSize);
-	numImages = 0;
-	numLabels = 0;
-	rows;
-}
-
-function draw(offsetX, offsetY) {
-	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-	contextBrush.fillStyle = hexValueList[currentLabel];
-	contextBrush.beginPath();
-	contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
-	contextBrush.fill();
-	const imageDataBrush = contextBrush.getImageData(0, 0, columns, rows);
-	contextBrush.putImageData(imageDataBrush, 0, 0);
-	if (drawActivated) {
-		const imageOffset = imageSize * imageIndex;
-		for (let i = 0; i < imageDataBrush.data.length; i += 4) {
-			if (imageDataBrush.data[i] > 0) {
-				masks[imageOffset + i / 4] = currentLabel;
-			}
-		}
-		visualizeImageDataMask();
-	}
-	contextBrush.drawImage(canvasBrush, 0, 0);
-	contextMask.drawImage(canvasMask, 0, 0);
-}
-
-function hexToRgb(hex) {
-	const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-	return [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)];
-}
-
-const hexValueList = [
-	'#FFFFFF',
-	'#1f77b4',
-	'#aec7e8',
-	'#ff7f0e',
-	'#ffbb78',
-	'#2ca02c',
-	'#98df8a',
-	'#d62728',
-	'#ff9896',
-	'#9467bd',
-	'#c5b0d5',
-	'#8c564b',
-	'#c49c94',
-	'#e377c2',
-	'#f7b6d2',
-	'#7f7f7f',
-	'#c7c7c7',
-	'#bcbd22',
-	'#dbdb8d',
-	'#17becf',
-	'#9edae5',
+const labelsColormap = [
+	[ 255, 255, 255 ],
+	[ 31, 119, 180 ],
+	[ 174, 199, 232 ],
+	[ 255, 127, 14 ],
+	[ 255, 187, 120 ],
+	[ 44, 160, 44 ],
+	[ 152, 223, 138 ],
+	[ 214, 39, 40 ],
+	[ 255, 152, 150 ],
+	[ 148, 103, 189 ],
+	[ 197, 176, 213 ],
+	[ 140, 86, 75 ],
+	[ 196, 156, 148 ],
+	[ 227, 119, 194 ],
+	[ 247, 182, 210 ],
+	[ 127, 127, 127 ],
+	[ 199, 199, 199 ],
+	[ 188, 189, 34 ],
+	[ 219, 219, 141 ],
+	[ 23, 190, 207 ],
+	[ 158, 218, 229 ]
 ];
-const maxNumLabels = hexValueList.length - 1;
 
 const canvasBrush = document.getElementById('canvasBrush');
 const canvasImage = document.getElementById('canvasImage');
@@ -514,16 +464,22 @@ const contextMask = canvasMask.getContext('2d');
 const divBrushSize = document.getElementById('divBrushSize');
 const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
 const selectModel = document.getElementById('selectModel');
+const divLabelList = document.getElementById('divLabelList');
+const inputFile = document.getElementById('inputFile');
+const inputLoadOutput = document.getElementById('inputLoadOutput');
+const spanImageIndex = document.getElementById('spanImageIndex');
+const spanImageValueMax = document.getElementById('spanImageValueMax');
+const spanImageValueMin = document.getElementById('spanImageValueMin');
+const spanRowsXColumns = document.getElementById('spanRowsXColumns');
 
 canvasBrush.addEventListener('mousedown', (event) => {
-	if (event.button === 0 && !event.ctrlKey) {
+	if (event.button === 0) {
 		drawActivated = true;
-	} else if (event.button === 1) {
+	} else if (event.button === 2) {
 		valueRangeActivated = true;
-	} else if (event.button === 2 && !event.ctrlKey) {
-		drawActivated = true;
 	}
 });
+
 canvasBrush.addEventListener('mousemove', (event) => {
 	if (valueRangeActivated) {
 		let rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
@@ -531,8 +487,8 @@ canvasBrush.addEventListener('mousemove', (event) => {
 		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
 		imageValueMin = midTmp - rangeTmp / 2;
 		imageValueRange = rangeTmp;
-		document.getElementById('spanImageValueMin').textContent = Math.round(imageValueMin);
-		document.getElementById('spanImageValueMax').textContent = Math.round(imageValueRange + rangeTmp);
+		spanImageValueMin.textContent = Math.round(imageValueMin);
+		spanImageValueMax.textContent = Math.round(imageValueRange + rangeTmp);
 	} else {
 		offsetX = event.offsetX;
 		offsetY = event.offsetY;
@@ -553,35 +509,20 @@ window.addEventListener('keydown', function (event) {
 	}
 	currentLabel = classes[imageIndex];
 	document.getElementById(`divLabelColor${currentLabel}`).click();
-	imageOffset = imageSize * imageIndex;
-	updateUI();
+	spanImageIndex.textContent = `${imageIndex}/${numImages}`;
+	spanRowsXColumns.textContent = `${rows}x${columns}`;
 	drawCanvas();
 });
+
 window.addEventListener('mouseleave', () => {
 	drawActivated = false;
 	valueRangeActivated = false;
 });
+
 window.addEventListener('mouseup', () => {
 	drawActivated = false;
 	valueRangeActivated = false;
 });
-
-async function initialize() {
-	for (const [i, configURL] of configURLarray.entries()) {
-		await fetch(configURL)
-			.then(response => response.text())
-			.then((text) => {
-				configArray[i] = JSON.parse(text);
-				let option = document.createElement('option');
-				option.value = configArray[i].modelURL;
-				option.textContent = configArray[i].name;
-				selectModel.appendChild(option);
-			})
-	}
-	resetData();
-	updateUI();
-	selectModelName();
-}
 
 const configURLarray = [
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation.json',
@@ -595,18 +536,15 @@ let configSelected;
 let currentLabel = 0;
 let decompressedFile;
 let drawActivated = false;
-let fileName;
 let files;
 let imageIndex;
 let imageOffset;
 let imageValueMin;
 let imageValueRange;
-let labelsColormap = [];
 let model;
 let numImages;
-let numLabels = 0;
-let offsetX = undefined;
-let offsetY = undefined;
+let offsetX;
+let offsetY;
 let rows = 1;
 let valueRangeActivated = false;
 let modelInputShape;
@@ -615,8 +553,18 @@ let imageSize = rows * columns;
 let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
 let classes = new Uint8Array(1000).fill(1); // tmp hardcoded max value, remove later
-for (let i = 0; i < hexValueList.length; i++) {
-	labelsColormap[i] = hexToRgb(hexValueList[i]);
-}
 
-initialize();
+(async () => {
+	for (const [i, configURL] of configURLarray.entries()) {
+		await fetch(configURL)
+			.then(response => response.text())
+			.then((text) => {
+				configArray[i] = JSON.parse(text);
+				let option = document.createElement('option');
+				option.value = configArray[i].modelURL;
+				option.textContent = configArray[i].name;
+				selectModel.appendChild(option);
+			})
+	}
+	selectModelName();
+})();
