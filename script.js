@@ -105,13 +105,13 @@ async function train() {
 		metrics: ['accuracy'],
 	});
 	await model.fit(preProcessedImage, output, {
-		epochs: document.getElementById('inputNumEpochs').value,
+		epochs: inputNumEpochs.value,
 		callbacks: [
 			new tf.CustomCallback({
 				onEpochEnd: (epoch, logs) => {
-					document.getElementById('spanCurrentEpoch').textContent = epoch;
-					document.getElementById('spanLoss').textContent = logs.loss;
-					document.getElementById('spanAccuracy').textContent = logs.acc;
+					spanCurrentEpoch.textContent = epoch;
+					spanLoss.textContent = logs.loss;
+					spanAccuracy.textContent = logs.acc;
 				}
 			})
 		]
@@ -263,7 +263,7 @@ function drawCanvas() {
 }
 
 function disableUI(argument) {
-	const nodes = document.getElementById('divControl').getElementsByTagName('*');
+	const nodes = divControl.getElementsByTagName('*');
 	for(let i = 0; i < nodes.length; i++){
 		nodes[i].disabled = argument;
 	}
@@ -313,10 +313,10 @@ async function selectModelName() {
 		})
 	model = await loadModelFunction(selectModel.value, {
 		onProgress: function (fraction) {
-			document.getElementById('divModelLoadFraction').textContent = `${Math.round(100*fraction)}%.`;
-			document.getElementById('spanModelInputShape').textContent = 'NaN';
-			document.getElementById('spanModelOutputShape').textContent = 'NaN';
-			document.getElementById('spanModelTrainable').textContent = 'NaN';
+			divModelLoadFraction.textContent = `${Math.round(100*fraction)}%.`;
+			spanModelInputShape.textContent = 'NaN';
+			spanModelOutputShape.textContent = 'NaN';
+			spanModelTrainable.textContent = 'NaN';
 			disableUI(true);
 		}
 	});
@@ -327,30 +327,30 @@ async function selectModelName() {
 	canvasMask.height = modelInputShape[1];
 	canvasBrush.width = modelInputShape[0];
 	canvasBrush.height = modelInputShape[1];
-	document.getElementById('divModelLoadFraction').textContent = 'Model loaded.';
-	document.getElementById('spanModelInputShape').textContent = modelInputShape;
-	document.getElementById('spanModelOutputShape').textContent = model.outputs[0].shape;
+	divModelLoadFraction.textContent = 'Model loaded.';
+	spanModelInputShape.textContent = modelInputShape;
+	spanModelOutputShape.textContent = model.outputs[0].shape;
 	if (model.trainable) {
-		document.getElementById('spanModelTrainable').textContent = 'True';
-		document.getElementById('buttonTrain').style.display = '';
-		document.getElementById('divNumEpochs').style.display = '';
-		document.getElementById('divCurrentEpoch').style.display = '';
-		document.getElementById('divLoss').style.display = '';
-		document.getElementById('divAccuracy').style.display = '';
-		document.getElementById('buttonSaveModelToDisk').style.display = '';
+		buttonSaveModelToDisk.style.display = '';
+		buttonTrain.style.display = '';
+		divAccuracy.style.display = '';
+		divCurrentEpoch.style.display = '';
+		divLoss.style.display = '';
+		divNumEpochs.style.display = '';
+		spanModelTrainable.textContent = 'True';
 	} else {
-		document.getElementById('spanModelTrainable').textContent = 'False';
-		document.getElementById('buttonTrain').style.display = 'none';
-		document.getElementById('divNumEpochs').style.display = 'none';
-		document.getElementById('divCurrentEpoch').style.display = 'none';
-		document.getElementById('divLoss').style.display = 'none';
-		document.getElementById('divAccuracy').style.display = 'none';
-		document.getElementById('buttonSaveModelToDisk').style.display = 'none';
+		buttonSaveModelToDisk.style.display = 'none';
+		buttonTrain.style.display = 'none';
+		divAccuracy.style.display = 'none';
+		divCurrentEpoch.style.display = 'none';
+		divLoss.style.display = 'none';
+		divNumEpochs.style.display = 'none';
+		spanModelTrainable.textContent = 'False';
 	}
 	for (const [i, labelText] of configSelected.classNames.entries()) {
 		const divLabel = document.createElement('div');
 		divLabel.id = `divLabel${i}`;
-		document.getElementById('divLabelList').appendChild(divLabel);
+		divLabelList.appendChild(divLabel);
 		const divLabelColor = document.createElement('div');
 		divLabelColor.id = `divLabelColor${i}`;
 		divLabelColor.style.backgroundColor = `rgb(${labelsColormap[i]})`;
@@ -455,22 +455,38 @@ const labelsColormap = [
 	[ 158, 218, 229 ]
 ];
 
+const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
+const buttonTrain = document.getElementById('buttonTrain');
 const canvasBrush = document.getElementById('canvasBrush');
 const canvasImage = document.getElementById('canvasImage');
 const canvasMask = document.getElementById('canvasMask');
-const contextBrush = canvasBrush.getContext('2d');
-const contextImage = canvasImage.getContext('2d');
-const contextMask = canvasMask.getContext('2d');
+const divAccuracy = document.getElementById('divAccuracy');
 const divBrushSize = document.getElementById('divBrushSize');
-const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
-const selectModel = document.getElementById('selectModel');
+const divControl = document.getElementById('divControl');
+const divCurrentEpoch = document.getElementById('divCurrentEpoch');
 const divLabelList = document.getElementById('divLabelList');
+const divLoss = document.getElementById('divLoss');
+const divModelLoadFraction = document.getElementById('divModelLoadFraction');
+const divNumEpochs = document.getElementById('divNumEpochs');
 const inputFile = document.getElementById('inputFile');
 const inputLoadOutput = document.getElementById('inputLoadOutput');
+const inputNumEpochs = document.getElementById('inputNumEpochs');
+const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
+const selectModel = document.getElementById('selectModel');
+const spanAccuracy = document.getElementById('spanAccuracy');
+const spanCurrentEpoch = document.getElementById('spanCurrentEpoch');
 const spanImageIndex = document.getElementById('spanImageIndex');
 const spanImageValueMax = document.getElementById('spanImageValueMax');
 const spanImageValueMin = document.getElementById('spanImageValueMin');
+const spanLoss = document.getElementById('spanLoss');
+const spanModelInputShape = document.getElementById('spanModelInputShape');
+const spanModelOutputShape = document.getElementById('spanModelOutputShape');
+const spanModelTrainable = document.getElementById('spanModelTrainable');
 const spanRowsXColumns = document.getElementById('spanRowsXColumns');
+
+const contextBrush = canvasBrush.getContext('2d');
+const contextImage = canvasImage.getContext('2d');
+const contextMask = canvasMask.getContext('2d');
 
 canvasBrush.addEventListener('mousedown', (event) => {
 	if (event.button === 0) {
@@ -499,6 +515,7 @@ canvasBrush.addEventListener('mousemove', (event) => {
 window.addEventListener('contextmenu', function (event) {
 	event.preventDefault();
 }, false);
+
 window.addEventListener('keydown', function (event) {
 	if (event.code == 'ArrowUp' && (imageIndex > 0)) {
 		imageIndex--;
