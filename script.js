@@ -116,6 +116,12 @@ async function train() {
 			})
 		]
 	});
+	tf.dispose(output);
+	tf.dispose(preProcessedImage);
+	tf.dispose(tensor);
+	tf.dispose(tensorMax);
+	tf.dispose(tensorMin);
+	console.log(tf.memory());
 	disableUI(false);
 }
 
@@ -333,6 +339,7 @@ async function selectModelName() {
 	if (model.trainable) {
 		buttonSaveModelToDisk.style.display = '';
 		buttonTrain.style.display = '';
+		buttonUploadModelToServer.style.display = '';
 		divAccuracy.style.display = '';
 		divCurrentEpoch.style.display = '';
 		divLoss.style.display = '';
@@ -341,6 +348,7 @@ async function selectModelName() {
 	} else {
 		buttonSaveModelToDisk.style.display = 'none';
 		buttonTrain.style.display = 'none';
+		buttonUploadModelToServer.style.display = 'none';
 		divAccuracy.style.display = 'none';
 		divCurrentEpoch.style.display = 'none';
 		divLoss.style.display = 'none';
@@ -457,6 +465,7 @@ const labelsColormap = [
 
 const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
 const buttonTrain = document.getElementById('buttonTrain');
+const buttonUploadModelToServer = document.getElementById('buttonUploadModelToServer');
 const canvasBrush = document.getElementById('canvasBrush');
 const canvasImage = document.getElementById('canvasImage');
 const canvasMask = document.getElementById('canvasMask');
