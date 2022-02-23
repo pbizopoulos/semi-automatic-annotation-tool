@@ -3,7 +3,7 @@
 function loadImages() {
 	disableUI(true);
 	files = event.currentTarget.files;
-	if (files[0] == undefined) {
+	if (files[0] === undefined) {
 		disableUI(false);
 		return;
 	}
@@ -30,15 +30,15 @@ function loadImages() {
 	}
 }
 
-function loadOutput() {
+function loadPredictions() {
 	const file = event.currentTarget.files[0];
-	if (file == undefined) {
+	if (file === undefined) {
 		return;
 	}
 	const reader = new FileReader();
 	reader.onloadend = function (event) {
 		if (event.target.readyState === FileReader.DONE) {
-			if (configSelected.machineLearningType == 'image segmentation') {
+			if (configSelected.machineLearningType === 'image segmentation') {
 				const niftiHeader = nifti.readHeader(event.target.result);
 				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
 				masks = new Uint8Array(niftiImage);
@@ -50,7 +50,7 @@ function loadOutput() {
 }
 
 function resetView() {
-	const imageOffset = imageSize * imageIndex;
+	const imageOffset = imageSize * imageCurrentIndex;
 	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	let max = -Infinity;
 	let min = Infinity;
@@ -69,16 +69,10 @@ function resetView() {
 	drawCanvas();
 }
 
-function predictAndViewImage() {
-	predictImage();
-	drawCanvas();
-}
-
-function predictAndViewAllImages() {
+function predictAllImages() {
 	for (let i = 0; i <= numImages; i++) {
-		imageIndex = i;
-		predictImage();
-		drawCanvas();
+		imageCurrentIndex = i;
+		predictCurrentImage();
 	}
 }
 
@@ -91,20 +85,20 @@ async function train() {
 	const tensorMin = tensor.min();
 	tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
 	let preProcessedImage;
-	let output;
-	if (configSelected.machineLearningType == 'image segmentation') {
+	let predictions;
+	if (configSelected.machineLearningType === 'image segmentation') {
 		preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
-		output = tf.tensor(masks);
-	} else if (configSelected.machineLearningType == 'image classification') {
+		predictions = tf.tensor(masks);
+	} else if (configSelected.machineLearningType === 'image classification') {
 		preProcessedImage = tensor;
-		output = tf.oneHot(classes, configSelected.classNames.length);
+		predictions = tf.oneHot(classes, configSelected.classNames.length);
 	}
 	model.compile({
 		optimizer: 'adam',
 		loss: 'categoricalCrossentropy',
 		metrics: ['accuracy'],
 	});
-	await model.fit(preProcessedImage, output, {
+	await model.fit(preProcessedImage, predictions, {
 		epochs: inputNumEpochs.value,
 		callbacks: [
 			new tf.CustomCallback({
@@ -116,7 +110,7 @@ async function train() {
 			})
 		]
 	});
-	tf.dispose(output);
+	tf.dispose(predictions);
 	tf.dispose(preProcessedImage);
 	tf.dispose(tensor);
 	tf.dispose(tensorMax);
@@ -133,8 +127,8 @@ async function uploadModelToServer() {
 	await model.save('http://172.17.0.2:5000/upload');
 }
 
-function saveOutputToDisk() {
-	if (files == undefined) {
+function savePredictionsToDisk() {
+	if (files === undefined) {
 		return;
 	}
 	const niftiHeaderTmp = decompressedFile.slice(0, 352);
@@ -185,7 +179,7 @@ function readNiftiFile(file) {
 				case nifti.NIFTI1.TYPE_RGB24:
 					images = new Uint8Array(niftiImage);
 					images = images.filter(function(value, index, Arr) {
-						return index % 3 == 0;
+						return index % 3 === 0;
 					});
 					break;
 				case 2304:
@@ -195,22 +189,22 @@ function readNiftiFile(file) {
 					return;
 			}
 			numImages = niftiHeader.dims[3] - 1;
-			imageIndex = 0;
+			imageCurrentIndex = 0;
 			rows = niftiHeader.dims[2];
 			columns = niftiHeader.dims[1];
 			imageSize = rows * columns;
 			canvasImage.height = rows;
 			canvasImage.width = columns;
-			if (configSelected.machineLearningType == 'image segmentation') {
+			if (configSelected.machineLearningType === 'image segmentation') {
 				canvasMask.height = rows;
 				canvasMask.width = columns;
 				canvasBrush.height = rows;
 				canvasBrush.width = columns;
 				masks = new Uint8Array(images.length);
-			} else if (configSelected.machineLearningType == 'image classification') {
+			} else if (configSelected.machineLearningType === 'image classification') {
 				classes = classes.slice(0, numImages+1);
 			}
-			spanImageIndex.textContent = `${imageIndex}/${numImages}`;
+			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
 			spanRowsXColumns.textContent = `${rows}x${columns}`;
 			resetView();
 		}
@@ -220,7 +214,7 @@ function readNiftiFile(file) {
 }
 
 function drawCanvas() {
-	const imageOffset = imageSize * imageIndex;
+	const imageOffset = imageSize * imageCurrentIndex;
 	const imageDataImage = new ImageData(columns, rows);
 	for (let i = 0; i < rows; i++) {
 		const rowOffset = i * columns;
@@ -235,7 +229,7 @@ function drawCanvas() {
 		}
 	}
 	contextImage.putImageData(imageDataImage, 0, 0);
-	if (configSelected.machineLearningType == 'image segmentation') {
+	if (configSelected.machineLearningType === 'image segmentation') {
 		contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
 		contextBrush.fillStyle = `rgb(${labelsColormap[currentLabel]})`;
 		contextBrush.beginPath();
@@ -282,14 +276,14 @@ async function selectModelName() {
 	currentLabel = 0;
 	decompressedFile = null;
 	divLabelList.textContent = '';
-	imageIndex = 0;
+	imageCurrentIndex = 0;
 	imageOffset = 0;
 	imageSize = columns * rows;
 	imageValueMin = 0;
 	imageValueRange = 1;
 	images = new Uint8Array(imageSize);
 	inputFile.value = '';
-	inputLoadOutput.value = '';
+	inputLoadPredictions.value = '';
 	masks = new Uint8Array(imageSize);
 	numImages = 0;
 	spanImageIndex.textContent = '';
@@ -297,12 +291,12 @@ async function selectModelName() {
 	spanImageValueMin.textContent = '';
 	spanRowsXColumns.textContent = '';
 	let loadModelFunction;
-	configSelected = configArray.find(config => config.modelURL == selectModel.value);
-	if (configSelected.machineLearningType == 'image classification') {
+	configSelected = configArray.find(config => config.modelURL === selectModel.value);
+	if (configSelected.machineLearningType === 'image classification') {
 		canvasMask.style.display = 'none';
 		canvasBrush.style.display = 'none';
 		divBrushSize.style.display = 'none';
-	} else if (configSelected.machineLearningType == 'image segmentation') {
+	} else if (configSelected.machineLearningType === 'image segmentation') {
 		canvasMask.style.display = '';
 		canvasBrush.style.display = '';
 		divBrushSize.style.display = '';
@@ -311,9 +305,9 @@ async function selectModelName() {
 	await fetch(selectModel.value)
 		.then(response => response.text())
 		.then((text) => {
-			if (JSON.parse(text).format == 'graph-model') {
+			if (JSON.parse(text).format === 'graph-model') {
 				loadModelFunction = tf.loadGraphModel;
-			} else if (JSON.parse(text).format == 'layers-model') {
+			} else if (JSON.parse(text).format === 'layers-model') {
 				loadModelFunction = tf.loadLayersModel;
 			}
 		})
@@ -321,7 +315,7 @@ async function selectModelName() {
 		onProgress: function (fraction) {
 			divModelLoadFraction.textContent = `${Math.round(100*fraction)}%.`;
 			spanModelInputShape.textContent = 'NaN';
-			spanModelOutputShape.textContent = 'NaN';
+			spanModelPredictionShape.textContent = 'NaN';
 			spanModelTrainable.textContent = 'NaN';
 			disableUI(true);
 		}
@@ -335,7 +329,7 @@ async function selectModelName() {
 	canvasBrush.height = modelInputShape[1];
 	divModelLoadFraction.textContent = 'Model loaded.';
 	spanModelInputShape.textContent = modelInputShape;
-	spanModelOutputShape.textContent = model.outputs[0].shape;
+	spanModelPredictionShape.textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		buttonSaveModelToDisk.style.display = '';
 		buttonTrain.style.display = '';
@@ -373,8 +367,8 @@ async function selectModelName() {
 			}
 			event.currentTarget.style.opacity = 1;
 			currentLabel = parseInt(event.currentTarget.id.match(/\d+/)[0]);
-			if (configSelected.machineLearningType == 'image classification') {
-				classes[imageIndex] = currentLabel;
+			if (configSelected.machineLearningType === 'image classification') {
+				classes[imageCurrentIndex] = currentLabel;
 			}
 		};
 		divLabel.appendChild(divLabelColor);
@@ -388,8 +382,8 @@ async function selectModelName() {
 	disableUI(false);
 }
 
-async function predictImage() {
-	const imageOffset = imageSize * imageIndex;
+async function predictCurrentImage() {
+	const imageOffset = imageSize * imageCurrentIndex;
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
@@ -402,13 +396,13 @@ async function predictImage() {
 		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
 
 		let preProcessedImage;
-		if (configSelected.machineLearningType == 'image segmentation') {
+		if (configSelected.machineLearningType === 'image segmentation') {
 			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
-		} else if (configSelected.machineLearningType == 'image classification') {
+		} else if (configSelected.machineLearningType === 'image classification') {
 			preProcessedImage = tensor.expandDims(0);
 		}
 		let modelPrediction = model.predict(preProcessedImage);
-		if (configSelected.machineLearningType == 'image segmentation') {
+		if (configSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
 				modelPrediction = modelPrediction.reshape([512, 512, 1]);
 				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [rows, columns]);
@@ -419,7 +413,7 @@ async function predictImage() {
 					masks[imageOffset + i] = currentLabel;
 				}
 			}
-		} else if (configSelected.machineLearningType == 'image classification') {
+		} else if (configSelected.machineLearningType === 'image classification') {
 			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
 			console.log(classProbabilities[0]);
 		}
@@ -478,7 +472,7 @@ const divLoss = document.getElementById('divLoss');
 const divModelLoadFraction = document.getElementById('divModelLoadFraction');
 const divNumEpochs = document.getElementById('divNumEpochs');
 const inputFile = document.getElementById('inputFile');
-const inputLoadOutput = document.getElementById('inputLoadOutput');
+const inputLoadPredictions = document.getElementById('inputLoadPredictions');
 const inputNumEpochs = document.getElementById('inputNumEpochs');
 const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
 const selectModel = document.getElementById('selectModel');
@@ -489,7 +483,7 @@ const spanImageValueMax = document.getElementById('spanImageValueMax');
 const spanImageValueMin = document.getElementById('spanImageValueMin');
 const spanLoss = document.getElementById('spanLoss');
 const spanModelInputShape = document.getElementById('spanModelInputShape');
-const spanModelOutputShape = document.getElementById('spanModelOutputShape');
+const spanModelPredictionShape = document.getElementById('spanModelPredictionShape');
 const spanModelTrainable = document.getElementById('spanModelTrainable');
 const spanRowsXColumns = document.getElementById('spanRowsXColumns');
 
@@ -526,16 +520,16 @@ window.addEventListener('contextmenu', function (event) {
 }, false);
 
 window.addEventListener('keydown', function (event) {
-	if (event.code == 'ArrowUp' && (imageIndex > 0)) {
-		imageIndex--;
-	} else if (event.code == 'ArrowDown' && (imageIndex < numImages)) {
-		imageIndex++;
+	if (event.code === 'ArrowUp' && (imageCurrentIndex > 0)) {
+		imageCurrentIndex--;
+	} else if (event.code === 'ArrowDown' && (imageCurrentIndex < numImages)) {
+		imageCurrentIndex++;
 	} else {
 		return;
 	}
-	currentLabel = classes[imageIndex];
+	currentLabel = classes[imageCurrentIndex];
 	document.getElementById(`divLabelColor${currentLabel}`).click();
-	spanImageIndex.textContent = `${imageIndex}/${numImages}`;
+	spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
 	spanRowsXColumns.textContent = `${rows}x${columns}`;
 	drawCanvas();
 });
@@ -563,7 +557,7 @@ let currentLabel = 0;
 let decompressedFile;
 let drawActivated = false;
 let files;
-let imageIndex;
+let imageCurrentIndex;
 let imageOffset;
 let imageValueMin;
 let imageValueRange;

@@ -24,7 +24,7 @@
 				Input shape: <span id="spanModelInputShape">NaN</span>
 			</div>
 			<div>
-				Output shape: <span id="spanModelOutputShape">NaN</span>
+				Prediction shape: <span id="spanModelPredictionShape">NaN</span>
 			</div>
 			<hr>
 			<div>
@@ -34,7 +34,7 @@
 				<input type="file" id="inputFile" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
 			</div>
 			<div>
-				<input type="file" id="inputLoadOutput" onchange="loadOutput()" accept=".nii,.txt"/>
+				<input type="file" id="inputLoadPredictions" onchange="loadPredictions()" accept=".nii,.txt"/>
 			</div>
 			<div>
 				Image index: <span id="spanImageIndex"></span>
@@ -56,10 +56,10 @@
 				<b>Inference</b>
 			</div>
 			<div>
-				<button id="buttonPredictAndViewImage" onclick="predictAndViewImage()">Predict current image</button>
+				<button onclick="predictCurrentImage()">Predict current image</button>
 			</div>
 			<div>
-				<button id="buttonPredictAndViewAllImages" onclick="predictAndViewAllImages()">Predict all images</button>
+				<button onclick="predictAllImages()">Predict all images</button>
 			</div>
 			<div id="divLabelList"></div>
 			<div id="divBrushSize">
@@ -67,7 +67,7 @@
 				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="drawCanvas()">
 			</div>
 			<div>
-				<button id="buttonSaveOutputToDisk" onclick="saveOutputToDisk()">Save Output to Disk</button>
+				<button id="buttonSavePredictionsToDisk" onclick="savePredictionsToDisk()">Save Predictions to Disk</button>
 			</div>
 			<hr>
 			<div>
