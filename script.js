@@ -38,7 +38,6 @@ const configURLarray = [
 	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/wbml/lung-classification.json',
 ]
 
-let columns = 1;
 let configArray = [];
 let configSelected;
 let currentLabel = 0;
@@ -54,7 +53,6 @@ let model;
 let numImages;
 let offsetX;
 let offsetY;
-let rows = 1;
 let valueRangeActivated = false;
 let modelInputShape;
 
@@ -83,6 +81,7 @@ const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
 const selectModel = document.getElementById('selectModel');
 const spanAccuracy = document.getElementById('spanAccuracy');
 const spanCurrentEpoch = document.getElementById('spanCurrentEpoch');
+const spanHeightXwidth = document.getElementById('spanHeightXwidth');
 const spanImageIndex = document.getElementById('spanImageIndex');
 const spanImageValueMax = document.getElementById('spanImageValueMax');
 const spanImageValueMin = document.getElementById('spanImageValueMin');
@@ -90,7 +89,6 @@ const spanLoss = document.getElementById('spanLoss');
 const spanModelInputShape = document.getElementById('spanModelInputShape');
 const spanModelPredictionShape = document.getElementById('spanModelPredictionShape');
 const spanModelTrainable = document.getElementById('spanModelTrainable');
-const spanRowsXColumns = document.getElementById('spanRowsXColumns');
 
 const contextBrush = canvasBrush.getContext('2d');
 const contextImage = canvasImage.getContext('2d');
@@ -126,11 +124,10 @@ function disableUI(argument) {
 }
 
 function drawCanvas() {
-	const imageOffset = imageSize * imageCurrentIndex;
-	const imageDataImage = new ImageData(columns, rows);
-	for (let i = 0; i < rows; i++) {
-		const rowOffset = i * columns;
-		for (let j = 0; j < columns; j++) {
+	const imageDataImage = new ImageData(canvasImage.width, canvasImage.height);
+	for (let i = 0; i < canvasImage.height; i++) {
+		const rowOffset = i * canvasImage.width;
+		for (let j = 0; j < canvasImage.width; j++) {
 			const imageValueOffset = imageOffset + rowOffset + j;
 			const imageValue = (images[imageValueOffset] - imageValueMin) / imageValueRange;
 			const offsetMult4 = (rowOffset + j) * 4;
@@ -147,7 +144,7 @@ function drawCanvas() {
 		contextBrush.beginPath();
 		contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
 		contextBrush.fill();
-		const imageDataBrush = contextBrush.getImageData(0, 0, columns, rows);
+		const imageDataBrush = contextBrush.getImageData(0, 0, canvasImage.width, canvasImage.height);
 		contextBrush.putImageData(imageDataBrush, 0, 0);
 		if (drawActivated) {
 			for (let i = 0; i < imageDataBrush.data.length; i += 4) {
@@ -158,7 +155,7 @@ function drawCanvas() {
 		}
 		contextBrush.drawImage(canvasBrush, 0, 0);
 		contextMask.drawImage(canvasMask, 0, 0);
-		const imageDataMask = new ImageData(columns, rows);
+		const imageDataMask = new ImageData(canvasImage.width, canvasImage.height);
 		for (let i = 0; i < imageSize; i++) {
 			const maskValue = masks[imageOffset + i];
 			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
@@ -175,7 +172,6 @@ function drawCanvas() {
 }
 
 function resetView() {
-	const imageOffset = imageSize * imageCurrentIndex;
 	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	let max = -Infinity;
 	imageValueMin = Infinity;
@@ -247,22 +243,20 @@ function readNiftiFile(file) {
 			}
 			numImages = niftiHeader.dims[3] - 1;
 			imageCurrentIndex = 0;
-			rows = niftiHeader.dims[2];
-			columns = niftiHeader.dims[1];
-			imageSize = rows * columns;
-			canvasImage.height = rows;
-			canvasImage.width = columns;
+			canvasImage.height = niftiHeader.dims[2];
+			canvasImage.width = niftiHeader.dims[1];
+			imageSize = canvasImage.height * canvasImage.width;
 			if (configSelected.machineLearningType === 'image segmentation') {
-				canvasMask.height = rows;
-				canvasMask.width = columns;
-				canvasBrush.height = rows;
-				canvasBrush.width = columns;
+				canvasMask.height = canvasImage.height;
+				canvasMask.width = canvasImage.width;
+				canvasBrush.height = canvasImage.height;
+				canvasBrush.width = canvasImage.width;
 				masks = new Uint8Array(images.length);
 			} else if (configSelected.machineLearningType === 'image classification') {
 				classes = classes.slice(0, numImages+1);
 			}
+			spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
 			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
-			spanRowsXColumns.textContent = `${rows}x${columns}`;
 			resetView();
 		}
 		disableUI(false);
@@ -271,12 +265,11 @@ function readNiftiFile(file) {
 }
 
 async function predictCurrentImage() {
-	const imageOffset = imageSize * imageCurrentIndex;
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
 		let tensor = tf.tensor(imageSlice);
-		tensor = tf.reshape(tensor, [rows, columns]);
+		tensor = tf.reshape(tensor, [canvasImage.height, canvasImage.width]);
 		tensor = tensor.expandDims(-1);
 		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 		const tensorMax = tensor.max();
@@ -292,7 +285,7 @@ async function predictCurrentImage() {
 		if (configSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
 				modelPrediction = modelPrediction.reshape([512, 512, 1]);
-				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [rows, columns]);
+				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [canvasImage.height, canvasImage.width]);
 			}
 			modelPrediction = modelPrediction.dataSync();
 			for (let i = 0; i < modelPrediction.length; i++) {
@@ -311,6 +304,7 @@ async function predictCurrentImage() {
 function predictAllImages() {
 	for (let i = 0; i <= numImages; i++) {
 		imageCurrentIndex = i;
+		imageOffset = imageSize * imageCurrentIndex;
 		predictCurrentImage();
 	}
 }
@@ -389,7 +383,7 @@ function loadPredictions() {
 
 async function train() {
 	disableUI(true);
-	let tensor = tf.tensor(images).reshape([numImages + 1, rows, columns]);
+	let tensor = tf.tensor(images).reshape([numImages + 1, canvasImage.height, canvasImage.width]);
 	tensor = tensor.expandDims(-1);
 	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 	const tensorMax = tensor.max();
@@ -439,7 +433,7 @@ async function selectModelName() {
 	divLabelList.textContent = '';
 	imageCurrentIndex = 0;
 	imageOffset = 0;
-	imageSize = columns * rows;
+	imageSize = 1;
 	imageValueMin = 0;
 	imageValueRange = 1;
 	images = new Uint8Array(imageSize);
@@ -447,10 +441,10 @@ async function selectModelName() {
 	inputLoadPredictions.value = '';
 	masks = new Uint8Array(imageSize);
 	numImages = 0;
+	spanHeightXwidth.textContent = '';
 	spanImageIndex.textContent = '';
 	spanImageValueMax.textContent = '';
 	spanImageValueMin.textContent = '';
-	spanRowsXColumns.textContent = '';
 	let loadModelFunction;
 	configSelected = configArray.find(config => config.modelURL === selectModel.value);
 	if (configSelected.machineLearningType === 'image classification') {
@@ -566,10 +560,11 @@ window.addEventListener('keydown', function (event) {
 	} else {
 		return;
 	}
+	imageOffset = imageSize * imageCurrentIndex;
 	currentLabel = classes[imageCurrentIndex];
 	document.getElementById(`divLabelColor${currentLabel}`).click();
+	spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
 	spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
-	spanRowsXColumns.textContent = `${rows}x${columns}`;
 	drawCanvas();
 });
 
