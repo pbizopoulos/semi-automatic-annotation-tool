@@ -74,7 +74,7 @@ const divLabelList = document.getElementById('divLabelList');
 const divLoss = document.getElementById('divLoss');
 const divModelLoadFraction = document.getElementById('divModelLoadFraction');
 const divNumEpochs = document.getElementById('divNumEpochs');
-const inputFile = document.getElementById('inputFile');
+const inputLoadFiles = document.getElementById('inputLoadFiles');
 const inputLoadPredictions = document.getElementById('inputLoadPredictions');
 const inputNumEpochs = document.getElementById('inputNumEpochs');
 const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
@@ -436,7 +436,7 @@ async function selectModelName() {
 	imageValueMin = 0;
 	imageValueRange = 1;
 	images = new Uint8Array(imageSize);
-	inputFile.value = '';
+	inputLoadFiles.value = '';
 	inputLoadPredictions.value = '';
 	labelCurrent = 0;
 	masks = new Uint8Array(imageSize);
