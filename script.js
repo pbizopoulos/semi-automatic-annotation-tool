@@ -94,6 +94,10 @@ const contextBrush = canvasBrush.getContext('2d');
 const contextImage = canvasImage.getContext('2d');
 const contextMask = canvasMask.getContext('2d');
 
+canvasBrush.addEventListener('contextmenu', function (event) {
+	event.preventDefault();
+}, false);
+
 canvasBrush.addEventListener('mousedown', (event) => {
 	if (event.button === 0) {
 		drawActivated = true;
@@ -102,212 +106,15 @@ canvasBrush.addEventListener('mousedown', (event) => {
 	}
 });
 
-window.addEventListener('contextmenu', function (event) {
-	event.preventDefault();
-}, false);
-
-window.addEventListener('mouseleave', () => {
+canvasBrush.addEventListener('mouseleave', () => {
 	drawActivated = false;
 	imageValueRangeActivated = false;
 });
 
-window.addEventListener('mouseup', () => {
+canvasBrush.addEventListener('mouseup', () => {
 	drawActivated = false;
 	imageValueRangeActivated = false;
 });
-
-function disableUI(argument) {
-	const nodes = divControl.getElementsByTagName('*');
-	for(let i = 0; i < nodes.length; i++){
-		nodes[i].disabled = argument;
-	}
-}
-
-function drawCanvas() {
-	const imageDataImage = new ImageData(canvasImage.width, canvasImage.height);
-	for (let i = 0; i < canvasImage.height; i++) {
-		const rowOffset = i * canvasImage.width;
-		for (let j = 0; j < canvasImage.width; j++) {
-			const imageValueOffset = imageOffset + rowOffset + j;
-			const imageValue = (images[imageValueOffset] - imageValueMin) / imageValueRange;
-			const offsetMult4 = (rowOffset + j) * 4;
-			imageDataImage.data[offsetMult4] = imageValue;
-			imageDataImage.data[offsetMult4 + 1] = imageValue;
-			imageDataImage.data[offsetMult4 + 2] = imageValue;
-			imageDataImage.data[offsetMult4 + 3] = 255;
-		}
-	}
-	contextImage.putImageData(imageDataImage, 0, 0);
-	if (configSelected.machineLearningType === 'image segmentation') {
-		contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-		contextBrush.fillStyle = `rgb(${labelsColormap[labelCurrent]})`;
-		contextBrush.beginPath();
-		contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
-		contextBrush.fill();
-		const imageDataBrush = contextBrush.getImageData(0, 0, canvasImage.width, canvasImage.height);
-		contextBrush.putImageData(imageDataBrush, 0, 0);
-		if (drawActivated) {
-			for (let i = 0; i < imageDataBrush.data.length; i += 4) {
-				if (imageDataBrush.data[i] > 0) {
-					masks[imageOffset + i / 4] = labelCurrent;
-				}
-			}
-		}
-		contextBrush.drawImage(canvasBrush, 0, 0);
-		contextMask.drawImage(canvasMask, 0, 0);
-		const imageDataMask = new ImageData(canvasImage.width, canvasImage.height);
-		for (let i = 0; i < imageSize; i++) {
-			const maskValue = masks[imageOffset + i];
-			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
-			imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
-			imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
-			if (maskValue > 0) {
-				imageDataMask.data[4*i + 3] = 255;
-			} else {
-				imageDataMask.data[4*i + 3] = 0;
-			}
-		}
-		contextMask.putImageData(imageDataMask, 0, 0);
-	}
-}
-
-function resetView() {
-	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
-	let max = -Infinity;
-	imageValueMin = Infinity;
-	for (let i = 0; i < imageSlice.length; i++) {
-		if (imageSlice[i] > max) {
-			max = imageSlice[i];
-		}
-		if (imageSlice[i] < imageValueMin) {
-			imageValueMin = imageSlice[i];
-		}
-	}
-	imageValueRange = (max - imageValueMin) / 255;
-	spanImageValueMax.textContent = Math.round(max);
-	spanImageValueMin.textContent = Math.round(imageValueMin);
-	drawCanvas();
-}
-
-function readNiftiFile(file) {
-	const reader = new FileReader();
-	reader.onloadend = function (event) {
-		if (event.target.readyState === FileReader.DONE) {
-			let niftiHeader;
-			let niftiImage;
-			if (nifti.isCompressed(event.target.result)) {
-				fileDecompressed = nifti.decompress(event.target.result);
-			} else {
-				fileDecompressed = event.target.result;
-			}
-			if (nifti.isNIFTI(fileDecompressed)) {
-				niftiHeader = nifti.readHeader(fileDecompressed);
-				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
-			}
-			switch (niftiHeader.datatypeCode) {
-				case nifti.NIFTI1.TYPE_UINT8:
-					images = new Uint8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT16:
-					images = new Int16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT32:
-					images = new Int32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT32:
-					images = new Float32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT64:
-					images = new Float64Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT8:
-					images = new Int8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT16:
-					images = new Uint16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT32:
-					images = new Uint32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_RGB24:
-					images = new Uint8Array(niftiImage);
-					images = images.filter(function(value, index, Arr) {
-						return index % 3 === 0;
-					});
-					break;
-				case 2304:
-					images = new Uint32Array(niftiImage);
-					break;
-				default:
-					return;
-			}
-			numImages = niftiHeader.dims[3] - 1;
-			imageCurrentIndex = 0;
-			canvasImage.height = niftiHeader.dims[2];
-			canvasImage.width = niftiHeader.dims[1];
-			imageSize = canvasImage.height * canvasImage.width;
-			if (configSelected.machineLearningType === 'image segmentation') {
-				canvasMask.height = canvasImage.height;
-				canvasMask.width = canvasImage.width;
-				canvasBrush.height = canvasImage.height;
-				canvasBrush.width = canvasImage.width;
-				masks = new Uint8Array(images.length);
-			} else if (configSelected.machineLearningType === 'image classification') {
-				classes = classes.slice(0, numImages+1);
-			}
-			spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
-			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
-			resetView();
-		}
-		disableUI(false);
-	};
-	reader.readAsArrayBuffer(file);
-}
-
-async function predictCurrentImage() {
-	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
-	imageSlice = new Float32Array(imageSlice);
-	tf.tidy(() => {
-		let tensor = tf.tensor(imageSlice);
-		tensor = tf.reshape(tensor, [canvasImage.height, canvasImage.width]);
-		tensor = tensor.expandDims(-1);
-		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
-		const tensorMax = tensor.max();
-		const tensorMin = tensor.min();
-		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
-		let preProcessedImage;
-		if (configSelected.machineLearningType === 'image segmentation') {
-			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
-		} else if (configSelected.machineLearningType === 'image classification') {
-			preProcessedImage = tensor.expandDims(0);
-		}
-		let modelPrediction = model.predict(preProcessedImage);
-		if (configSelected.machineLearningType === 'image segmentation') {
-			if (modelPrediction.size !== imageSize) {
-				modelPrediction = modelPrediction.reshape([512, 512, 1]);
-				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [canvasImage.height, canvasImage.width]);
-			}
-			modelPrediction = modelPrediction.dataSync();
-			for (let i = 0; i < modelPrediction.length; i++) {
-				if (modelPrediction[i] > 0.5) {
-					masks[imageOffset + i] = labelCurrent;
-				}
-			}
-		} else if (configSelected.machineLearningType === 'image classification') {
-			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
-			console.log(classProbabilities[0]);
-		}
-	});
-	drawCanvas();
-}
-
-function predictAllImages() {
-	for (let i = 0; i <= numImages; i++) {
-		imageCurrentIndex = i;
-		imageOffset = imageSize * imageCurrentIndex;
-		predictCurrentImage();
-	}
-}
 
 function saveData(data, fileName) {
 	const a = document.createElement('a');
@@ -330,55 +137,11 @@ function savePredictionsToDisk() {
 	saveData(data, 'masks.nii');
 }
 
-function loadImages() {
-	disableUI(true);
-	files = event.currentTarget.files;
-	if (files[0] === undefined) {
-		disableUI(false);
-		return;
+function disableUI(argument) {
+	const nodes = divControl.getElementsByTagName('*');
+	for(let i = 0; i < nodes.length; i++){
+		nodes[i].disabled = argument;
 	}
-	if (files[0].name.includes('.nii')) {
-		readNiftiFile(files[0]);
-	} else if (files[0].name.includes('.dcm')) {
-		itk.readImageDICOMFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
-					});
-			});
-	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
-		itk.readImageFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
-					});
-			});
-	}
-}
-
-function loadPredictions() {
-	disableUI(true);
-	const file = event.currentTarget.files[0];
-	if (file === undefined) {
-		return;
-	}
-	const reader = new FileReader();
-	reader.onloadend = function (event) {
-		if (event.target.readyState === FileReader.DONE) {
-			if (configSelected.machineLearningType === 'image segmentation') {
-				const niftiHeader = nifti.readHeader(event.target.result);
-				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
-				masks = new Uint8Array(niftiImage);
-				drawCanvas();
-			}
-		}
-		disableUI(false);
-	};
-	reader.readAsArrayBuffer(file);
 }
 
 async function train() {
@@ -536,6 +299,54 @@ async function selectModelName() {
 	disableUI(false);
 }
 
+function drawCanvas() {
+	const imageDataImage = new ImageData(canvasImage.width, canvasImage.height);
+	for (let i = 0; i < canvasImage.height; i++) {
+		const rowOffset = i * canvasImage.width;
+		for (let j = 0; j < canvasImage.width; j++) {
+			const imageValueOffset = imageOffset + rowOffset + j;
+			const imageValue = (images[imageValueOffset] - imageValueMin) / imageValueRange;
+			const offsetMult4 = (rowOffset + j) * 4;
+			imageDataImage.data[offsetMult4] = imageValue;
+			imageDataImage.data[offsetMult4 + 1] = imageValue;
+			imageDataImage.data[offsetMult4 + 2] = imageValue;
+			imageDataImage.data[offsetMult4 + 3] = 255;
+		}
+	}
+	contextImage.putImageData(imageDataImage, 0, 0);
+	if (configSelected.machineLearningType === 'image segmentation') {
+		contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
+		contextBrush.fillStyle = `rgb(${labelsColormap[labelCurrent]})`;
+		contextBrush.beginPath();
+		contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
+		contextBrush.fill();
+		const imageDataBrush = contextBrush.getImageData(0, 0, canvasImage.width, canvasImage.height);
+		contextBrush.putImageData(imageDataBrush, 0, 0);
+		if (drawActivated) {
+			for (let i = 0; i < imageDataBrush.data.length; i += 4) {
+				if (imageDataBrush.data[i] > 0) {
+					masks[imageOffset + i / 4] = labelCurrent;
+				}
+			}
+		}
+		contextBrush.drawImage(canvasBrush, 0, 0);
+		contextMask.drawImage(canvasMask, 0, 0);
+		const imageDataMask = new ImageData(canvasImage.width, canvasImage.height);
+		for (let i = 0; i < imageSize; i++) {
+			const maskValue = masks[imageOffset + i];
+			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
+			imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
+			imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
+			if (maskValue > 0) {
+				imageDataMask.data[4*i + 3] = 255;
+			} else {
+				imageDataMask.data[4*i + 3] = 0;
+			}
+		}
+		contextMask.putImageData(imageDataMask, 0, 0);
+	}
+}
+
 canvasBrush.addEventListener('mousemove', (event) => {
 	if (imageValueRangeActivated) {
 		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
@@ -567,6 +378,195 @@ window.addEventListener('keydown', function (event) {
 	spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
 	drawCanvas();
 });
+
+async function predictCurrentImage() {
+	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
+	imageSlice = new Float32Array(imageSlice);
+	tf.tidy(() => {
+		let tensor = tf.tensor(imageSlice);
+		tensor = tf.reshape(tensor, [canvasImage.height, canvasImage.width]);
+		tensor = tensor.expandDims(-1);
+		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
+		const tensorMax = tensor.max();
+		const tensorMin = tensor.min();
+		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
+		let preProcessedImage;
+		if (configSelected.machineLearningType === 'image segmentation') {
+			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
+		} else if (configSelected.machineLearningType === 'image classification') {
+			preProcessedImage = tensor.expandDims(0);
+		}
+		let modelPrediction = model.predict(preProcessedImage);
+		if (configSelected.machineLearningType === 'image segmentation') {
+			if (modelPrediction.size !== imageSize) {
+				modelPrediction = modelPrediction.reshape([512, 512, 1]);
+				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [canvasImage.height, canvasImage.width]);
+			}
+			modelPrediction = modelPrediction.dataSync();
+			for (let i = 0; i < modelPrediction.length; i++) {
+				if (modelPrediction[i] > 0.5) {
+					masks[imageOffset + i] = labelCurrent;
+				}
+			}
+		} else if (configSelected.machineLearningType === 'image classification') {
+			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
+			console.log(classProbabilities[0]);
+		}
+	});
+	drawCanvas();
+}
+
+function predictAllImages() {
+	for (let i = 0; i <= numImages; i++) {
+		imageCurrentIndex = i;
+		imageOffset = imageSize * imageCurrentIndex;
+		predictCurrentImage();
+	}
+}
+
+function resetView() {
+	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
+	let max = -Infinity;
+	imageValueMin = Infinity;
+	for (let i = 0; i < imageSlice.length; i++) {
+		if (imageSlice[i] > max) {
+			max = imageSlice[i];
+		}
+		if (imageSlice[i] < imageValueMin) {
+			imageValueMin = imageSlice[i];
+		}
+	}
+	imageValueRange = (max - imageValueMin) / 255;
+	spanImageValueMax.textContent = Math.round(max);
+	spanImageValueMin.textContent = Math.round(imageValueMin);
+	drawCanvas();
+}
+
+function readNiftiFile(file) {
+	const reader = new FileReader();
+	reader.onloadend = function (event) {
+		if (event.target.readyState === FileReader.DONE) {
+			let niftiHeader;
+			let niftiImage;
+			if (nifti.isCompressed(event.target.result)) {
+				fileDecompressed = nifti.decompress(event.target.result);
+			} else {
+				fileDecompressed = event.target.result;
+			}
+			if (nifti.isNIFTI(fileDecompressed)) {
+				niftiHeader = nifti.readHeader(fileDecompressed);
+				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
+			}
+			switch (niftiHeader.datatypeCode) {
+				case nifti.NIFTI1.TYPE_UINT8:
+					images = new Uint8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT16:
+					images = new Int16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT32:
+					images = new Int32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT32:
+					images = new Float32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT64:
+					images = new Float64Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT8:
+					images = new Int8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT16:
+					images = new Uint16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT32:
+					images = new Uint32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_RGB24:
+					images = new Uint8Array(niftiImage);
+					images = images.filter(function(value, index, Arr) {
+						return index % 3 === 0;
+					});
+					break;
+				case 2304:
+					images = new Uint32Array(niftiImage);
+					break;
+				default:
+					return;
+			}
+			numImages = niftiHeader.dims[3] - 1;
+			imageCurrentIndex = 0;
+			canvasImage.height = niftiHeader.dims[2];
+			canvasImage.width = niftiHeader.dims[1];
+			imageSize = canvasImage.height * canvasImage.width;
+			if (configSelected.machineLearningType === 'image segmentation') {
+				canvasMask.height = canvasImage.height;
+				canvasMask.width = canvasImage.width;
+				canvasBrush.height = canvasImage.height;
+				canvasBrush.width = canvasImage.width;
+				masks = new Uint8Array(images.length);
+			} else if (configSelected.machineLearningType === 'image classification') {
+				classes = classes.slice(0, numImages+1);
+			}
+			spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
+			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
+			resetView();
+		}
+		disableUI(false);
+	};
+	reader.readAsArrayBuffer(file);
+}
+
+function loadImages() {
+	disableUI(true);
+	files = event.currentTarget.files;
+	if (files[0] === undefined) {
+		disableUI(false);
+		return;
+	}
+	if (files[0].name.includes('.nii')) {
+		readNiftiFile(files[0]);
+	} else if (files[0].name.includes('.dcm')) {
+		itk.readImageDICOMFileSeries(files)
+			.then(function ({ image }) {
+				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
+					.then((data) => {
+						const blob = new Blob([data.arrayBuffer]);
+						readNiftiFile(blob);
+					});
+			});
+	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
+		itk.readImageFileSeries(files)
+			.then(function ({ image }) {
+				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
+					.then((data) => {
+						const blob = new Blob([data.arrayBuffer]);
+						readNiftiFile(blob);
+					});
+			});
+	}
+}
+
+function loadPredictions() {
+	disableUI(true);
+	const file = event.currentTarget.files[0];
+	if (file === undefined) {
+		return;
+	}
+	const reader = new FileReader();
+	reader.onloadend = function (event) {
+		if (event.target.readyState === FileReader.DONE) {
+			if (configSelected.machineLearningType === 'image segmentation') {
+				const niftiHeader = nifti.readHeader(event.target.result);
+				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
+				masks = new Uint8Array(niftiImage);
+				drawCanvas();
+			}
+		}
+		disableUI(false);
+	};
+	reader.readAsArrayBuffer(file);
+}
 
 (async () => {
 	for (const [i, configURL] of configURLarray.entries()) {
