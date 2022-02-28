@@ -21,26 +21,26 @@
 			</div>
 			<div id="divModelLoadFraction">0%</div>
 			<div>
-				Input shape: <span id="spanModelInputShape">NaN</span>
+				Input shape: <span id="spanModelInputShape"></span>
 			</div>
 			<div>
-				Prediction shape: <span id="spanModelPredictionShape">NaN</span>
+				Prediction shape: <span id="spanModelPredictionShape"></span>
 			</div>
 			<hr>
 			<div>
 				<b>Input</b>
 			</div>
 			<div>
-				<input type="file" id="inputLoadFiles" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
+				<input type="file" id="inputLoadImages" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
 			</div>
 			<div>
-				<input type="file" id="inputLoadPredictions" onchange="loadPredictions()" accept=".nii,.txt"/>
+				<input type="file" id="inputLoadPredictions" onchange="loadPredictions()" accept=".nii,.txt"/ disabled>
 			</div>
 			<div>
-				Image index: <span id="spanImageIndex"></span>
+				Index: <span id="spanImageIndex"></span>
 			</div>
 			<div>
-				HeightXwidth: <span id="spanHeightXwidth"></span>
+				H&times;W: <span id="spanImageHeight"></span> &times; <span id="spanImageWidth"></span>
 			</div>
 			<div>
 				Min value: <span id="spanImageValueMin"></span>
@@ -49,32 +49,32 @@
 				Max value: <span id="spanImageValueMax"></span>
 			</div>
 			<div>
-				<button id="buttonResetView" onclick="resetView()">Reset view</button>
+				<button id="buttonResetView" onclick="resetView()" disabled>Reset view</button>
 			</div>
 			<hr>
 			<div>
 				<b>Inference</b>
 			</div>
 			<div>
-				<button onclick="predictCurrentImage()">Predict current image</button>
+				<button id="buttonPredictCurrentImage" onclick="predictCurrentImage()" disabled>Predict current image</button>
 			</div>
 			<div>
-				<button onclick="predictAllImages()">Predict all images</button>
+				<button id="buttonPredictAllImages" onclick="predictAllImages()" disabled>Predict all images</button>
 			</div>
 			<div id="divLabelList"></div>
 			<div id="divBrushSize">
 				Brush size:
-				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="drawCanvas()">
+				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="drawCanvas()" disabled>
 			</div>
 			<div>
-				<button id="buttonSavePredictionsToDisk" onclick="savePredictionsToDisk()">Save Predictions to Disk</button>
+				<button id="buttonSavePredictionsToDisk" onclick="savePredictionsToDisk()" disabled>Save Predictions to Disk</button>
 			</div>
 			<hr>
 			<div>
 				<b>Training</b>
 			</div>
 			<div>
-				Trainable: <span id="spanModelTrainable">NaN</span>
+				Trainable: <span id="spanModelTrainable"></span>
 			</div>
 			<div>
 				<button id="buttonTrain" onclick="train()">Train</button>
@@ -95,7 +95,7 @@
 				<button id="buttonSaveModelToDisk" onclick="saveModelToDisk()">Save model to disk</button>
 			</div>
 			<div>
-				<button id="buttonUploadModelToServer" onclick="uploadModelToServer()">Upload model to server</button>
+				<button id="buttonSaveModelToServer" onclick="saveModelToServer()">Save model to server</button>
 			</div>
 		</div>
 		<div id="divCanvases">

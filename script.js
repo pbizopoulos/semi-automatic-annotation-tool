@@ -4,7 +4,7 @@ async function saveModelToDisk() {
 	await model.save('downloads://saved-model');
 }
 
-async function uploadModelToServer() {
+async function saveModelToServer() {
 	await model.save('http://172.17.0.2:5000/upload');
 }
 
@@ -33,9 +33,9 @@ const labelsColormap = [
 ];
 
 const configURLarray = [
+	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/wbml/lung-classification.json',
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation.json',
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/wbml/lung-classification.json',
 ]
 
 let configArray = [];
@@ -58,11 +58,15 @@ let offsetY;
 
 let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
-let classes = new Uint8Array(1000).fill(1); // tmp hardcoded max value, remove later
+let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 
+const buttonPredictAllImages = document.getElementById('buttonPredictAllImages');
+const buttonPredictCurrentImage = document.getElementById('buttonPredictCurrentImage');
+const buttonResetView = document.getElementById('buttonResetView');
 const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
+const buttonSaveModelToServer = document.getElementById('buttonSaveModelToServer');
+const buttonSavePredictionsToDisk = document.getElementById('buttonSavePredictionsToDisk');
 const buttonTrain = document.getElementById('buttonTrain');
-const buttonUploadModelToServer = document.getElementById('buttonUploadModelToServer');
 const canvasBrush = document.getElementById('canvasBrush');
 const canvasImage = document.getElementById('canvasImage');
 const canvasMask = document.getElementById('canvasMask');
@@ -74,17 +78,18 @@ const divLabelList = document.getElementById('divLabelList');
 const divLoss = document.getElementById('divLoss');
 const divModelLoadFraction = document.getElementById('divModelLoadFraction');
 const divNumEpochs = document.getElementById('divNumEpochs');
-const inputLoadFiles = document.getElementById('inputLoadFiles');
+const inputLoadImages = document.getElementById('inputLoadImages');
 const inputLoadPredictions = document.getElementById('inputLoadPredictions');
 const inputNumEpochs = document.getElementById('inputNumEpochs');
 const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
 const selectModel = document.getElementById('selectModel');
 const spanAccuracy = document.getElementById('spanAccuracy');
 const spanCurrentEpoch = document.getElementById('spanCurrentEpoch');
-const spanHeightXwidth = document.getElementById('spanHeightXwidth');
+const spanImageHeight = document.getElementById('spanImageHeight');
 const spanImageIndex = document.getElementById('spanImageIndex');
 const spanImageValueMax = document.getElementById('spanImageValueMax');
 const spanImageValueMin = document.getElementById('spanImageValueMin');
+const spanImageWidth = document.getElementById('spanImageWidth');
 const spanLoss = document.getElementById('spanLoss');
 const spanModelInputShape = document.getElementById('spanModelInputShape');
 const spanModelPredictionShape = document.getElementById('spanModelPredictionShape');
@@ -116,14 +121,14 @@ canvasBrush.addEventListener('mouseup', () => {
 	imageValueRangeActivated = false;
 });
 
-function saveData(data, fileName) {
+function saveData(data, filename) {
 	const a = document.createElement('a');
 	document.body.appendChild(a);
 	a.style = 'display: none';
 	const blob = new Blob(data);
 	const url = window.URL.createObjectURL(blob);
 	a.href = url;
-	a.download = fileName;
+	a.download = filename;
 	a.click();
 	window.URL.revokeObjectURL(url);
 }
@@ -132,21 +137,43 @@ function savePredictionsToDisk() {
 	if (files === undefined) {
 		return;
 	}
-	const niftiHeaderTmp = fileDecompressed.slice(0, 352);
-	const data = [new Uint8Array(niftiHeaderTmp, 0, niftiHeaderTmp.length), new Uint8Array(masks.buffer, 0, masks.buffer.length)];
-	saveData(data, 'masks.nii');
+	let filename;
+	let data;
+	if (configSelected.machineLearningType === 'image classification') {
+		data = '';
+		for (const [i, classAnnotation] of classAnnotations.entries()) {
+			data += [files[i].name, configSelected.classNames[classAnnotation]].join(',');
+			data += '\n';
+		}
+		data = [data.slice(0, -1)];
+		filename = 'classAnnotations.txt';
+	} else if (configSelected.machineLearningType === 'image segmentation') {
+		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
+		data = [new Uint8Array(niftiHeaderTmp, 0, niftiHeaderTmp.length), new Uint8Array(masks.buffer, 0, masks.buffer.length)];
+		filename = 'masks.nii';
+	}
+	saveData(data, filename);
 }
 
 function disableUI(argument) {
-	const nodes = divControl.getElementsByTagName('*');
-	for(let i = 0; i < nodes.length; i++){
-		nodes[i].disabled = argument;
-	}
+	buttonPredictAllImages.disabled = argument;
+	buttonPredictCurrentImage.disabled = argument;
+	buttonResetView.disabled = argument;
+	buttonSaveModelToDisk.disabled = argument;
+	buttonSaveModelToServer.disabled = argument;
+	buttonSavePredictionsToDisk.disabled = argument;
+	buttonTrain.disabled = argument;
+	inputLoadImages.disabled = argument;
+	inputLoadPredictions.disabled = argument;
+	inputNumEpochs.disabled = argument;
+	inputRangeBrushSize.disabled = argument;
+	selectModel.disabled = argument;
 }
 
 async function train() {
 	disableUI(true);
-	let tensor = tf.tensor(images).reshape([numImages + 1, canvasImage.height, canvasImage.width]);
+	const images_ = new Uint8Array(images);
+	let tensor = tf.tensor(images_).reshape([numImages + 1, canvasImage.height, canvasImage.width]);
 	tensor = tensor.expandDims(-1);
 	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 	const tensorMax = tensor.max();
@@ -154,12 +181,12 @@ async function train() {
 	tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
 	let preProcessedImage;
 	let predictions;
-	if (configSelected.machineLearningType === 'image segmentation') {
+	if (configSelected.machineLearningType === 'image classification') {
+		preProcessedImage = tensor;
+		predictions = tf.oneHot(classAnnotations, configSelected.classNames.length);
+	} else if (configSelected.machineLearningType === 'image segmentation') {
 		preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
 		predictions = tf.tensor(masks);
-	} else if (configSelected.machineLearningType === 'image classification') {
-		preProcessedImage = tensor;
-		predictions = tf.oneHot(classes, configSelected.classNames.length);
 	}
 	model.compile({
 		optimizer: 'adam',
@@ -188,37 +215,11 @@ async function train() {
 }
 
 async function selectModelName() {
-	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-	contextImage.clearRect(0, 0, canvasImage.width, canvasImage.height);
-	contextMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
 	divLabelList.textContent = '';
-	fileDecompressed = null;
-	imageCurrentIndex = 0;
-	imageOffset = 0;
-	imageSize = 1;
-	imageValueMin = 0;
-	imageValueRange = 1;
-	images = new Uint8Array(imageSize);
-	inputLoadFiles.value = '';
+	inputLoadImages.value = '';
 	inputLoadPredictions.value = '';
-	labelCurrent = 0;
-	masks = new Uint8Array(imageSize);
-	numImages = 0;
-	spanHeightXwidth.textContent = '';
-	spanImageIndex.textContent = '';
-	spanImageValueMax.textContent = '';
-	spanImageValueMin.textContent = '';
+	resetData();
 	let loadModelFunction;
-	configSelected = configArray.find(config => config.modelURL === selectModel.value);
-	if (configSelected.machineLearningType === 'image classification') {
-		canvasMask.style.display = 'none';
-		canvasBrush.style.display = 'none';
-		divBrushSize.style.display = 'none';
-	} else if (configSelected.machineLearningType === 'image segmentation') {
-		canvasMask.style.display = '';
-		canvasBrush.style.display = '';
-		divBrushSize.style.display = '';
-	}
 	await fetch(selectModel.value)
 		.then(response => response.text())
 		.then((text) => {
@@ -249,8 +250,8 @@ async function selectModelName() {
 	spanModelPredictionShape.textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		buttonSaveModelToDisk.style.display = '';
+		buttonSaveModelToServer.style.display = '';
 		buttonTrain.style.display = '';
-		buttonUploadModelToServer.style.display = '';
 		divAccuracy.style.display = '';
 		divCurrentEpoch.style.display = '';
 		divLoss.style.display = '';
@@ -258,18 +259,26 @@ async function selectModelName() {
 		spanModelTrainable.textContent = 'True';
 	} else {
 		buttonSaveModelToDisk.style.display = 'none';
+		buttonSaveModelToServer.style.display = 'none';
 		buttonTrain.style.display = 'none';
-		buttonUploadModelToServer.style.display = 'none';
 		divAccuracy.style.display = 'none';
 		divCurrentEpoch.style.display = 'none';
 		divLoss.style.display = 'none';
 		divNumEpochs.style.display = 'none';
 		spanModelTrainable.textContent = 'False';
 	}
+	configSelected = configArray.find(config => config.modelURL === selectModel.value);
 	for (const [i, labelText] of configSelected.classNames.entries()) {
 		const divLabel = document.createElement('div');
 		divLabel.id = `divLabel${i}`;
 		divLabelList.appendChild(divLabel);
+		const divLabelPrediction = document.createElement('text');
+		divLabelPrediction.id = `divLabelPrediction${i}`;
+		divLabelPrediction.style.float = 'left';
+		divLabelPrediction.style.width = '50px';
+		divLabelPrediction.style.height = '15px';
+		divLabelPrediction.textContent = 'NaN';
+		divLabel.appendChild(divLabelPrediction);
 		const divLabelColor = document.createElement('div');
 		divLabelColor.id = `divLabelColor${i}`;
 		divLabelColor.style.backgroundColor = `rgb(${labelsColormap[i]})`;
@@ -285,18 +294,38 @@ async function selectModelName() {
 			event.currentTarget.style.opacity = 1;
 			labelCurrent = parseInt(event.currentTarget.id.match(/\d+/)[0]);
 			if (configSelected.machineLearningType === 'image classification') {
-				classes[imageCurrentIndex] = labelCurrent;
+				classAnnotations[imageCurrentIndex] = labelCurrent;
 			}
 		};
 		divLabel.appendChild(divLabelColor);
 		const divLabelText = document.createElement('text');
 		divLabelText.id = `divLabelText${i}`;
-		divLabelText.style.right = '50%';
-		divLabelText.style.width = '30%';
+		divLabelText.style.float = 'left';
+		divLabelText.style.height = '15px';
 		divLabelText.textContent = labelText;
 		divLabel.appendChild(divLabelText);
+		const br = document.createElement('br');
+		divLabel.appendChild(br);
 	}
-	disableUI(false);
+	if (configSelected.machineLearningType === 'image classification') {
+		const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+		for (let i = 0; i < nodeList.length; i++) {
+			nodeList[i].style.display = '';
+		}
+		canvasMask.style.display = 'none';
+		canvasBrush.style.display = 'none';
+		divBrushSize.style.display = 'none';
+	} else if (configSelected.machineLearningType === 'image segmentation') {
+		const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+		for (let i = 0; i < nodeList.length; i++) {
+			nodeList[i].style.display = 'none';
+		}
+		canvasMask.style.display = '';
+		canvasBrush.style.display = '';
+		divBrushSize.style.display = '';
+	}
+	inputLoadImages.disabled = false;
+	selectModel.disabled = false;
 }
 
 function drawCanvas() {
@@ -372,10 +401,13 @@ window.addEventListener('keydown', function (event) {
 		return;
 	}
 	imageOffset = imageSize * imageCurrentIndex;
-	labelCurrent = classes[imageCurrentIndex];
-	document.getElementById(`divLabelColor${labelCurrent}`).click();
-	spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
+	if (configSelected.machineLearningType === 'image classification') {
+		labelCurrent = classAnnotations[imageCurrentIndex];
+		document.getElementById(`divLabelColor${labelCurrent}`).click();
+	}
+	spanImageHeight.textContent = canvasImage.height;
 	spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
+	spanImageWidth.textContent = canvasImage.width;
 	drawCanvas();
 });
 
@@ -391,13 +423,19 @@ async function predictCurrentImage() {
 		const tensorMin = tensor.min();
 		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
 		let preProcessedImage;
-		if (configSelected.machineLearningType === 'image segmentation') {
-			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
-		} else if (configSelected.machineLearningType === 'image classification') {
+		if (configSelected.machineLearningType === 'image classification') {
 			preProcessedImage = tensor.expandDims(0);
+		} else if (configSelected.machineLearningType === 'image segmentation') {
+			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
 		}
 		let modelPrediction = model.predict(preProcessedImage);
-		if (configSelected.machineLearningType === 'image segmentation') {
+		if (configSelected.machineLearningType === 'image classification') {
+			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
+			const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+			for (let i = 0; i < nodeList.length; i++) {
+				nodeList[i].textContent = `${classProbabilities[0][i].toFixed(2)}%`;
+			}
+		} else if (configSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
 				modelPrediction = modelPrediction.reshape([512, 512, 1]);
 				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [canvasImage.height, canvasImage.width]);
@@ -408,9 +446,6 @@ async function predictCurrentImage() {
 					masks[imageOffset + i] = labelCurrent;
 				}
 			}
-		} else if (configSelected.machineLearningType === 'image classification') {
-			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
-			console.log(classProbabilities[0]);
 		}
 	});
 	drawCanvas();
@@ -424,6 +459,26 @@ function predictAllImages() {
 	}
 }
 
+function resetData() {
+	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
+	contextImage.clearRect(0, 0, canvasImage.width, canvasImage.height);
+	contextMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
+	fileDecompressed = null;
+	imageCurrentIndex = 0;
+	imageOffset = 0;
+	imageSize = 1;
+	imageValueMin = 0;
+	imageValueRange = 1;
+	images = new Uint8Array(imageSize);
+	labelCurrent = 0;
+	masks = new Uint8Array(imageSize);
+	numImages = 0;
+	spanImageHeight.textContent = '';
+	spanImageIndex.textContent = '';
+	spanImageValueMax.textContent = '';
+	spanImageValueMin.textContent = '';
+	spanImageWidth.textContent = '';
+}
 function resetView() {
 	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	let max = -Infinity;
@@ -499,17 +554,18 @@ function readNiftiFile(file) {
 			canvasImage.height = niftiHeader.dims[2];
 			canvasImage.width = niftiHeader.dims[1];
 			imageSize = canvasImage.height * canvasImage.width;
-			if (configSelected.machineLearningType === 'image segmentation') {
+			if (configSelected.machineLearningType === 'image classification') {
+				classAnnotations = classAnnotations.slice(0, numImages+1);
+			} else if (configSelected.machineLearningType === 'image segmentation') {
 				canvasMask.height = canvasImage.height;
 				canvasMask.width = canvasImage.width;
 				canvasBrush.height = canvasImage.height;
 				canvasBrush.width = canvasImage.width;
 				masks = new Uint8Array(images.length);
-			} else if (configSelected.machineLearningType === 'image classification') {
-				classes = classes.slice(0, numImages+1);
 			}
-			spanHeightXwidth.textContent = `${canvasImage.height}x${canvasImage.width}`;
+			spanImageHeight.textContent = canvasImage.height;
 			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
+			spanImageWidth.textContent = canvasImage.width;
 			resetView();
 		}
 		disableUI(false);
@@ -518,6 +574,7 @@ function readNiftiFile(file) {
 }
 
 function loadImages() {
+	resetData();
 	disableUI(true);
 	files = event.currentTarget.files;
 	if (files[0] === undefined) {
@@ -529,7 +586,7 @@ function loadImages() {
 	} else if (files[0].name.includes('.dcm')) {
 		itk.readImageDICOMFileSeries(files)
 			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
+				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
 						readNiftiFile(blob);
@@ -538,7 +595,7 @@ function loadImages() {
 	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
 		itk.readImageFileSeries(files)
 			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'unnamed.nii')
+				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
 						readNiftiFile(blob);
@@ -548,7 +605,6 @@ function loadImages() {
 }
 
 function loadPredictions() {
-	disableUI(true);
 	const file = event.currentTarget.files[0];
 	if (file === undefined) {
 		return;
@@ -556,16 +612,25 @@ function loadPredictions() {
 	const reader = new FileReader();
 	reader.onloadend = function (event) {
 		if (event.target.readyState === FileReader.DONE) {
-			if (configSelected.machineLearningType === 'image segmentation') {
+			if (configSelected.machineLearningType === 'image classification') {
+				const rows = event.target.result.split('\n');
+				for (const [i, row] of rows.entries()) {
+					const row_elements = row.split(',');
+					classAnnotations[i] = configSelected.classNames.findIndex((element) => element == row_elements[1]);
+				}
+			} else if (configSelected.machineLearningType === 'image segmentation') {
 				const niftiHeader = nifti.readHeader(event.target.result);
 				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
 				masks = new Uint8Array(niftiImage);
 				drawCanvas();
 			}
 		}
-		disableUI(false);
 	};
-	reader.readAsArrayBuffer(file);
+	if (configSelected.machineLearningType === 'image classification') {
+		reader.readAsText(file);
+	} else if (configSelected.machineLearningType === 'image segmentation') {
+		reader.readAsArrayBuffer(file);
+	}
 }
 
 (async () => {
