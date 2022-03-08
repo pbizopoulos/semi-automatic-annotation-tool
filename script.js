@@ -64,9 +64,9 @@ const labelsColormap = [
 ];
 
 const configURLarray = [
-	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/wbml/lung-classification.json',
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lesion-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/wbml/lung-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/docs/lung-classification.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lesion-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/master/docs/lung-segmentation.json',
 ]
 
 let configArray = [];
