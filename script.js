@@ -4,7 +4,6 @@ const buttonPredictAllImages = document.getElementById('buttonPredictAllImages')
 const buttonPredictCurrentImage = document.getElementById('buttonPredictCurrentImage');
 const buttonResetImageValue = document.getElementById('buttonResetImageValue');
 const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
-const buttonSaveModelToServer = document.getElementById('buttonSaveModelToServer');
 const buttonSavePredictionsToDisk = document.getElementById('buttonSavePredictionsToDisk');
 const buttonTrain = document.getElementById('buttonTrain');
 const canvasBrush = document.getElementById('canvasBrush');
@@ -134,7 +133,6 @@ function disableUI(argument) {
 	buttonPredictCurrentImage.disabled = argument;
 	buttonResetImageValue.disabled = argument;
 	buttonSaveModelToDisk.disabled = argument;
-	buttonSaveModelToServer.disabled = argument;
 	buttonSavePredictionsToDisk.disabled = argument;
 	buttonTrain.disabled = argument;
 	inputLoadImages.disabled = argument;
@@ -419,10 +417,6 @@ async function saveModelToDisk() {
 	await model.save('downloads://saved-model');
 }
 
-async function saveModelToServer() {
-	await model.save('http://172.17.0.2:5000/upload');
-}
-
 function saveData(data, filename) {
 	const a = document.createElement('a');
 	document.body.appendChild(a);
@@ -490,7 +484,6 @@ async function selectModelName() {
 	spanModelPredictionShape.textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		buttonSaveModelToDisk.style.display = '';
-		buttonSaveModelToServer.style.display = '';
 		buttonTrain.style.display = '';
 		divAccuracy.style.display = '';
 		divCurrentEpoch.style.display = '';
@@ -499,7 +492,6 @@ async function selectModelName() {
 		spanModelTrainable.textContent = 'True';
 	} else {
 		buttonSaveModelToDisk.style.display = 'none';
-		buttonSaveModelToServer.style.display = 'none';
 		buttonTrain.style.display = 'none';
 		divAccuracy.style.display = 'none';
 		divCurrentEpoch.style.display = 'none';

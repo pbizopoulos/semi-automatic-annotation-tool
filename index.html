@@ -6,6 +6,7 @@
 		<link href="data:" rel="icon">
 		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/webtorrent@latest/webtorrent.min.js"></script>
 		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
 		<script defer src="script.js"></script>
 	</head>
@@ -93,9 +94,6 @@
 			</div>
 			<div>
 				<button id="buttonSaveModelToDisk" onclick="saveModelToDisk()">Save model to disk</button>
-			</div>
-			<div>
-				<button id="buttonSaveModelToServer" onclick="saveModelToServer()">Save model to server</button>
 			</div>
 		</div>
 		<div id="divCanvases">
