@@ -5,7 +5,7 @@ const buttonPredictCurrentImage = document.getElementById('buttonPredictCurrentI
 const buttonResetImageValue = document.getElementById('buttonResetImageValue');
 const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
 const buttonSavePredictionsToDisk = document.getElementById('buttonSavePredictionsToDisk');
-const buttonTrain = document.getElementById('buttonTrain');
+const buttonTrainLocally = document.getElementById('buttonTrainLocally');
 const canvasBrush = document.getElementById('canvasBrush');
 const canvasImage = document.getElementById('canvasImage');
 const canvasMask = document.getElementById('canvasMask');
@@ -134,7 +134,7 @@ function disableUI(argument) {
 	buttonResetImageValue.disabled = argument;
 	buttonSaveModelToDisk.disabled = argument;
 	buttonSavePredictionsToDisk.disabled = argument;
-	buttonTrain.disabled = argument;
+	buttonTrainLocally.disabled = argument;
 	inputLoadImages.disabled = argument;
 	inputLoadPredictions.disabled = argument;
 	inputNumEpochs.disabled = argument;
@@ -484,7 +484,7 @@ async function selectModelName() {
 	spanModelPredictionShape.textContent = model.outputs[0].shape;
 	if (model.trainable) {
 		buttonSaveModelToDisk.style.display = '';
-		buttonTrain.style.display = '';
+		buttonTrainLocally.style.display = '';
 		divAccuracy.style.display = '';
 		divCurrentEpoch.style.display = '';
 		divLoss.style.display = '';
@@ -492,7 +492,7 @@ async function selectModelName() {
 		spanModelTrainable.textContent = 'True';
 	} else {
 		buttonSaveModelToDisk.style.display = 'none';
-		buttonTrain.style.display = 'none';
+		buttonTrainLocally.style.display = 'none';
 		divAccuracy.style.display = 'none';
 		divCurrentEpoch.style.display = 'none';
 		divLoss.style.display = 'none';
@@ -559,7 +559,7 @@ async function selectModelName() {
 	selectModel.disabled = false;
 }
 
-async function train() {
+async function trainLocally() {
 	disableUI(true);
 	const images_ = new Uint8Array(images);
 	let tensor = tf.tensor(images_).reshape([numImages + 1, canvasImage.height, canvasImage.width]);
