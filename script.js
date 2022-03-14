@@ -462,17 +462,14 @@ async function selectModelName() {
 	inputLoadImages.value = '';
 	inputLoadPredictions.value = '';
 	resetData();
+	configSelected = configArray.find(config => config.modelURL === selectModel.value);
 	let loadModelFunction;
-	await fetch(selectModel.value)
-		.then(response => response.text())
-		.then((text) => {
-			if (JSON.parse(text).format === 'graph-model') {
-				loadModelFunction = tf.loadGraphModel;
-			} else if (JSON.parse(text).format === 'layers-model') {
-				loadModelFunction = tf.loadLayersModel;
-			}
-		})
-	model = await loadModelFunction(selectModel.value, {
+	if (configSelected.format === 'graph-model') {
+		loadModelFunction = tf.loadGraphModel;
+	} else if (configSelected.format === 'layers-model') {
+		loadModelFunction = tf.loadLayersModel;
+	}
+	model = await loadModelFunction(configSelected.modelURL, {
 		onProgress: function (fraction) {
 			divModelLoadFraction.textContent = `${Math.round(100*fraction)}%.`;
 			spanModelInputShape.textContent = 'NaN';
@@ -510,7 +507,6 @@ async function selectModelName() {
 		divNumEpochs.style.display = 'none';
 		spanModelTrainable.textContent = 'False';
 	}
-	configSelected = configArray.find(config => config.modelURL === selectModel.value);
 	for (const [i, labelText] of configSelected.classNames.entries()) {
 		const divLabel = document.createElement('div');
 		divLabel.id = `divLabel${i}`;
@@ -642,6 +638,12 @@ window.addEventListener('keydown', function (event) {
 				configArray[i] = JSON.parse(text);
 				let option = document.createElement('option');
 				option.value = configArray[i].modelURL;
+				fetch(option.value)
+					.then(response => response.text())
+					.then((text) => {
+						configArray[i].format = JSON.parse(text).format;
+						configArray[i].weightPaths = JSON.parse(text).weightsManifest[0].paths;
+					})
 				option.textContent = configArray[i].name;
 				selectModel.appendChild(option);
 			})
