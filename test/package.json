@@ -1,0 +1,23 @@
+{
+  "name": "web-based-machine-learning",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pbizopoulos/web-based-machine-learning.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pbizopoulos/web-based-machine-learning/issues"
+  },
+  "homepage": "https://github.com/pbizopoulos/web-based-machine-learning#readme",
+  "dependencies": {
+    "puppeteer": "^13.6.0"
+  }
+}
