@@ -1,13 +1,9 @@
 import io
-import os
 
 import tensorflowjs as tfjs
 import werkzeug.formparser
 from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
-
-tmpdir = os.getenv('TMPDIR')
-full = os.getenv('FULL')
 
 
 class ModelReceiver():
