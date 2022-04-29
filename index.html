@@ -11,97 +11,97 @@
 	</head>
 
 	<body>
-		<div id="divControl" style="border-style:groove;float:left;width:200px;">
+		<div style="border-style:groove;float:left;width:200px;">
 			<div>
 				<b>Model</b>
 			</div>
 			<div>
-				<select id="selectModel" onchange="selectModelName();" style="width:100%;">
+				<select id="modelSelect" onchange="selectModelName();" style="width:100%;">
 				</select>
 			</div>
-			<div id="divModelLoadFraction">0%</div>
+			<div id="modelLoadFractionDiv">0%</div>
 			<div>
-				Input shape: <span id="spanModelInputShape"></span>
+				Input shape: <span id="modelInputShapeSpan"></span>
 			</div>
 			<div>
-				Prediction shape: <span id="spanModelPredictionShape"></span>
+				Prediction shape: <span id="modelPredictionShapeSpan"></span>
 			</div>
 			<hr>
 			<div>
 				<b>Input</b>
 			</div>
 			<div>
-				<input type="file" id="inputLoadImages" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
+				<input type="file" id="loadImagesInputFile" onchange="loadImages()" accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" multiple/>
 			</div>
 			<div>
-				<input type="file" id="inputLoadPredictions" onchange="loadPredictions()" accept=".nii,.txt"/ disabled>
+				<input type="file" id="loadPredictionsInputFile" onchange="loadPredictions()" accept=".nii,.txt"/ disabled>
 			</div>
 			<div>
-				Index: <span id="spanImageIndex"></span>
+				Index: <span id="imageIndexSpan"></span>
 			</div>
 			<div>
-				H&times;W: <span id="spanImageHeight"></span> &times; <span id="spanImageWidth"></span>
+				H&times;W: <span id="imageHeightSpan"></span> &times; <span id="imageWidthSpan"></span>
 			</div>
 			<div>
-				Min value: <span id="spanImageValueMin"></span>
+				Min value: <span id="imageValueMinSpan"></span>
 			</div>
 			<div>
-				Max value: <span id="spanImageValueMax"></span>
+				Max value: <span id="imageValueMaxSpan"></span>
 			</div>
 			<div>
-				<button id="buttonResetImageValue" onclick="resetImageValue()" disabled>Reset image value</button>
+				<button id="resetImageValueButton" onclick="resetImageValue()" disabled>Reset image value</button>
 			</div>
 			<hr>
 			<div>
 				<b>Inference</b>
 			</div>
 			<div>
-				<button id="buttonPredictCurrentImage" onclick="predictCurrentImage()" disabled>Predict current image</button>
+				<button id="predictCurrentImageButton" onclick="predictCurrentImage()" disabled>Predict current image</button>
 			</div>
 			<div>
-				<button id="buttonPredictAllImages" onclick="predictAllImages()" disabled>Predict all images</button>
+				<button id="predictAllImagesButton" onclick="predictAllImages()" disabled>Predict all images</button>
 			</div>
-			<div id="divLabelList"></div>
-			<div id="divBrushSize">
+			<div id="labelListDiv"></div>
+			<div id="brushSizeDiv">
 				Brush size:
-				<input type="range" id="inputRangeBrushSize" style="width:60%" value="20" oninput="drawCanvas()" disabled>
+				<input type="range" id="brushSizeInputRange" style="width:60%" value="20" oninput="drawCanvas()" disabled>
 			</div>
 			<div>
-				<button id="buttonSavePredictionsToDisk" onclick="savePredictionsToDisk()" disabled>Save predictions to disk</button>
+				<button id="savePredictionsToDiskButton" onclick="savePredictionsToDisk()" disabled>Save predictions to disk</button>
 			</div>
 			<hr>
 			<div>
 				<b>Training</b>
 			</div>
 			<div>
-				Trainable: <span id="spanModelTrainable"></span>
+				Trainable: <span id="modelTrainableSpan"></span>
 			</div>
 			<div>
-				<button id="buttonTrainLocally" onclick="trainLocally()">Train locally</button>
+				<button id="trainLocallyButton" onclick="trainLocally()">Train locally</button>
 			</div>
-			<div id="divNumEpochs">
-				Epochs: <input type="number" id="inputNumEpochs" value=10 style="width:20%;">
+			<div id="epochsNumDiv">
+				Epochs: <input type="number" id="epochsNumInputNumber" value=10 style="width:20%;">
 			</div>
-			<div id="divCurrentEpoch">
-				Current epoch: <span id="spanCurrentEpoch"></span>
+			<div id="epochCurrentDiv">
+				Current epoch: <span id="epochCurrentSpan"></span>
 			</div>
-			<div id="divLoss">
-				Loss: <span id="spanLoss"></span>
+			<div id="lossDiv">
+				Loss: <span id="lossSpan"></span>
 			</div>
-			<div id="divAccuracy">
-				Accuracy: <span id="spanAccuracy"></span>
-			</div>
-			<div>
-				<button id="buttonSaveModelToDisk" onclick="saveModelToDisk()">Save model to disk</button>
+			<div id="accuracyDiv">
+				Accuracy: <span id="accuracySpan"></span>
 			</div>
 			<div>
-				<button id="buttonSaveModelToServer" onclick="saveModelToServer()">Save model to server</button>
+				<button id="saveModelToDiskButton" onclick="saveModelToDisk()">Save model to disk</button>
+			</div>
+			<div>
+				<button id="saveModelToServerButton" onclick="saveModelToServer()">Save model to server</button>
 			</div>
 		</div>
-		<div id="divCanvases">
-			<canvas id="canvasImage" style="position:absolute;"></canvas>
-			<canvas id="canvasMask" style="position:absolute;opacity:0.5;"></canvas>
-			<canvas id="canvasBrush" style="position:absolute;opacity:0.5;"></canvas>
+		<div>
+			<canvas id="imageCanvas" style="position:absolute;"></canvas>
+			<canvas id="maskCanvas" style="position:absolute;opacity:0.5;"></canvas>
+			<canvas id="brushCanvas" style="position:absolute;opacity:0.5;"></canvas>
 		</div>
 	</body>
 </html>

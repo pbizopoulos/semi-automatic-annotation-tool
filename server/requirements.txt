@@ -3,9 +3,6 @@ autoflake
 autopep8
 coverage
 isort
-pipreqs
-python-minimizer
-pyupgrade
 
 # document requirements
 Flask-Cors==3.0.10

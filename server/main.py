@@ -1,9 +1,8 @@
-import io
-
-import tensorflowjs as tfjs
-import werkzeug.formparser
 from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
+import io
+import tensorflowjs as tfjs
+import werkzeug.formparser
 
 
 class ModelReceiver():

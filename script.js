@@ -1,43 +1,42 @@
 'use strict';
 
-const buttonPredictAllImages = document.getElementById('buttonPredictAllImages');
-const buttonPredictCurrentImage = document.getElementById('buttonPredictCurrentImage');
-const buttonResetImageValue = document.getElementById('buttonResetImageValue');
-const buttonSaveModelToDisk = document.getElementById('buttonSaveModelToDisk');
-const buttonSaveModelToServer = document.getElementById('buttonSaveModelToServer');
-const buttonSavePredictionsToDisk = document.getElementById('buttonSavePredictionsToDisk');
-const buttonTrainLocally = document.getElementById('buttonTrainLocally');
-const canvasBrush = document.getElementById('canvasBrush');
-const canvasImage = document.getElementById('canvasImage');
-const canvasMask = document.getElementById('canvasMask');
-const divAccuracy = document.getElementById('divAccuracy');
-const divBrushSize = document.getElementById('divBrushSize');
-const divControl = document.getElementById('divControl');
-const divCurrentEpoch = document.getElementById('divCurrentEpoch');
-const divLabelList = document.getElementById('divLabelList');
-const divLoss = document.getElementById('divLoss');
-const divModelLoadFraction = document.getElementById('divModelLoadFraction');
-const divNumEpochs = document.getElementById('divNumEpochs');
-const inputLoadImages = document.getElementById('inputLoadImages');
-const inputLoadPredictions = document.getElementById('inputLoadPredictions');
-const inputNumEpochs = document.getElementById('inputNumEpochs');
-const inputRangeBrushSize = document.getElementById('inputRangeBrushSize');
-const selectModel = document.getElementById('selectModel');
-const spanAccuracy = document.getElementById('spanAccuracy');
-const spanCurrentEpoch = document.getElementById('spanCurrentEpoch');
-const spanImageHeight = document.getElementById('spanImageHeight');
-const spanImageIndex = document.getElementById('spanImageIndex');
-const spanImageValueMax = document.getElementById('spanImageValueMax');
-const spanImageValueMin = document.getElementById('spanImageValueMin');
-const spanImageWidth = document.getElementById('spanImageWidth');
-const spanLoss = document.getElementById('spanLoss');
-const spanModelInputShape = document.getElementById('spanModelInputShape');
-const spanModelPredictionShape = document.getElementById('spanModelPredictionShape');
-const spanModelTrainable = document.getElementById('spanModelTrainable');
+const accuracyDiv = document.getElementById('accuracyDiv');
+const accuracySpan = document.getElementById('accuracySpan');
+const brushCanvas = document.getElementById('brushCanvas');
+const brushSizeDiv = document.getElementById('brushSizeDiv');
+const savePredictionsToDiskButton = document.getElementById('savePredictionsToDiskButton');
+const epochCurrentDiv = document.getElementById('epochCurrentDiv');
+const epochCurrentSpan = document.getElementById('epochCurrentSpan');
+const epochsNumDiv = document.getElementById('epochsNumDiv');
+const imageCanvas = document.getElementById('imageCanvas');
+const imageHeightSpan = document.getElementById('imageHeightSpan');
+const imageIndexSpan = document.getElementById('imageIndexSpan');
+const imageValueMaxSpan = document.getElementById('imageValueMaxSpan');
+const imageValueMinSpan = document.getElementById('imageValueMinSpan');
+const imageWidthSpan = document.getElementById('imageWidthSpan');
+const loadImagesInputFile = document.getElementById('loadImagesInputFile');
+const loadPredictionsInputFile = document.getElementById('loadPredictionsInputFile');
+const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
+const brushSizeInputRange = document.getElementById('brushSizeInputRange');
+const labelListDiv = document.getElementById('labelListDiv');
+const lossDiv = document.getElementById('lossDiv');
+const lossSpan = document.getElementById('lossSpan');
+const maskCanvas = document.getElementById('maskCanvas');
+const modelInputShapeSpan = document.getElementById('modelInputShapeSpan');
+const modelLoadFractionDiv = document.getElementById('modelLoadFractionDiv');
+const modelPredictionShapeSpan = document.getElementById('modelPredictionShapeSpan');
+const modelSelect = document.getElementById('modelSelect');
+const modelTrainableSpan = document.getElementById('modelTrainableSpan');
+const predictAllImagesButton = document.getElementById('predictAllImagesButton');
+const predictCurrentImageButton = document.getElementById('predictCurrentImageButton');
+const resetImageValueButton = document.getElementById('resetImageValueButton');
+const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
+const saveModelToServerButton = document.getElementById('saveModelToServerButton');
+const trainLocallyButton = document.getElementById('trainLocallyButton');
 
-const contextBrush = canvasBrush.getContext('2d');
-const contextImage = canvasImage.getContext('2d');
-const contextMask = canvasMask.getContext('2d');
+const brushContext = brushCanvas.getContext('2d');
+const imageContext = imageCanvas.getContext('2d');
+const maskContext = maskCanvas.getContext('2d');
 
 const labelsColormap = [
 	[ 255, 255, 255 ],
@@ -80,10 +79,10 @@ let imageSize;
 let imageValueMin;
 let imageValueRange;
 let imageValueRangeActivated = false;
+let imagesNum;
 let labelCurrent = 0;
 let model;
 let modelInputShape;
-let numImages;
 let offsetX;
 let offsetY;
 
@@ -91,11 +90,11 @@ let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
 let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 
-canvasBrush.addEventListener('contextmenu', function (event) {
+brushCanvas.addEventListener('contextmenu', function (event) {
 	event.preventDefault();
 }, false);
 
-canvasBrush.addEventListener('mousedown', (event) => {
+brushCanvas.addEventListener('mousedown', (event) => {
 	if (event.button === 0) {
 		drawActivated = true;
 	} else if (event.button === 2) {
@@ -103,20 +102,20 @@ canvasBrush.addEventListener('mousedown', (event) => {
 	}
 });
 
-canvasBrush.addEventListener('mouseleave', () => {
+brushCanvas.addEventListener('mouseleave', () => {
 	drawActivated = false;
 	imageValueRangeActivated = false;
 });
 
-canvasBrush.addEventListener('mousemove', (event) => {
+brushCanvas.addEventListener('mousemove', (event) => {
 	if (imageValueRangeActivated) {
 		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
 		let midTmp = imageValueMin + imageValueRange / 2;
 		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
 		imageValueMin = midTmp - rangeTmp / 2;
 		imageValueRange = rangeTmp;
-		spanImageValueMax.textContent = Math.round(2*imageValueRange);
-		spanImageValueMin.textContent = Math.round(imageValueMin);
+		imageValueMaxSpan.textContent = Math.round(2*imageValueRange);
+		imageValueMinSpan.textContent = Math.round(imageValueMin);
 	} else {
 		offsetX = event.offsetX;
 		offsetY = event.offsetY;
@@ -124,31 +123,31 @@ canvasBrush.addEventListener('mousemove', (event) => {
 	requestAnimationFrame(drawCanvas);
 });
 
-canvasBrush.addEventListener('mouseup', () => {
+brushCanvas.addEventListener('mouseup', () => {
 	drawActivated = false;
 	imageValueRangeActivated = false;
 });
 
 function disableUI(argument) {
-	buttonPredictAllImages.disabled = argument;
-	buttonPredictCurrentImage.disabled = argument;
-	buttonResetImageValue.disabled = argument;
-	buttonSaveModelToDisk.disabled = argument;
-	buttonSaveModelToServer.disabled = argument;
-	buttonSavePredictionsToDisk.disabled = argument;
-	buttonTrainLocally.disabled = argument;
-	inputLoadImages.disabled = argument;
-	inputLoadPredictions.disabled = argument;
-	inputNumEpochs.disabled = argument;
-	inputRangeBrushSize.disabled = argument;
-	selectModel.disabled = argument;
+	brushSizeInputRange.disabled = argument;
+	epochsNumInputNumber.disabled = argument;
+	loadImagesInputFile.disabled = argument;
+	loadPredictionsInputFile.disabled = argument;
+	modelSelect.disabled = argument;
+	predictAllImagesButton.disabled = argument;
+	predictCurrentImageButton.disabled = argument;
+	resetImageValueButton.disabled = argument;
+	saveModelToDiskButton.disabled = argument;
+	saveModelToServerButton.disabled = argument;
+	savePredictionsToDiskButton.disabled = argument;
+	trainLocallyButton.disabled = argument;
 }
 
 function drawCanvas() {
-	const imageDataImage = new ImageData(canvasImage.width, canvasImage.height);
-	for (let i = 0; i < canvasImage.height; i++) {
-		const rowOffset = i * canvasImage.width;
-		for (let j = 0; j < canvasImage.width; j++) {
+	const imageDataImage = new ImageData(imageCanvas.width, imageCanvas.height);
+	for (let i = 0; i < imageCanvas.height; i++) {
+		const rowOffset = i * imageCanvas.width;
+		for (let j = 0; j < imageCanvas.width; j++) {
 			const imageValueOffset = imageOffset + rowOffset + j;
 			const imageValue = (images[imageValueOffset] - imageValueMin) / imageValueRange;
 			const offsetMult4 = (rowOffset + j) * 4;
@@ -158,37 +157,37 @@ function drawCanvas() {
 			imageDataImage.data[offsetMult4 + 3] = 255;
 		}
 	}
-	contextImage.putImageData(imageDataImage, 0, 0);
+	imageContext.putImageData(imageDataImage, 0, 0);
 	if (configSelected.machineLearningType === 'image segmentation') {
-		contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-		contextBrush.fillStyle = `rgb(${labelsColormap[labelCurrent]})`;
-		contextBrush.beginPath();
-		contextBrush.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(inputRangeBrushSize.value), 0, 2 * Math.PI);
-		contextBrush.fill();
-		const imageDataBrush = contextBrush.getImageData(0, 0, canvasImage.width, canvasImage.height);
-		contextBrush.putImageData(imageDataBrush, 0, 0);
+		brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
+		brushContext.fillStyle = `rgb(${labelsColormap[labelCurrent]})`;
+		brushContext.beginPath();
+		brushContext.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(brushSizeInputRange.value), 0, 2 * Math.PI);
+		brushContext.fill();
+		const brushImageData = brushContext.getImageData(0, 0, imageCanvas.width, imageCanvas.height);
+		brushContext.putImageData(brushImageData, 0, 0);
 		if (drawActivated) {
-			for (let i = 0; i < imageDataBrush.data.length; i += 4) {
-				if (imageDataBrush.data[i] > 0) {
+			for (let i = 0; i < brushImageData.data.length; i += 4) {
+				if (brushImageData.data[i] > 0) {
 					masks[imageOffset + i / 4] = labelCurrent;
 				}
 			}
 		}
-		contextBrush.drawImage(canvasBrush, 0, 0);
-		contextMask.drawImage(canvasMask, 0, 0);
-		const imageDataMask = new ImageData(canvasImage.width, canvasImage.height);
+		brushContext.drawImage(brushCanvas, 0, 0);
+		maskContext.drawImage(maskCanvas, 0, 0);
+		const maskImageData = new ImageData(imageCanvas.width, imageCanvas.height);
 		for (let i = 0; i < imageSize; i++) {
 			const maskValue = masks[imageOffset + i];
-			imageDataMask.data[4*i] = labelsColormap[maskValue][0];
-			imageDataMask.data[4*i + 1] = labelsColormap[maskValue][1];
-			imageDataMask.data[4*i + 2] = labelsColormap[maskValue][2];
+			maskImageData.data[4*i] = labelsColormap[maskValue][0];
+			maskImageData.data[4*i + 1] = labelsColormap[maskValue][1];
+			maskImageData.data[4*i + 2] = labelsColormap[maskValue][2];
 			if (maskValue > 0) {
-				imageDataMask.data[4*i + 3] = 255;
+				maskImageData.data[4*i + 3] = 255;
 			} else {
-				imageDataMask.data[4*i + 3] = 0;
+				maskImageData.data[4*i + 3] = 0;
 			}
 		}
-		contextMask.putImageData(imageDataMask, 0, 0);
+		maskContext.putImageData(maskImageData, 0, 0);
 	}
 }
 
@@ -253,7 +252,7 @@ function loadPredictions() {
 }
 
 function predictAllImages() {
-	for (let i = 0; i <= numImages; i++) {
+	for (let i = 0; i <= imagesNum; i++) {
 		imageCurrentIndex = i;
 		imageOffset = imageSize * imageCurrentIndex;
 		predictCurrentImage();
@@ -265,7 +264,7 @@ async function predictCurrentImage() {
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
 		let tensor = tf.tensor(imageSlice);
-		tensor = tf.reshape(tensor, [canvasImage.height, canvasImage.width]);
+		tensor = tf.reshape(tensor, [imageCanvas.height, imageCanvas.width]);
 		tensor = tensor.expandDims(-1);
 		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 		const tensorMax = tensor.max();
@@ -280,14 +279,14 @@ async function predictCurrentImage() {
 		let modelPrediction = model.predict(preProcessedImage);
 		if (configSelected.machineLearningType === 'image classification') {
 			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
-			const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+			const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].textContent = `${classProbabilities[0][i].toFixed(2)}%`;
 			}
 		} else if (configSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
 				modelPrediction = modelPrediction.reshape([512, 512, 1]);
-				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [canvasImage.height, canvasImage.width]);
+				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [imageCanvas.height, imageCanvas.width]);
 			}
 			modelPrediction = modelPrediction.dataSync();
 			for (let i = 0; i < modelPrediction.length; i++) {
@@ -352,23 +351,23 @@ function readNiftiFile(file) {
 				default:
 					return;
 			}
-			numImages = niftiHeader.dims[3] - 1;
+			imagesNum = niftiHeader.dims[3] - 1;
 			imageCurrentIndex = 0;
-			canvasImage.height = niftiHeader.dims[2];
-			canvasImage.width = niftiHeader.dims[1];
-			imageSize = canvasImage.height * canvasImage.width;
+			imageCanvas.height = niftiHeader.dims[2];
+			imageCanvas.width = niftiHeader.dims[1];
+			imageSize = imageCanvas.height * imageCanvas.width;
 			if (configSelected.machineLearningType === 'image classification') {
-				classAnnotations = classAnnotations.slice(0, numImages+1);
+				classAnnotations = classAnnotations.slice(0, imagesNum+1);
 			} else if (configSelected.machineLearningType === 'image segmentation') {
-				canvasMask.height = canvasImage.height;
-				canvasMask.width = canvasImage.width;
-				canvasBrush.height = canvasImage.height;
-				canvasBrush.width = canvasImage.width;
+				maskCanvas.height = imageCanvas.height;
+				maskCanvas.width = imageCanvas.width;
+				brushCanvas.height = imageCanvas.height;
+				brushCanvas.width = imageCanvas.width;
 				masks = new Uint8Array(images.length);
 			}
-			spanImageHeight.textContent = canvasImage.height;
-			spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
-			spanImageWidth.textContent = canvasImage.width;
+			imageHeightSpan.textContent = imageCanvas.height;
+			imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
+			imageWidthSpan.textContent = imageCanvas.width;
 			resetImageValue();
 		}
 		disableUI(false);
@@ -377,24 +376,24 @@ function readNiftiFile(file) {
 }
 
 function resetData() {
-	contextBrush.clearRect(0, 0, canvasBrush.width, canvasBrush.height);
-	contextImage.clearRect(0, 0, canvasImage.width, canvasImage.height);
-	contextMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
+	brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
 	fileDecompressed = null;
+	imageContext.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
 	imageCurrentIndex = 0;
+	imageHeightSpan.textContent = '';
+	imageIndexSpan.textContent = '';
 	imageOffset = 0;
 	imageSize = 1;
+	imageValueMaxSpan.textContent = '';
 	imageValueMin = 0;
+	imageValueMinSpan.textContent = '';
 	imageValueRange = 1;
+	imageWidthSpan.textContent = '';
 	images = new Uint8Array(imageSize);
+	imagesNum = 0;
 	labelCurrent = 0;
+	maskContext.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
 	masks = new Uint8Array(imageSize);
-	numImages = 0;
-	spanImageHeight.textContent = '';
-	spanImageIndex.textContent = '';
-	spanImageValueMax.textContent = '';
-	spanImageValueMin.textContent = '';
-	spanImageWidth.textContent = '';
 }
 
 function resetImageValue() {
@@ -410,8 +409,8 @@ function resetImageValue() {
 		}
 	}
 	imageValueRange = (max - imageValueMin) / 255;
-	spanImageValueMax.textContent = Math.round(max);
-	spanImageValueMin.textContent = Math.round(imageValueMin);
+	imageValueMaxSpan.textContent = Math.round(max);
+	imageValueMinSpan.textContent = Math.round(imageValueMin);
 	drawCanvas();
 }
 
@@ -458,11 +457,11 @@ function savePredictionsToDisk() {
 }
 
 async function selectModelName() {
-	divLabelList.textContent = '';
-	inputLoadImages.value = '';
-	inputLoadPredictions.value = '';
+	labelListDiv.textContent = '';
+	loadImagesInputFile.value = '';
+	loadPredictionsInputFile.value = '';
 	resetData();
-	configSelected = configArray.find(config => config.modelURL === selectModel.value);
+	configSelected = configArray.find(config => config.modelURL === modelSelect.value);
 	let loadModelFunction;
 	if (configSelected.format === 'graph-model') {
 		loadModelFunction = tf.loadGraphModel;
@@ -471,62 +470,62 @@ async function selectModelName() {
 	}
 	model = await loadModelFunction(configSelected.modelURL, {
 		onProgress: function (fraction) {
-			divModelLoadFraction.textContent = `${Math.round(100*fraction)}%.`;
-			spanModelInputShape.textContent = 'NaN';
-			spanModelPredictionShape.textContent = 'NaN';
-			spanModelTrainable.textContent = 'NaN';
+			modelLoadFractionDiv.textContent = `${Math.round(100*fraction)}%.`;
+			modelInputShapeSpan.textContent = 'NaN';
+			modelPredictionShapeSpan.textContent = 'NaN';
+			modelTrainableSpan.textContent = 'NaN';
 			disableUI(true);
 		}
 	});
 	modelInputShape = model.inputs[0].shape.filter(x => x>3);
-	canvasImage.width = modelInputShape[0];
-	canvasImage.height = modelInputShape[1];
-	canvasMask.width = modelInputShape[0];
-	canvasMask.height = modelInputShape[1];
-	canvasBrush.width = modelInputShape[0];
-	canvasBrush.height = modelInputShape[1];
-	divModelLoadFraction.textContent = 'Model loaded.';
-	spanModelInputShape.textContent = modelInputShape;
-	spanModelPredictionShape.textContent = model.outputs[0].shape;
+	imageCanvas.width = modelInputShape[0];
+	imageCanvas.height = modelInputShape[1];
+	maskCanvas.width = modelInputShape[0];
+	maskCanvas.height = modelInputShape[1];
+	brushCanvas.width = modelInputShape[0];
+	brushCanvas.height = modelInputShape[1];
+	modelLoadFractionDiv.textContent = 'Model loaded.';
+	modelInputShapeSpan.textContent = modelInputShape;
+	modelPredictionShapeSpan.textContent = model.outputs[0].shape;
 	if (model.trainable) {
-		buttonSaveModelToDisk.style.display = '';
-		buttonSaveModelToServer.style.display = '';
-		buttonTrainLocally.style.display = '';
-		divAccuracy.style.display = '';
-		divCurrentEpoch.style.display = '';
-		divLoss.style.display = '';
-		divNumEpochs.style.display = '';
-		spanModelTrainable.textContent = 'True';
+		accuracyDiv.style.display = '';
+		epochCurrentDiv.style.display = '';
+		epochsNumDiv.style.display = '';
+		lossDiv.style.display = '';
+		modelTrainableSpan.textContent = 'True';
+		saveModelToDiskButton.style.display = '';
+		saveModelToServerButton.style.display = '';
+		trainLocallyButton.style.display = '';
 	} else {
-		buttonSaveModelToDisk.style.display = 'none';
-		buttonSaveModelToServer.style.display = 'none';
-		buttonTrainLocally.style.display = 'none';
-		divAccuracy.style.display = 'none';
-		divCurrentEpoch.style.display = 'none';
-		divLoss.style.display = 'none';
-		divNumEpochs.style.display = 'none';
-		spanModelTrainable.textContent = 'False';
+		accuracyDiv.style.display = 'none';
+		epochCurrentDiv.style.display = 'none';
+		epochsNumDiv.style.display = 'none';
+		lossDiv.style.display = 'none';
+		modelTrainableSpan.textContent = 'False';
+		saveModelToDiskButton.style.display = 'none';
+		saveModelToServerButton.style.display = 'none';
+		trainLocallyButton.style.display = 'none';
 	}
 	for (const [i, labelText] of configSelected.classNames.entries()) {
-		const divLabel = document.createElement('div');
-		divLabel.id = `divLabel${i}`;
-		divLabelList.appendChild(divLabel);
-		const divLabelPrediction = document.createElement('text');
-		divLabelPrediction.id = `divLabelPrediction${i}`;
-		divLabelPrediction.style.float = 'left';
-		divLabelPrediction.style.width = '50px';
-		divLabelPrediction.style.height = '15px';
-		divLabelPrediction.textContent = 'NaN';
-		divLabel.appendChild(divLabelPrediction);
-		const divLabelColor = document.createElement('div');
-		divLabelColor.id = `divLabelColor${i}`;
-		divLabelColor.style.backgroundColor = `rgb(${labelsColormap[i]})`;
-		divLabelColor.style.float = 'left';
-		divLabelColor.style.height = '15px';
-		divLabelColor.style.opacity = 0.3;
-		divLabelColor.style.width = '15px';
-		divLabelColor.onclick = function (event) {
-			const nodeList = document.querySelectorAll('*[id^="divLabelColor"]')
+		const labelDiv = document.createElement('div');
+		labelDiv.id = `labelDiv${i}`;
+		labelListDiv.appendChild(labelDiv);
+		const labelPredictionDiv = document.createElement('text');
+		labelPredictionDiv.id = `labelPredictionDiv${i}`;
+		labelPredictionDiv.style.float = 'left';
+		labelPredictionDiv.style.width = '50px';
+		labelPredictionDiv.style.height = '15px';
+		labelPredictionDiv.textContent = 'NaN';
+		labelDiv.appendChild(labelPredictionDiv);
+		const labelColorDiv = document.createElement('div');
+		labelColorDiv.id = `labelColorDiv${i}`;
+		labelColorDiv.style.backgroundColor = `rgb(${labelsColormap[i]})`;
+		labelColorDiv.style.float = 'left';
+		labelColorDiv.style.height = '15px';
+		labelColorDiv.style.opacity = 0.3;
+		labelColorDiv.style.width = '15px';
+		labelColorDiv.onclick = function (event) {
+			const nodeList = document.querySelectorAll('*[id^="labelColorDiv"]')
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].style.opacity = 0.3;
 			}
@@ -536,41 +535,41 @@ async function selectModelName() {
 				classAnnotations[imageCurrentIndex] = labelCurrent;
 			}
 		};
-		divLabel.appendChild(divLabelColor);
-		const divLabelText = document.createElement('text');
-		divLabelText.id = `divLabelText${i}`;
-		divLabelText.style.float = 'left';
-		divLabelText.style.height = '15px';
-		divLabelText.textContent = labelText;
-		divLabel.appendChild(divLabelText);
+		labelDiv.appendChild(labelColorDiv);
+		const labelTextDiv = document.createElement('text');
+		labelTextDiv.id = `labelTextDiv${i}`;
+		labelTextDiv.style.float = 'left';
+		labelTextDiv.style.height = '15px';
+		labelTextDiv.textContent = labelText;
+		labelDiv.appendChild(labelTextDiv);
 		const br = document.createElement('br');
-		divLabel.appendChild(br);
+		labelDiv.appendChild(br);
 	}
 	if (configSelected.machineLearningType === 'image classification') {
-		const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
 		for (let i = 0; i < nodeList.length; i++) {
 			nodeList[i].style.display = '';
 		}
-		canvasMask.style.display = 'none';
-		canvasBrush.style.display = 'none';
-		divBrushSize.style.display = 'none';
+		maskCanvas.style.display = 'none';
+		brushCanvas.style.display = 'none';
+		brushSizeDiv.style.display = 'none';
 	} else if (configSelected.machineLearningType === 'image segmentation') {
-		const nodeList = document.querySelectorAll('*[id^="divLabelPrediction"]')
+		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
 		for (let i = 0; i < nodeList.length; i++) {
 			nodeList[i].style.display = 'none';
 		}
-		canvasMask.style.display = '';
-		canvasBrush.style.display = '';
-		divBrushSize.style.display = '';
+		maskCanvas.style.display = '';
+		brushCanvas.style.display = '';
+		brushSizeDiv.style.display = '';
 	}
-	inputLoadImages.disabled = false;
-	selectModel.disabled = false;
+	loadImagesInputFile.disabled = false;
+	modelSelect.disabled = false;
 }
 
 async function trainLocally() {
 	disableUI(true);
 	const images_ = new Uint8Array(images);
-	let tensor = tf.tensor(images_).reshape([numImages + 1, canvasImage.height, canvasImage.width]);
+	let tensor = tf.tensor(images_).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width]);
 	tensor = tensor.expandDims(-1);
 	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
 	const tensorMax = tensor.max();
@@ -591,13 +590,13 @@ async function trainLocally() {
 		metrics: ['accuracy'],
 	});
 	await model.fit(preProcessedImage, predictions, {
-		epochs: inputNumEpochs.value,
+		epochs: epochsNumInputNumber.value,
 		callbacks: [
 			new tf.CustomCallback({
 				onEpochEnd: (epoch, logs) => {
-					spanCurrentEpoch.textContent = epoch;
-					spanLoss.textContent = logs.loss;
-					spanAccuracy.textContent = logs.acc;
+					epochCurrentSpan.textContent = epoch;
+					lossSpan.textContent = logs.loss;
+					accuracySpan.textContent = logs.acc;
 				}
 			})
 		]
@@ -614,7 +613,7 @@ async function trainLocally() {
 window.addEventListener('keydown', function (event) {
 	if (event.code === 'ArrowUp' && (imageCurrentIndex > 0)) {
 		imageCurrentIndex--;
-	} else if (event.code === 'ArrowDown' && (imageCurrentIndex < numImages)) {
+	} else if (event.code === 'ArrowDown' && (imageCurrentIndex < imagesNum)) {
 		imageCurrentIndex++;
 	} else {
 		return;
@@ -622,11 +621,11 @@ window.addEventListener('keydown', function (event) {
 	imageOffset = imageSize * imageCurrentIndex;
 	if (configSelected.machineLearningType === 'image classification') {
 		labelCurrent = classAnnotations[imageCurrentIndex];
-		document.getElementById(`divLabelColor${labelCurrent}`).click();
+		document.getElementById(`labelColorDiv${labelCurrent}`).click();
 	}
-	spanImageHeight.textContent = canvasImage.height;
-	spanImageIndex.textContent = `${imageCurrentIndex}/${numImages}`;
-	spanImageWidth.textContent = canvasImage.width;
+	imageHeightSpan.textContent = imageCanvas.height;
+	imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
+	imageWidthSpan.textContent = imageCanvas.width;
 	drawCanvas();
 });
 
@@ -645,7 +644,7 @@ window.addEventListener('keydown', function (event) {
 						configArray[i].weightPaths = JSON.parse(text).weightsManifest[0].paths;
 					})
 				option.textContent = configArray[i].name;
-				selectModel.appendChild(option);
+				modelSelect.appendChild(option);
 			})
 	}
 	selectModelName();

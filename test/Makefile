@@ -4,7 +4,7 @@ artifactsdir=artifacts
 
 .PHONY: test clean update
 
-test: package-lock.json $(artifactsdir)/N2D_0003.dcm
+test: package-lock.json $(artifactsdir)/val_im.nii.gz
 	node test.js
 
 update:
@@ -13,7 +13,7 @@ update:
 package-lock.json:
 	npm install
 
-$(artifactsdir)/N2D_0003.dcm:
+$(artifactsdir)/val_im.nii.gz:
 	mkdir -p $(artifactsdir)/
 	curl -L -o $(artifactsdir)/chest_xray.jpg "https://upload.wikimedia.org/wikipedia/commons/a/a1/Normal_posteroanterior_%28PA%29_chest_radiograph_%28X-ray%29.jpg"
 	curl -L -o $(artifactsdir)/val_im.nii.gz "https://drive.google.com/uc?export=download&id=1Tl5PTS2rmajWKJMrYcZ2Na5DURvbbpit"

@@ -9,22 +9,22 @@ const puppeteer = require('puppeteer');
 	const page = await browser.newPage();
 	await page.goto(`file:${path.join(__dirname, '../index.html')}`);
 	await page.waitForTimeout(1000);
-	await page.waitForSelector('#selectModel:not([disabled])');
+	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.evaluate(() => {
-		document.querySelector('#selectModel').selectedIndex = 1;
-		document.querySelector('#selectModel').onchange();
+		document.querySelector('#modelSelect').selectedIndex = 1;
+		document.querySelector('#modelSelect').onchange();
 	});
 	await page.waitForTimeout(1000);
-	await page.waitForSelector('#inputLoadImages:not([disabled])');
-	const inputUploadHandle = await page.$('#inputLoadImages');
+	await page.waitForSelector('#loadImagesInputFile:not([disabled])');
+	const inputUploadHandle = await page.$('#loadImagesInputFile');
 	const niftiFileName = 'artifacts/val_im.nii.gz';
 	const nifti = fs.readFileSync(niftiFileName);
 	inputUploadHandle.uploadFile(niftiFileName);
 	await page.waitForTimeout(1000);
-	await page.waitForSelector('#selectModel:not([disabled])');
+	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.evaluate(() => {
-		document.querySelector('#divLabelColor1').click();
-		document.querySelector('#buttonPredictCurrentImage').click();
+		document.querySelector('#labelColorDiv1').click();
+		document.querySelector('#predictCurrentImageButton').click();
 	});
 	await page.waitForTimeout(10000);
 	await page.screenshot({
