@@ -8,7 +8,7 @@ const puppeteer = require('puppeteer');
 	const browser = await puppeteer.launch({ headless: true, slowMo: 300 });
 	const page = await browser.newPage();
 	await page.goto(`file:${path.join(__dirname, '../index.html')}`);
-	await page.waitForSelector('#modelSelect:not([disabled])');
+	await page.waitForFunction("document.getElementById('modelLoadFractionDiv').textContent == 'Model loaded.'");
 	await page.evaluate(() => {
 		document.querySelector('#modelSelect').selectedIndex = 1;
 		document.querySelector('#modelSelect').onchange();
