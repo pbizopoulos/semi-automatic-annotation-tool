@@ -23,8 +23,7 @@ const puppeteer = require('puppeteer');
 	await page.waitForSelector('#predictCurrentImageButton').then(selector => selector.click());
 	await page.waitForTimeout(5000);
 	await page.screenshot({
-		path: 'artifacts/test.png',
-		fullpage: true
+		path: 'artifacts/puppeteer-screenshot.png'
 	});
 	await page.close();
 	await browser.close();
