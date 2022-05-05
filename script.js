@@ -32,7 +32,7 @@ const predictCurrentImageButton = document.getElementById('predictCurrentImageBu
 const resetImageValueButton = document.getElementById('resetImageValueButton');
 const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
 const saveModelToServerButton = document.getElementById('saveModelToServerButton');
-const trainLocallyButton = document.getElementById('trainLocallyButton');
+const trainModelLocallyButton = document.getElementById('trainModelLocallyButton');
 
 const brushContext = brushCanvas.getContext('2d');
 const imageContext = imageCanvas.getContext('2d');
@@ -102,7 +102,7 @@ function disableUI(argument) {
 	saveModelToDiskButton.disabled = argument;
 	saveModelToServerButton.disabled = argument;
 	savePredictionsToDiskButton.disabled = argument;
-	trainLocallyButton.disabled = argument;
+	trainModelLocallyButton.disabled = argument;
 }
 
 function drawCanvas() {
@@ -360,7 +360,7 @@ async function selectModelName() {
 		modelTrainableSpan.textContent = 'True';
 		saveModelToDiskButton.style.display = '';
 		saveModelToServerButton.style.display = '';
-		trainLocallyButton.style.display = '';
+		trainModelLocallyButton.style.display = '';
 	} else {
 		accuracyDiv.style.display = 'none';
 		epochCurrentDiv.style.display = 'none';
@@ -369,7 +369,7 @@ async function selectModelName() {
 		modelTrainableSpan.textContent = 'False';
 		saveModelToDiskButton.style.display = 'none';
 		saveModelToServerButton.style.display = 'none';
-		trainLocallyButton.style.display = 'none';
+		trainModelLocallyButton.style.display = 'none';
 	}
 	for (const [i, labelText] of configSelected.classNames.entries()) {
 		const labelDiv = document.createElement('div');
@@ -567,7 +567,7 @@ savePredictionsToDiskButton.onclick = async () => {
 	saveData(data, filename);
 }
 
-trainLocallyButton.onclick = async () => {
+trainModelLocallyButton.onclick = async () => {
 	disableUI(true);
 	const images_ = new Uint8Array(images);
 	let tensor = tf.tensor(images_).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width]);
