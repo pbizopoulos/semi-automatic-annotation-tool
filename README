@@ -1,6 +1,6 @@
 Web-based Machine Learning:
 
-A web-based machine learning (WBML) inference and training platform using TensorflowJS.
+A web-based machine learning (WBML) inference and training platform using TensorFlowJS.
 It has the following advantages:
 1) Privacy (data do not leave the device)
 2) No installation needed (only a modern browser is needed)
@@ -8,19 +8,21 @@ It has the following advantages:
 
 Usage instructions for the end-user:
 1) Visit https://pbizopoulos.github.io/web-based-machine-learning/ .
-2) Select the model depending on the task.
-3) Load the data.
+2) Select the model depending on your task.
+3) Load your data.
 4) Predict.
 5) Correct the results if needed.
-6) Either train after correcting or get the data.
+6) Either train after correcting or save the predictions.
 
 
-Usage instructions for the AI model developer:
-1) Develop a model in TensorflowJS, Tensorflow or PyTorch.
-When targeting users with low computational capabilities consider designing models with fast inference (recommended less than 1 second per data sample) and small size (recommended maximum 100MB for a saved model).
-2) Convert model to TensorflowJS (TFJS).
-Tensorflow models are straigthforward to convert to TFJS, however PyTorch models require additional work.
-3) Test a sample inference on the converted model.
+Model integration instructions for the AI model developer:
+1) Develop a model in TensorFlowJS, Tensorflow or PyTorch having the following considerations in mind:
+- fast inference (>1 second/data sample is recommended) and
+- small size (100MB max for a saved model is recommended).
+2) Convert model to TensorFlowJS.
+- For TensorFlow https://www.tensorflow.org/js/tutorials/conversion/import_saved_model
+- For PyTorch https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/becf52d7cdb74eaad994fda2bba503460857e386/main.py#L582
+3) Test the converted model by applying inference on a data sample.
 4) Prepare a configuration json file as follows:
 {
 	"classNames": ["Array that", "contains", "the names of the classes"],
