@@ -3,25 +3,27 @@
 const accuracyDiv = document.getElementById('accuracyDiv');
 const accuracySpan = document.getElementById('accuracySpan');
 const brushCanvas = document.getElementById('brushCanvas');
+const brushContext = brushCanvas.getContext('2d');
 const brushSizeDiv = document.getElementById('brushSizeDiv');
-const savePredictionsToDiskButton = document.getElementById('savePredictionsToDiskButton');
+const brushSizeInputRange = document.getElementById('brushSizeInputRange');
 const epochCurrentDiv = document.getElementById('epochCurrentDiv');
 const epochCurrentSpan = document.getElementById('epochCurrentSpan');
 const epochsNumDiv = document.getElementById('epochsNumDiv');
+const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
 const imageCanvas = document.getElementById('imageCanvas');
+const imageContext = imageCanvas.getContext('2d');
 const imageHeightSpan = document.getElementById('imageHeightSpan');
 const imageIndexSpan = document.getElementById('imageIndexSpan');
 const imageValueMaxSpan = document.getElementById('imageValueMaxSpan');
 const imageValueMinSpan = document.getElementById('imageValueMinSpan');
 const imageWidthSpan = document.getElementById('imageWidthSpan');
+const labelListDiv = document.getElementById('labelListDiv');
 const loadImagesInputFile = document.getElementById('loadImagesInputFile');
 const loadPredictionsInputFile = document.getElementById('loadPredictionsInputFile');
-const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
-const brushSizeInputRange = document.getElementById('brushSizeInputRange');
-const labelListDiv = document.getElementById('labelListDiv');
 const lossDiv = document.getElementById('lossDiv');
 const lossSpan = document.getElementById('lossSpan');
 const maskCanvas = document.getElementById('maskCanvas');
+const maskContext = maskCanvas.getContext('2d');
 const modelInputShapeSpan = document.getElementById('modelInputShapeSpan');
 const modelLoadFractionDiv = document.getElementById('modelLoadFractionDiv');
 const modelPredictionShapeSpan = document.getElementById('modelPredictionShapeSpan');
@@ -32,12 +34,14 @@ const predictCurrentImageButton = document.getElementById('predictCurrentImageBu
 const resetImageValueButton = document.getElementById('resetImageValueButton');
 const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
 const saveModelToServerButton = document.getElementById('saveModelToServerButton');
+const savePredictionsToDiskButton = document.getElementById('savePredictionsToDiskButton');
 const trainModelLocallyButton = document.getElementById('trainModelLocallyButton');
 
-const brushContext = brushCanvas.getContext('2d');
-const imageContext = imageCanvas.getContext('2d');
-const maskContext = maskCanvas.getContext('2d');
-
+const configURLarray = [
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/docs/lung-classification.json',
+]
 const labelsColormap = [
 	[ 255, 255, 255 ],
 	[ 31, 119, 180 ],
@@ -62,12 +66,7 @@ const labelsColormap = [
 	[ 158, 218, 229 ]
 ];
 
-const configURLarray = [
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/docs/lung-classification.json',
-]
-
+let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 let configArray = [];
 let configSelected;
 let drawActivated = false;
@@ -79,16 +78,14 @@ let imageSize;
 let imageValueMin;
 let imageValueRange;
 let imageValueRangeActivated = false;
+let images = new Uint8Array(imageSize);
 let imagesNum;
 let labelCurrent = 0;
+let masks = new Uint8Array(imageSize);
 let model;
 let modelInputShape;
 let offsetX;
 let offsetY;
-
-let images = new Uint8Array(imageSize);
-let masks = new Uint8Array(imageSize);
-let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 
 function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
