@@ -150,7 +150,7 @@ function drawCanvas() {
 	}
 }
 
-async function predictCurrentImage() {
+function predictCurrentImage() {
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
