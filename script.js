@@ -90,44 +90,6 @@ let images = new Uint8Array(imageSize);
 let masks = new Uint8Array(imageSize);
 let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 
-brushCanvas.addEventListener('contextmenu', function (event) {
-	event.preventDefault();
-}, false);
-
-brushCanvas.addEventListener('mousedown', (event) => {
-	if (event.button === 0) {
-		drawActivated = true;
-	} else if (event.button === 2) {
-		imageValueRangeActivated = true;
-	}
-});
-
-brushCanvas.addEventListener('mouseleave', () => {
-	drawActivated = false;
-	imageValueRangeActivated = false;
-});
-
-brushCanvas.addEventListener('mousemove', (event) => {
-	if (imageValueRangeActivated) {
-		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
-		let midTmp = imageValueMin + imageValueRange / 2;
-		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
-		imageValueMin = midTmp - rangeTmp / 2;
-		imageValueRange = rangeTmp;
-		imageValueMaxSpan.textContent = Math.round(2*imageValueRange);
-		imageValueMinSpan.textContent = Math.round(imageValueMin);
-	} else {
-		offsetX = event.offsetX;
-		offsetY = event.offsetY;
-	}
-	requestAnimationFrame(drawCanvas);
-});
-
-brushCanvas.addEventListener('mouseup', () => {
-	drawActivated = false;
-	imageValueRangeActivated = false;
-});
-
 function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
 	epochsNumInputNumber.disabled = argument;
@@ -191,74 +153,6 @@ function drawCanvas() {
 	}
 }
 
-function loadImages() {
-	resetData();
-	disableUI(true);
-	files = event.currentTarget.files;
-	if (files[0] === undefined) {
-		disableUI(false);
-		return;
-	}
-	if (files[0].name.includes('.nii')) {
-		readNiftiFile(files[0]);
-	} else if (files[0].name.includes('.dcm')) {
-		itk.readImageDICOMFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
-					});
-			});
-	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
-		itk.readImageFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
-					});
-			});
-	}
-}
-
-function loadPredictions() {
-	const file = event.currentTarget.files[0];
-	if (file === undefined) {
-		return;
-	}
-	const reader = new FileReader();
-	reader.onloadend = function (event) {
-		if (event.target.readyState === FileReader.DONE) {
-			if (configSelected.machineLearningType === 'image classification') {
-				const rows = event.target.result.split('\n');
-				for (const [i, row] of rows.entries()) {
-					const row_elements = row.split(',');
-					classAnnotations[i] = configSelected.classNames.findIndex((element) => element == row_elements[1]);
-				}
-			} else if (configSelected.machineLearningType === 'image segmentation') {
-				const niftiHeader = nifti.readHeader(event.target.result);
-				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
-				masks = new Uint8Array(niftiImage);
-				drawCanvas();
-			}
-		}
-	};
-	if (configSelected.machineLearningType === 'image classification') {
-		reader.readAsText(file);
-	} else if (configSelected.machineLearningType === 'image segmentation') {
-		reader.readAsArrayBuffer(file);
-	}
-}
-
-function predictAllImages() {
-	for (let i = 0; i <= imagesNum; i++) {
-		imageCurrentIndex = i;
-		imageOffset = imageSize * imageCurrentIndex;
-		predictCurrentImage();
-	}
-}
-
 async function predictCurrentImage() {
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
@@ -302,7 +196,7 @@ async function predictCurrentImage() {
 
 function readNiftiFile(file) {
 	const reader = new FileReader();
-	reader.onloadend = function (event) {
+	reader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
 			let niftiHeader;
 			let niftiImage;
@@ -415,14 +309,6 @@ function resetImageValue() {
 	drawCanvas();
 }
 
-async function saveModelToDisk() {
-	await model.save('downloads://saved-model');
-}
-
-async function saveModelToServer() {
-	await model.save('http://172.17.0.2:5000/upload');
-}
-
 function saveData(data, filename) {
 	const a = document.createElement('a');
 	document.body.appendChild(a);
@@ -433,28 +319,6 @@ function saveData(data, filename) {
 	a.download = filename;
 	a.click();
 	window.URL.revokeObjectURL(url);
-}
-
-function savePredictionsToDisk() {
-	if (files === undefined) {
-		return;
-	}
-	let filename;
-	let data;
-	if (configSelected.machineLearningType === 'image classification') {
-		data = '';
-		for (const [i, classAnnotation] of classAnnotations.entries()) {
-			data += [files[i].name, configSelected.classNames[classAnnotation]].join(',');
-			data += '\n';
-		}
-		data = [data.slice(0, -1)];
-		filename = 'classAnnotations.txt';
-	} else if (configSelected.machineLearningType === 'image segmentation') {
-		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
-		data = [new Uint8Array(niftiHeaderTmp, 0, niftiHeaderTmp.length), new Uint8Array(masks.buffer, 0, masks.buffer.length)];
-		filename = 'masks.nii';
-	}
-	saveData(data, filename);
 }
 
 async function selectModelName() {
@@ -525,7 +389,7 @@ async function selectModelName() {
 		labelColorDiv.style.height = '15px';
 		labelColorDiv.style.opacity = 0.3;
 		labelColorDiv.style.width = '15px';
-		labelColorDiv.onclick = function (event) {
+		labelColorDiv.onclick = (event) => {
 			const nodeList = document.querySelectorAll('*[id^="labelColorDiv"]')
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].style.opacity = 0.3;
@@ -567,7 +431,143 @@ async function selectModelName() {
 	modelSelect.disabled = false;
 }
 
-async function trainLocally() {
+brushCanvas.oncontextmenu = (event) => {
+	event.preventDefault();
+}
+
+brushCanvas.onmousedown = (event) => {
+	if (event.button === 0) {
+		drawActivated = true;
+	} else if (event.button === 2) {
+		imageValueRangeActivated = true;
+	}
+}
+
+brushCanvas.onmouseleave = () => {
+	drawActivated = false;
+	imageValueRangeActivated = false;
+}
+
+brushCanvas.onmousemove = (event) => {
+	if (imageValueRangeActivated) {
+		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
+		let midTmp = imageValueMin + imageValueRange / 2;
+		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
+		imageValueMin = midTmp - rangeTmp / 2;
+		imageValueRange = rangeTmp;
+		imageValueMaxSpan.textContent = Math.round(2*imageValueRange);
+		imageValueMinSpan.textContent = Math.round(imageValueMin);
+	} else {
+		offsetX = event.offsetX;
+		offsetY = event.offsetY;
+	}
+	requestAnimationFrame(drawCanvas);
+}
+
+brushCanvas.onmouseup = () => {
+	drawActivated = false;
+	imageValueRangeActivated = false;
+}
+
+loadImagesInputFile.onchange = (event) => {
+	resetData();
+	disableUI(true);
+	files = event.currentTarget.files;
+	if (files[0] === undefined) {
+		disableUI(false);
+		return;
+	}
+	if (files[0].name.includes('.nii')) {
+		readNiftiFile(files[0]);
+	} else if (files[0].name.includes('.dcm')) {
+		itk.readImageDICOMFileSeries(files)
+			.then(function ({ image }) {
+				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
+					.then((data) => {
+						const blob = new Blob([data.arrayBuffer]);
+						readNiftiFile(blob);
+					});
+			});
+	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
+		itk.readImageFileSeries(files)
+			.then(function ({ image }) {
+				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
+					.then((data) => {
+						const blob = new Blob([data.arrayBuffer]);
+						readNiftiFile(blob);
+					});
+			});
+	}
+}
+
+loadPredictionsInputFile.onchange = (event) => {
+	const file = event.currentTarget.files[0];
+	if (file === undefined) {
+		return;
+	}
+	const reader = new FileReader();
+	reader.onloadend = (event) => {
+		if (event.target.readyState === FileReader.DONE) {
+			if (configSelected.machineLearningType === 'image classification') {
+				const rows = event.target.result.split('\n');
+				for (const [i, row] of rows.entries()) {
+					const row_elements = row.split(',');
+					classAnnotations[i] = configSelected.classNames.findIndex((element) => element == row_elements[1]);
+				}
+			} else if (configSelected.machineLearningType === 'image segmentation') {
+				const niftiHeader = nifti.readHeader(event.target.result);
+				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
+				masks = new Uint8Array(niftiImage);
+				drawCanvas();
+			}
+		}
+	};
+	if (configSelected.machineLearningType === 'image classification') {
+		reader.readAsText(file);
+	} else if (configSelected.machineLearningType === 'image segmentation') {
+		reader.readAsArrayBuffer(file);
+	}
+}
+
+predictAllImagesButton.onclick = () => {
+	for (let i = 0; i <= imagesNum; i++) {
+		imageCurrentIndex = i;
+		imageOffset = imageSize * imageCurrentIndex;
+		predictCurrentImage();
+	}
+}
+
+saveModelToDiskButton.onclick = async () => {
+	await model.save('downloads://saved-model');
+}
+
+saveModelToServerButton.onclick = async () => {
+	await model.save('http://172.17.0.2:5000/upload');
+}
+
+savePredictionsToDiskButton.onclick = async () => {
+	if (files === undefined) {
+		return;
+	}
+	let filename;
+	let data;
+	if (configSelected.machineLearningType === 'image classification') {
+		data = '';
+		for (const [i, classAnnotation] of classAnnotations.entries()) {
+			data += [files[i].name, configSelected.classNames[classAnnotation]].join(',');
+			data += '\n';
+		}
+		data = [data.slice(0, -1)];
+		filename = 'classAnnotations.txt';
+	} else if (configSelected.machineLearningType === 'image segmentation') {
+		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
+		data = [new Uint8Array(niftiHeaderTmp, 0, niftiHeaderTmp.length), new Uint8Array(masks.buffer, 0, masks.buffer.length)];
+		filename = 'masks.nii';
+	}
+	saveData(data, filename);
+}
+
+trainLocallyButton.onclick = async () => {
 	disableUI(true);
 	const images_ = new Uint8Array(images);
 	let tensor = tf.tensor(images_).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width]);
@@ -612,7 +612,7 @@ async function trainLocally() {
 	disableUI(false);
 }
 
-window.addEventListener('keydown', function (event) {
+window.addEventListener('keydown', (event) => {
 	if (event.code === 'ArrowUp' && (imageCurrentIndex > 0)) {
 		imageCurrentIndex--;
 	} else if (event.code === 'ArrowDown' && (imageCurrentIndex < imagesNum)) {
