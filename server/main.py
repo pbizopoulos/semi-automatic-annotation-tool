@@ -6,6 +6,7 @@ import werkzeug.formparser
 
 
 class ModelReceiver():
+
     def stream_factory(self, total_content_length, content_type, filename, content_length=None):
         if filename == 'model.json':
             self.model_json_bytes = io.BytesIO()
