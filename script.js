@@ -13,6 +13,7 @@ const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
 const imageCanvas = document.getElementById('imageCanvas');
 const imageContext = imageCanvas.getContext('2d');
 const imageHeightSpan = document.getElementById('imageHeightSpan');
+const imageIndexInputRange = document.getElementById('imageIndexInputRange');
 const imageIndexSpan = document.getElementById('imageIndexSpan');
 const imageValueMaxSpan = document.getElementById('imageValueMaxSpan');
 const imageValueMinSpan = document.getElementById('imageValueMinSpan');
@@ -90,6 +91,7 @@ let offsetY;
 function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
 	epochsNumInputNumber.disabled = argument;
+	imageIndexInputRange.disabled = argument;
 	loadImagesInputFile.disabled = argument;
 	loadPredictionsInputFile.disabled = argument;
 	modelSelect.disabled = argument;
@@ -244,6 +246,7 @@ function readNiftiFile(file) {
 					return;
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
+			imageIndexInputRange.max = imagesNum;
 			imageCurrentIndex = 0;
 			imageCanvas.height = niftiHeader.dims[2];
 			imageCanvas.width = niftiHeader.dims[1];
@@ -273,6 +276,7 @@ function resetData() {
 	imageContext.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
 	imageCurrentIndex = 0;
 	imageHeightSpan.textContent = '';
+	imageIndexInputRange.value = 0;
 	imageIndexSpan.textContent = '';
 	imageOffset = 0;
 	imageSize = 1;
@@ -466,6 +470,19 @@ brushCanvas.onmouseup = () => {
 	imageValueRangeActivated = false;
 }
 
+imageIndexInputRange.oninput = () => {
+	imageCurrentIndex = imageIndexInputRange.value;
+	imageOffset = imageSize * imageCurrentIndex;
+	if (configSelected.machineLearningType === 'image classification') {
+		labelCurrent = classAnnotations[imageCurrentIndex];
+		document.getElementById(`labelColorDiv${labelCurrent}`).click();
+	}
+	imageHeightSpan.textContent = imageCanvas.height;
+	imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
+	imageWidthSpan.textContent = imageCanvas.width;
+	drawCanvas();
+}
+
 loadImagesInputFile.onchange = (event) => {
 	resetData();
 	disableUI(true);
@@ -528,8 +545,8 @@ loadPredictionsInputFile.onchange = (event) => {
 
 predictAllImagesButton.onclick = () => {
 	for (let i = 0; i <= imagesNum; i++) {
-		imageCurrentIndex = i;
-		imageOffset = imageSize * imageCurrentIndex;
+		imageIndexInputRange.value = i;
+		imageIndexInputRange.oninput();
 		predictCurrentImage();
 	}
 }
@@ -608,25 +625,6 @@ trainModelLocallyButton.onclick = async () => {
 	console.log(tf.memory());
 	disableUI(false);
 }
-
-window.addEventListener('keydown', (event) => {
-	if (event.code === 'ArrowUp' && (imageCurrentIndex > 0)) {
-		imageCurrentIndex--;
-	} else if (event.code === 'ArrowDown' && (imageCurrentIndex < imagesNum)) {
-		imageCurrentIndex++;
-	} else {
-		return;
-	}
-	imageOffset = imageSize * imageCurrentIndex;
-	if (configSelected.machineLearningType === 'image classification') {
-		labelCurrent = classAnnotations[imageCurrentIndex];
-		document.getElementById(`labelColorDiv${labelCurrent}`).click();
-	}
-	imageHeightSpan.textContent = imageCanvas.height;
-	imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
-	imageWidthSpan.textContent = imageCanvas.width;
-	drawCanvas();
-});
 
 (async () => {
 	for (const [i, configURL] of configURLarray.entries()) {
