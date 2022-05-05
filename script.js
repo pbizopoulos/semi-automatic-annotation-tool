@@ -266,10 +266,11 @@ async function predictCurrentImage() {
 		let tensor = tf.tensor(imageSlice);
 		tensor = tf.reshape(tensor, [imageCanvas.height, imageCanvas.width]);
 		tensor = tensor.expandDims(-1);
-		tensor = tf.image.resizeBilinear(tensor, modelInputShape);
-		const tensorMax = tensor.max();
-		const tensorMin = tensor.min();
-		tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
+		tensor = tf.image.resizeNearestNeighbor(tensor, modelInputShape);
+		const tensorMomentsBefore = tf.moments(tensor);
+		tensor = tensor.sub(tensorMomentsBefore.mean);
+		const tensorMomentsAfter = tf.moments(tensor);
+		tensor = tensor.div(tf.sqrt(tensorMomentsAfter.variance));
 		let preProcessedImage;
 		if (configSelected.machineLearningType === 'image classification') {
 			preProcessedImage = tensor.expandDims(0);
@@ -571,10 +572,11 @@ async function trainLocally() {
 	const images_ = new Uint8Array(images);
 	let tensor = tf.tensor(images_).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width]);
 	tensor = tensor.expandDims(-1);
-	tensor = tf.image.resizeBilinear(tensor, modelInputShape);
-	const tensorMax = tensor.max();
-	const tensorMin = tensor.min();
-	tensor = tensor.sub(tensorMin).div(tensorMax.sub(tensorMin));
+	tensor = tf.image.resizeNearestNeighbor(tensor, modelInputShape);
+	const tensorMomentsBefore = tf.moments(tensor);
+	tensor = tensor.sub(tensorMomentsBefore.mean);
+	const tensorMomentsAfter = tf.moments(tensor);
+	tensor = tensor.div(tf.sqrt(tensorMomentsAfter.variance));
 	let preProcessedImage;
 	let predictions;
 	if (configSelected.machineLearningType === 'image classification') {
