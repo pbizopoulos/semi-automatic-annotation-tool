@@ -19,7 +19,7 @@ const imageValueMaxSpan = document.getElementById('imageValueMaxSpan');
 const imageValueMinSpan = document.getElementById('imageValueMinSpan');
 const imageWidthSpan = document.getElementById('imageWidthSpan');
 const labelListDiv = document.getElementById('labelListDiv');
-const loadImagesInputFile = document.getElementById('loadImagesInputFile');
+const loadFilesInputFile = document.getElementById('loadFilesInputFile');
 const loadPredictionsInputFile = document.getElementById('loadPredictionsInputFile');
 const lossDiv = document.getElementById('lossDiv');
 const lossSpan = document.getElementById('lossSpan');
@@ -38,12 +38,12 @@ const saveModelToServerButton = document.getElementById('saveModelToServerButton
 const savePredictionsToDiskButton = document.getElementById('savePredictionsToDiskButton');
 const trainModelLocallyButton = document.getElementById('trainModelLocallyButton');
 
-const configURLarray = [
+const configUrlArray = [
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation.json',
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.json',
 	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/docs/lung-classification.json',
 ]
-const labelsColormap = [
+const labelColorArray = [
 	[ 255, 255, 255 ],
 	[ 31, 119, 180 ],
 	[ 174, 199, 232 ],
@@ -92,7 +92,7 @@ function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
 	epochsNumInputNumber.disabled = argument;
 	imageIndexInputRange.disabled = argument;
-	loadImagesInputFile.disabled = argument;
+	loadFilesInputFile.disabled = argument;
 	loadPredictionsInputFile.disabled = argument;
 	modelSelect.disabled = argument;
 	predictAllImagesButton.disabled = argument;
@@ -121,7 +121,7 @@ function drawCanvas() {
 	imageContext.putImageData(imageDataImage, 0, 0);
 	if (configSelected.machineLearningType === 'image segmentation') {
 		brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
-		brushContext.fillStyle = `rgb(${labelsColormap[labelCurrent]})`;
+		brushContext.fillStyle = `rgb(${labelColorArray[labelCurrent]})`;
 		brushContext.beginPath();
 		brushContext.arc(Math.floor(offsetX) + 0.5, Math.floor(offsetY) + 0.5, parseFloat(brushSizeInputRange.value), 0, 2 * Math.PI);
 		brushContext.fill();
@@ -139,9 +139,9 @@ function drawCanvas() {
 		const maskImageData = new ImageData(imageCanvas.width, imageCanvas.height);
 		for (let i = 0; i < imageSize; i++) {
 			const maskValue = masks[imageOffset + i];
-			maskImageData.data[4*i] = labelsColormap[maskValue][0];
-			maskImageData.data[4*i + 1] = labelsColormap[maskValue][1];
-			maskImageData.data[4*i + 2] = labelsColormap[maskValue][2];
+			maskImageData.data[4*i] = labelColorArray[maskValue][0];
+			maskImageData.data[4*i + 1] = labelColorArray[maskValue][1];
+			maskImageData.data[4*i + 2] = labelColorArray[maskValue][2];
 			if (maskValue > 0) {
 				maskImageData.data[4*i + 3] = 255;
 			} else {
@@ -193,7 +193,7 @@ function predictCurrentImage() {
 	drawCanvas();
 }
 
-function readNiftiFile(file) {
+function readFileNifti(file) {
 	const reader = new FileReader();
 	reader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
@@ -324,17 +324,17 @@ function saveData(data, filename) {
 
 async function selectModelName() {
 	labelListDiv.textContent = '';
-	loadImagesInputFile.value = '';
+	loadFilesInputFile.value = '';
 	loadPredictionsInputFile.value = '';
 	resetData();
-	configSelected = configArray.find(config => config.modelURL === modelSelect.value);
+	configSelected = configArray.find(config => config.modelDownloadUrl === modelSelect.value);
 	let loadModelFunction;
 	if (configSelected.format === 'graph-model') {
 		loadModelFunction = tf.loadGraphModel;
 	} else if (configSelected.format === 'layers-model') {
 		loadModelFunction = tf.loadLayersModel;
 	}
-	model = await loadModelFunction(configSelected.modelURL, {
+	model = await loadModelFunction(configSelected.modelDownloadUrl, {
 		onProgress: function (fraction) {
 			modelLoadFractionDiv.textContent = `${Math.round(100*fraction)}%.`;
 			modelInputShapeSpan.textContent = 'NaN';
@@ -385,7 +385,7 @@ async function selectModelName() {
 		labelDiv.appendChild(labelPredictionDiv);
 		const labelColorDiv = document.createElement('div');
 		labelColorDiv.id = `labelColorDiv${i}`;
-		labelColorDiv.style.backgroundColor = `rgb(${labelsColormap[i]})`;
+		labelColorDiv.style.backgroundColor = `rgb(${labelColorArray[i]})`;
 		labelColorDiv.style.float = 'left';
 		labelColorDiv.style.height = '15px';
 		labelColorDiv.style.opacity = 0.3;
@@ -411,6 +411,7 @@ async function selectModelName() {
 		const br = document.createElement('br');
 		labelDiv.appendChild(br);
 	}
+	// document.getElementById('labelTextDiv1').textContent = 'Lesion'; // for review
 	if (configSelected.machineLearningType === 'image classification') {
 		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
 		for (let i = 0; i < nodeList.length; i++) {
@@ -428,7 +429,7 @@ async function selectModelName() {
 		brushCanvas.style.display = '';
 		brushSizeDiv.style.display = '';
 	}
-	loadImagesInputFile.disabled = false;
+	loadFilesInputFile.disabled = false;
 	modelSelect.disabled = false;
 }
 
@@ -483,7 +484,7 @@ imageIndexInputRange.oninput = () => {
 	drawCanvas();
 }
 
-loadImagesInputFile.onchange = (event) => {
+loadFilesInputFile.onchange = (event) => {
 	resetData();
 	disableUI(true);
 	files = event.currentTarget.files;
@@ -492,14 +493,14 @@ loadImagesInputFile.onchange = (event) => {
 		return;
 	}
 	if (files[0].name.includes('.nii')) {
-		readNiftiFile(files[0]);
+		readFileNifti(files[0]);
 	} else if (files[0].name.includes('.dcm')) {
 		itk.readImageDICOMFileSeries(files)
 			.then(function ({ image }) {
 				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
+						readFileNifti(blob);
 					});
 			});
 	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
@@ -508,7 +509,7 @@ loadImagesInputFile.onchange = (event) => {
 				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
 					.then((data) => {
 						const blob = new Blob([data.arrayBuffer]);
-						readNiftiFile(blob);
+						readFileNifti(blob);
 					});
 			});
 	}
@@ -556,7 +557,7 @@ saveModelToDiskButton.onclick = async () => {
 }
 
 saveModelToServerButton.onclick = async () => {
-	await model.save('http://172.17.0.2:5000/upload');
+	await model.save(configSelected.modelUploadUrl);
 }
 
 savePredictionsToDiskButton.onclick = async () => {
@@ -601,9 +602,9 @@ trainModelLocallyButton.onclick = async () => {
 		predictions = tf.tensor(masks);
 	}
 	model.compile({
-		optimizer: 'adam',
-		loss: 'categoricalCrossentropy',
-		metrics: ['accuracy'],
+		optimizer: configSelected.optimizer,
+		loss: configSelected.loss,
+		metrics: configSelected.metrics,
 	});
 	await model.fit(preProcessedImage, predictions, {
 		epochs: epochsNumInputNumber.value,
@@ -627,13 +628,13 @@ trainModelLocallyButton.onclick = async () => {
 }
 
 (async () => {
-	for (const [i, configURL] of configURLarray.entries()) {
-		await fetch(configURL)
+	for (const [i, configUrl] of configUrlArray.entries()) {
+		await fetch(configUrl)
 			.then(response => response.text())
 			.then((text) => {
 				configArray[i] = JSON.parse(text);
 				let option = document.createElement('option');
-				option.value = configArray[i].modelURL;
+				option.value = configArray[i].modelDownloadUrl;
 				fetch(option.value)
 					.then(response => response.text())
 					.then((text) => {
