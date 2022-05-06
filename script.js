@@ -30,8 +30,8 @@ const modelLoadFractionDiv = document.getElementById('modelLoadFractionDiv');
 const modelPredictionShapeSpan = document.getElementById('modelPredictionShapeSpan');
 const modelSelect = document.getElementById('modelSelect');
 const modelTrainableSpan = document.getElementById('modelTrainableSpan');
-const predictAllImagesButton = document.getElementById('predictAllImagesButton');
-const predictCurrentImageButton = document.getElementById('predictCurrentImageButton');
+const predictImagesAllButton = document.getElementById('predictImagesAllButton');
+const predictImageCurrentButton = document.getElementById('predictImageCurrentButton');
 const resetImageValueButton = document.getElementById('resetImageValueButton');
 const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
 const saveModelToServerButton = document.getElementById('saveModelToServerButton');
@@ -73,7 +73,7 @@ let configSelected;
 let drawActivated = false;
 let fileDecompressed;
 let files;
-let imageCurrentIndex;
+let imageIndexCurrent;
 let imageOffset;
 let imageSize;
 let imageValueMin;
@@ -95,8 +95,8 @@ function disableUI(argument) {
 	loadFilesInputFile.disabled = argument;
 	loadPredictionsInputFile.disabled = argument;
 	modelSelect.disabled = argument;
-	predictAllImagesButton.disabled = argument;
-	predictCurrentImageButton.disabled = argument;
+	predictImagesAllButton.disabled = argument;
+	predictImageCurrentButton.disabled = argument;
 	resetImageValueButton.disabled = argument;
 	saveModelToDiskButton.disabled = argument;
 	saveModelToServerButton.disabled = argument;
@@ -152,7 +152,7 @@ function drawCanvas() {
 	}
 }
 
-function predictCurrentImage() {
+function predictImageCurrent() {
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
@@ -247,7 +247,7 @@ function readFileNifti(file) {
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
 			imageIndexInputRange.max = imagesNum;
-			imageCurrentIndex = 0;
+			imageIndexCurrent = 0;
 			imageCanvas.height = niftiHeader.dims[2];
 			imageCanvas.width = niftiHeader.dims[1];
 			imageSize = imageCanvas.height * imageCanvas.width;
@@ -261,7 +261,7 @@ function readFileNifti(file) {
 				masks = new Uint8Array(images.length);
 			}
 			imageHeightSpan.textContent = imageCanvas.height;
-			imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
+			imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 			imageWidthSpan.textContent = imageCanvas.width;
 			resetImageValue();
 		}
@@ -274,7 +274,7 @@ function resetData() {
 	brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
 	fileDecompressed = null;
 	imageContext.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
-	imageCurrentIndex = 0;
+	imageIndexCurrent = 0;
 	imageHeightSpan.textContent = '';
 	imageIndexInputRange.value = 0;
 	imageIndexSpan.textContent = '';
@@ -398,7 +398,7 @@ async function selectModelName() {
 			event.currentTarget.style.opacity = 1;
 			labelCurrent = parseInt(event.currentTarget.id.match(/\d+/)[0]);
 			if (configSelected.machineLearningType === 'image classification') {
-				classAnnotations[imageCurrentIndex] = labelCurrent;
+				classAnnotations[imageIndexCurrent] = labelCurrent;
 			}
 		};
 		labelDiv.appendChild(labelColorDiv);
@@ -472,14 +472,14 @@ brushCanvas.onmouseup = () => {
 }
 
 imageIndexInputRange.oninput = () => {
-	imageCurrentIndex = imageIndexInputRange.value;
-	imageOffset = imageSize * imageCurrentIndex;
+	imageIndexCurrent = imageIndexInputRange.value;
+	imageOffset = imageSize * imageIndexCurrent;
 	if (configSelected.machineLearningType === 'image classification') {
-		labelCurrent = classAnnotations[imageCurrentIndex];
+		labelCurrent = classAnnotations[imageIndexCurrent];
 		document.getElementById(`labelColorDiv${labelCurrent}`).click();
 	}
 	imageHeightSpan.textContent = imageCanvas.height;
-	imageIndexSpan.textContent = `${imageCurrentIndex}/${imagesNum}`;
+	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 	imageWidthSpan.textContent = imageCanvas.width;
 	drawCanvas();
 }
@@ -544,12 +544,20 @@ loadPredictionsInputFile.onchange = (event) => {
 	}
 }
 
-predictAllImagesButton.onclick = () => {
-	for (let i = 0; i <= imagesNum; i++) {
-		imageIndexInputRange.value = i;
+predictImagesAllButton.onclick = () => {
+	let interval;
+	imageIndexCurrent = 0;
+	disableUI(true);
+	interval = setInterval(() => {
+		imageIndexInputRange.value = imageIndexCurrent;
 		imageIndexInputRange.oninput();
-		predictCurrentImage();
-	}
+		predictImageCurrent();
+		imageIndexCurrent++;
+		if (imageIndexCurrent > imagesNum) {
+			clearInterval(interval);
+			disableUI(false);
+		}
+	}, 100);
 }
 
 saveModelToDiskButton.onclick = async () => {

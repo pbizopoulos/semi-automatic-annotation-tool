@@ -20,7 +20,7 @@ const puppeteer = require('puppeteer');
 	inputUploadHandle.uploadFile(niftiFileName);
 	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.waitForSelector('#labelColorDiv1').then(selector => selector.click());
-	await page.waitForSelector('#predictCurrentImageButton').then(selector => selector.click());
+	await page.waitForSelector('#predictImageCurrentButton').then(selector => selector.click());
 	await page.waitForTimeout(5000);
 	await page.screenshot({
 		path: 'artifacts/puppeteer-screenshot.png'
