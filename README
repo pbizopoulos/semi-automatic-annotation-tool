@@ -1,10 +1,10 @@
 Web-based Machine Learning:
+- https://pbizopoulos.github.io/web-based-machine-learning
 
 A web-based machine learning (WBML) inference and training platform using TensorFlowJS.
 It has the following advantages:
 - Privacy (data do not leave the device)
 - No installation needed (only a modern browser is needed)
-
 
 Usage instructions for the end-user:
 1) Visit https://pbizopoulos.github.io/web-based-machine-learning/ .
@@ -13,7 +13,6 @@ Usage instructions for the end-user:
 4) Predict.
 5) Correct the results if needed.
 6) Either train after correcting or save the predictions.
-
 
 Model integration instructions for the AI model developer:
 1) Develop a model in TensorFlowJS, Tensorflow or PyTorch having the following considerations in mind:
@@ -41,12 +40,17 @@ Model integration instructions for the AI model developer:
 7) Update the configuration json file with the URL links.
 8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
-Requirements for the web-based-machine-learning developer:
+Requirements:
 - POSIX-oriented operating system https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems
 - Git (Any version) https://git-scm.com/downloads
 - GNU Make (>= 3.79) https://www.gnu.org/software/make/
 - npm https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 
-Instructions for the web-based-machine-learning developer:
+Preparation:
 git clone https://github.com/pbizopoulos/web-based-machine-learning
-make
+cd web-based-machine-learning/
+
+Basic commands:
+make		# Generate artifacts.
+make clean 	# Remove dependent directories.
+make help	# Show all commands.
