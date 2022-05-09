@@ -15,8 +15,6 @@ const imageContext = imageCanvas.getContext('2d');
 const imageHeightSpan = document.getElementById('imageHeightSpan');
 const imageIndexInputRange = document.getElementById('imageIndexInputRange');
 const imageIndexSpan = document.getElementById('imageIndexSpan');
-const imageValueMaxSpan = document.getElementById('imageValueMaxSpan');
-const imageValueMinSpan = document.getElementById('imageValueMinSpan');
 const imageWidthSpan = document.getElementById('imageWidthSpan');
 const labelListDiv = document.getElementById('labelListDiv');
 const loadFilesInputFile = document.getElementById('loadFilesInputFile');
@@ -30,8 +28,8 @@ const modelLoadFractionDiv = document.getElementById('modelLoadFractionDiv');
 const modelPredictionShapeSpan = document.getElementById('modelPredictionShapeSpan');
 const modelSelect = document.getElementById('modelSelect');
 const modelTrainableSpan = document.getElementById('modelTrainableSpan');
-const predictImagesAllButton = document.getElementById('predictImagesAllButton');
 const predictImageCurrentButton = document.getElementById('predictImageCurrentButton');
+const predictImagesAllButton = document.getElementById('predictImagesAllButton');
 const resetImageValueButton = document.getElementById('resetImageValueButton');
 const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
 const saveModelToServerButton = document.getElementById('saveModelToServerButton');
@@ -76,9 +74,8 @@ let files;
 let imageIndexCurrent;
 let imageOffset;
 let imageSize;
+let imageValueMax;
 let imageValueMin;
-let imageValueRange;
-let imageValueRangeActivated = false;
 let images = new Uint8Array(imageSize);
 let imagesNum;
 let labelCurrent = 0;
@@ -95,8 +92,8 @@ function disableUI(argument) {
 	loadFilesInputFile.disabled = argument;
 	loadPredictionsInputFile.disabled = argument;
 	modelSelect.disabled = argument;
-	predictImagesAllButton.disabled = argument;
 	predictImageCurrentButton.disabled = argument;
+	predictImagesAllButton.disabled = argument;
 	resetImageValueButton.disabled = argument;
 	saveModelToDiskButton.disabled = argument;
 	saveModelToServerButton.disabled = argument;
@@ -109,8 +106,7 @@ function drawCanvas() {
 	for (let i = 0; i < imageCanvas.height; i++) {
 		const rowOffset = i * imageCanvas.width;
 		for (let j = 0; j < imageCanvas.width; j++) {
-			const imageValueOffset = imageOffset + rowOffset + j;
-			const imageValue = (images[imageValueOffset] - imageValueMin) / imageValueRange;
+			const imageValue = 255 * (images[imageOffset + rowOffset + j] - imageValueMin) / (imageValueMax - imageValueMin);
 			const offsetMult4 = (rowOffset + j) * 4;
 			imageDataImage.data[offsetMult4] = imageValue;
 			imageDataImage.data[offsetMult4 + 1] = imageValue;
@@ -280,10 +276,8 @@ function resetData() {
 	imageIndexSpan.textContent = '';
 	imageOffset = 0;
 	imageSize = 1;
-	imageValueMaxSpan.textContent = '';
 	imageValueMin = 0;
-	imageValueMinSpan.textContent = '';
-	imageValueRange = 1;
+	imageValueMax = 0;
 	imageWidthSpan.textContent = '';
 	images = new Uint8Array(imageSize);
 	imagesNum = 0;
@@ -294,19 +288,16 @@ function resetData() {
 
 function resetImageValue() {
 	const imageSlice = images.slice(imageOffset, imageOffset + imageSize);
-	let max = -Infinity;
+	imageValueMax = -Infinity;
 	imageValueMin = Infinity;
 	for (let i = 0; i < imageSlice.length; i++) {
-		if (imageSlice[i] > max) {
-			max = imageSlice[i];
+		if (imageSlice[i] > imageValueMax) {
+			imageValueMax = imageSlice[i];
 		}
 		if (imageSlice[i] < imageValueMin) {
 			imageValueMin = imageSlice[i];
 		}
 	}
-	imageValueRange = (max - imageValueMin) / 255;
-	imageValueMaxSpan.textContent = Math.round(max);
-	imageValueMinSpan.textContent = Math.round(imageValueMin);
 	drawCanvas();
 }
 
@@ -411,7 +402,7 @@ async function selectModelName() {
 		const br = document.createElement('br');
 		labelDiv.appendChild(br);
 	}
-	// document.getElementById('labelTextDiv1').textContent = 'Lesion'; // for review
+	document.getElementById('labelTextDiv1').textContent = 'Lesion'; // for review
 	if (configSelected.machineLearningType === 'image classification') {
 		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
 		for (let i = 0; i < nodeList.length; i++) {
@@ -440,35 +431,21 @@ brushCanvas.oncontextmenu = (event) => {
 brushCanvas.onmousedown = (event) => {
 	if (event.button === 0) {
 		drawActivated = true;
-	} else if (event.button === 2) {
-		imageValueRangeActivated = true;
 	}
 }
 
 brushCanvas.onmouseleave = () => {
 	drawActivated = false;
-	imageValueRangeActivated = false;
 }
 
 brushCanvas.onmousemove = (event) => {
-	if (imageValueRangeActivated) {
-		const rangeTmp = imageValueRange * (1 + event.movementX * 0.01);
-		let midTmp = imageValueMin + imageValueRange / 2;
-		midTmp -= Math.abs(midTmp) * event.movementY / 1000;
-		imageValueMin = midTmp - rangeTmp / 2;
-		imageValueRange = rangeTmp;
-		imageValueMaxSpan.textContent = Math.round(2*imageValueRange);
-		imageValueMinSpan.textContent = Math.round(imageValueMin);
-	} else {
-		offsetX = event.offsetX;
-		offsetY = event.offsetY;
-	}
+	offsetX = event.offsetX;
+	offsetY = event.offsetY;
 	requestAnimationFrame(drawCanvas);
 }
 
 brushCanvas.onmouseup = () => {
 	drawActivated = false;
-	imageValueRangeActivated = false;
 }
 
 imageIndexInputRange.oninput = () => {

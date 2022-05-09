@@ -11,7 +11,30 @@
 		<script defer src="script.js"></script>
 	</head>
 
+	<style>
+.incisive {
+	color: #2386ff;
+	font-family: Arial;
+	font-weight: bold;
+}
+
+.inline {
+	display: inline-block;
+}
+	</style>
+
 	<body>
+		<div>
+			<div class="inline">
+				<a href="https://incisive-project.eu">
+					<img src="incisive-header-logo.svg" width="80px">
+				</a>
+			</div>
+			<div class="inline">
+				<div class="incisive">Semi-automatic annotation tool</div>
+			</div>
+		</div>
+		<hr>
 		<div style="border-style:groove;float:left;width:200px;">
 			<div>
 				<b>Model</b>
@@ -43,12 +66,6 @@
 			</div>
 			<div>
 				H&times;W: <span id="imageHeightSpan"></span> &times; <span id="imageWidthSpan"></span>
-			</div>
-			<div>
-				Min value: <span id="imageValueMinSpan"></span>
-			</div>
-			<div>
-				Max value: <span id="imageValueMaxSpan"></span>
 			</div>
 			<div>
 				<button id="resetImageValueButton" onclick="resetImageValue()" disabled>Reset image value</button>
