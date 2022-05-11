@@ -1,4 +1,7 @@
 on:
+  push:
+    paths:
+      - '.github/workflows/delete-workflow-runs.yml'
   schedule:
     - cron: '0 0 1 * *'
 
