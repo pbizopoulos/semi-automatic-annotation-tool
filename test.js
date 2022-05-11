@@ -6,17 +6,14 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 
-async function waitFile (filename) {
 
+async function waitFile(filename) {
 	return new Promise(async (resolve, reject) => {
 		if (!fs.existsSync(filename)) {
-			await delay(3000);
+			await delay(1000);
 			await waitFile(filename);
-			resolve();
-		} else {
-			resolve();
 		}
-
+		resolve();
 	})
 }
 
@@ -29,7 +26,7 @@ function delay(time) {
 (async () => {
 	const browser = await puppeteer.launch({ headless: true, slowMo: 300 });
 	const page = await browser.newPage();
-	const artifactsDir = 'artifacts';
+	const artifactsDir = process.env.ARTIFACTS_DIR;
 	await page._client.send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve(artifactsDir)});
 	const inputNiftiFileName = 'tr_im.nii.gz';
 	if (!(fs.existsSync(`${artifactsDir}/${inputNiftiFileName}`))) {
