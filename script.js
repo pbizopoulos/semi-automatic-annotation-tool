@@ -37,9 +37,9 @@ const savePredictionsToDiskButton = document.getElementById('savePredictionsToDi
 const trainModelLocallyButton = document.getElementById('trainModelLocallyButton');
 
 const configUrlArray = [
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lesion-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/docs/lung-segmentation.json',
-	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/docs/lung-classification.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/release/lesion-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/release/lung-segmentation.json',
+	'https://raw.githubusercontent.com/pbizopoulos/tmp/main/lung-classification.json',
 ]
 const labelColorArray = [
 	[ 255, 255, 255 ],
