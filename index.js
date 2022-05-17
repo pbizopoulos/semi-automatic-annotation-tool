@@ -46,7 +46,7 @@ function delay(time) {
 		await page.waitForSelector('#raw-url').then(selector => selector.click());
 		await waitFile(`${artifactsDir}/${inputDicomFileName2}`);
 	}
-	await page.goto(`file:${path.join(__dirname, 'index.html')}`);
+	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction("document.getElementById('modelLoadFractionDiv').textContent == 'Model loaded.'");
 	await page.evaluate(() => {
 		document.querySelector('#modelSelect').selectedIndex = 1;
@@ -75,8 +75,8 @@ function delay(time) {
 	});
 	const screenshotBuffer = new fs.readFileSync(`${artifactsDir}/puppeteer-screenshot.png`);
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-	if (process.env.GITHUB_ACTIONS == false) {
-		assert(screenshotHash === '56b30b45b4955c0480a6390a2e95a0e77d164f3a7935c85b937d1157fbcb62fb');
+	if (process.env.GITHUB_ACTIONS === undefined) {
+		assert(screenshotHash === '176d32a87c9ddf7f1dff358bf83a6c50f40700c422c900b0e36b3eba6bdc6a83');
 	}
 	await page.close();
 	await browser.close();
