@@ -40,10 +40,10 @@ AI model development instructions:
 8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
 Development requirements:
-- POSIX-oriented operating system https://en.wikipedia.org/wiki/POSIX#POSIX-oriented_operating_systems
-- Git (Any version) https://git-scm.com/downloads
-- GNU Make (>= 3.79) https://www.gnu.org/software/make/
-- npm https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
+- POSIX-oriented operating system
+- Git (Any version)
+- GNU Make (>= 3.79)
+- npm
 
 Development preparation:
 git clone https://github.com/pbizopoulos/web-based-machine-learning
