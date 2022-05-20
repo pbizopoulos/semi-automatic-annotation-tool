@@ -11,17 +11,19 @@ End-user instructions:
 3) Load your data.
 4) Predict.
 5) Correct the results if needed.
-6) Either train after correcting or save the predictions.
+6) Train only if correction took place.
+7) Save the predictions.
 
 AI model development instructions:
-1) Develop a model in TensorFlowJS, Tensorflow or PyTorch having the following considerations in mind:
+1) Develop and train a model in TensorFlowJS, Tensorflow or PyTorch having the following considerations in mind:
 - fast inference (<1 second/data sample is recommended) and
 - small size (100MB max for a saved model is recommended).
-2) Convert model to TensorFlowJS.
+2) Convert the model to TensorFlowJS.
 - For TensorFlow https://www.tensorflow.org/js/tutorials/conversion/import_saved_model
 - For PyTorch https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/becf52d7cdb74eaad994fda2bba503460857e386/main.py#L582
 3) Test the converted model by applying inference on a data sample.
 4) Prepare a configuration json file as follows:
+e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
 {
 	"classNames": ["Array that", "contains", "the names of the classes"],
 	"exampleDataUrl": "Optional: URL or local file of an example data of this model",
@@ -34,9 +36,9 @@ AI model development instructions:
 	"optimizer": "Optional: optimizer used for training (can be any of https://js.tensorflow.org/api/latest/#Training-Optimizers)",
 	"projectUrl": "Optional: URL of the project that has created the model"
 }
-5) Test the configuration on a local server by using the local links in the configuration json file.
-6) Upload the model (model.json and shard files) and the example data on a file server (e.g. GitHub, AWS etc.).
-7) Update the configuration json file with the URL links.
+5) Test on a local server by using the local links in the configuration json file.
+6) Convert the local links to remote links in the configuration json file.
+7) Upload the model (model.json and shard files), the example data and the configuration json file on a server (e.g. GitHub, AWS etc.).
 8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
 Development requirements:
@@ -50,6 +52,6 @@ git clone https://github.com/pbizopoulos/web-based-machine-learning
 cd web-based-machine-learning/
 
 Development basic commands:
-make		# Generate artifacts.
+make		# Run test.
 make clean 	# Remove dependent directories.
 make help	# Show all commands.
