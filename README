@@ -42,9 +42,9 @@ e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
 8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
 Development requirements:
-- POSIX-oriented operating system
+- POSIX compliant shell (any of Bash, Dash, KornShell, Yash, Zsh)
 - Git (Any version)
-- GNU Make (>= 3.79)
+- Make (bmake or GNU Make)
 - npm
 
 Development preparation:
