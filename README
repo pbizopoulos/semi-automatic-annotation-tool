@@ -36,14 +36,13 @@ e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
 	"optimizer": "Optional: optimizer used for training (can be any of https://js.tensorflow.org/api/latest/#Training-Optimizers)",
 	"projectUrl": "Optional: URL of the project that has created the model"
 }
-5) Code preprocessing step within web-based-machine-learning.
-6) Test on a local server by using the local links in the configuration json file.
-7) Convert the local links to remote links in the configuration json file.
-8) Upload the model (model.json and shard files), the example data and the configuration json file on a server (e.g. GitHub, AWS etc.).
-9) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
+5) Test on a local server by using the local links in the configuration json file.
+6) Convert the local links to remote links in the configuration json file.
+7) Upload the model (model.json and shard files), the example data and the configuration json file on a server (e.g. GitHub, AWS etc.).
+8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
 Development requirements:
-- POSIX compliant shell (ash, bash, dash, ksh, posh, yash or zsh)
+- POSIX compliant shell (any of Bash, Dash, KornShell, Yash, Zsh)
 - Git (Any version)
 - Make (bmake or GNU Make)
 - npm
