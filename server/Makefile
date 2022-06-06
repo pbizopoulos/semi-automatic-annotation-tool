@@ -10,14 +10,13 @@ gpus_arg=$$(test $(container_engine) = 'docker' && command -v nvidia-container-t
 user_arg=$$(test $(container_engine) = 'docker' && printf '%s' "--user $$(id -u):$$(id -g)")
 workdir=/work
 
-$(artifactsdir)/code-run: $(codefile) .dockerignore .gitignore Dockerfile requirements.txt ## Generate draft artifacts (FULL=1 for full).
-	mkdir -p $(artifactsdir)/
+$(artifactsdir)/code-run: $(artifactsdir) $(codefile) .dockerignore .gitignore Dockerfile requirements.txt ## Generate draft artifacts (FULL=1 for full).
 	$(container_engine) container run \
 		$(debug_args) \
 		$(gpus_arg) \
 		$(user_arg) \
 		--detach-keys 'ctrl-^,ctrl-^' \
-		--env ARTIFACTSDIR=$(artifactsdir) \
+		--env ARTIFACTSDIR=$(workdir)/$(artifactsdir) \
 		--env FULL=$(FULL) \
 		--env HOME=$(workdir)/$(artifactsdir) \
 		--rm \
@@ -26,8 +25,7 @@ $(artifactsdir)/code-run: $(codefile) .dockerignore .gitignore Dockerfile requir
 		$$($(container_engine) image build --quiet .) python3 $(codefile)
 	touch $(artifactsdir)/code-run
 
-$(artifactsdir)/code-format: $(codefile) ## Format $(codefile).
-	mkdir -p $(artifactsdir)/
+$(artifactsdir)/code-format: $(artifactsdir) $(codefile) ## Format $(codefile).
 	$(container_engine) container run \
 		$(user_arg) \
 		--env HOME=$(workdir)/$(artifactsdir) \
@@ -36,10 +34,19 @@ $(artifactsdir)/code-format: $(codefile) ## Format $(codefile).
 		--workdir $(workdir)/ \
 		python /bin/bash -c '\
 		python3 -m pip install --no-cache-dir --upgrade pip && \
-		python3 -m pip install --no-cache-dir https://github.com/pbizopoulos/source_normalizer/archive/main.zip && \
-		$(artifactsdir)/.local/bin/source_normalizer $(codefile) > $(artifactsdir)/tmp.py && \
+		python3 -m pip install --no-cache-dir https://github.com/pbizopoulos/source-code-normalizer/archive/main.zip && \
+		$(artifactsdir)/.local/bin/source_code_normalizer $(codefile) > $(artifactsdir)/tmp.py && \
 		mv $(artifactsdir)/tmp.py $(codefile)'
 	touch $(artifactsdir)/code-format
+
+clean: ## Remove $(artifactsdir) directory.
+	rm -rf $(artifactsdir)/
+
+help: ## Show all commands.
+	@sed 's/\$$(artifactsdir)/$(artifactsdir)/g; s/\$$(codefile)/$(codefile)/g' $(MAKEFILE_LIST) | grep '##' | grep -v grep | awk 'BEGIN {FS = ":.* ## "}; {printf "%-30s# %s\n", $$1, $$2}'
+
+$(artifactsdir):
+	mkdir -p $(artifactsdir)
 
 $(codefile):
 	printf "from os import environ\\n\\n\\ndef main():\\n    artifacts_dir = environ['ARTIFACTSDIR']\\n    full = environ['FULL']\\n\\n\\nif __name__ == '__main__':\\n    main()\\n" > $(codefile)
@@ -52,12 +59,6 @@ $(codefile):
 
 Dockerfile:
 	printf 'FROM python\nCOPY requirements.txt .\nRUN python3 -m pip install --no-cache-dir --upgrade pip && python3 -m pip install --no-cache-dir -r requirements.txt\n' > Dockerfile
-
-clean: ## Remove $(artifactsdir) directory.
-	rm -rf $(artifactsdir)/
-
-help: ## Show all commands.
-	@sed 's/\$$(artifactsdir)/$(artifactsdir)/g; s/\$$(codefile)/$(codefile)/g' $(MAKEFILE_LIST) | grep '##' | grep -v grep | awk 'BEGIN {FS = ":.* ## "}; {printf "%-30s# %s\n", $$1, $$2}'
 
 requirements.txt:
 	touch requirements.txt
