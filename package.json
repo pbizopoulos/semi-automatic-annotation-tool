@@ -1,6 +1,6 @@
 {
 	"dependencies": {
 		"adm-zip": "0.5.9",
-		"puppeteer": "14.3.0"
+		"puppeteer": "15.3.0"
 	}
 }
