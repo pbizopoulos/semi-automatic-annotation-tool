@@ -29,7 +29,7 @@ function delay(time) {
 	const browser = await puppeteer.launch({ headless: true });
 	const page = await browser.newPage();
 	const artifactsDir = process.env.ARTIFACTS_DIR;
-	await page._client.send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve(artifactsDir)});
+	await page._client().send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve(artifactsDir)});
 	const inputNiftiFileName = 'rp_im.zip';
 	if (!(fs.existsSync(`${artifactsDir}/${inputNiftiFileName}`))) {
 		await page.goto('https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m');
