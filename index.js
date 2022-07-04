@@ -6,23 +6,12 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
-const zlib = require('zlib');
 
 
-async function waitFile(filename) {
-	return new Promise(async (resolve, reject) => {
-		if (!fs.existsSync(filename)) {
-			await delay(1000);
-			await waitFile(filename);
-		}
-		resolve();
-	})
-}
-
-function delay(time) {
-	return new Promise(function(resolve) {
-		setTimeout(resolve, time)
-	});
+function waitFile(fileName) {
+	while (!fs.existsSync(fileName)) {
+		continue;
+	}
 }
 
 (async () => {
@@ -34,21 +23,21 @@ function delay(time) {
 	if (!(fs.existsSync(`${artifactsDir}/${inputNiftiFileName}`))) {
 		await page.goto('https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m');
 		await page.waitForSelector('#uc-download-link').then(selector => selector.click());
-		await waitFile(`${artifactsDir}/${inputNiftiFileName}`);
+		waitFile(`${artifactsDir}/${inputNiftiFileName}`);
 	}
-	var zip = new admzip(`${artifactsDir}/${inputNiftiFileName}`);
+	const zip = new admzip(`${artifactsDir}/${inputNiftiFileName}`);
 	zip.extractAllTo(artifactsDir, true);
 	const inputDicomFileName1 = 'N2D_0001.dcm';
 	if (!(fs.existsSync(`${artifactsDir}/${inputDicomFileName1}`))) {
 		await page.goto('https://github.com/datalad/example-dicom-structural/blob/master/dicoms/N2D_0001.dcm');
 		await page.waitForSelector('#raw-url').then(selector => selector.click());
-		await waitFile(`${artifactsDir}/${inputDicomFileName1}`);
+		waitFile(`${artifactsDir}/${inputDicomFileName1}`);
 	}
 	const inputDicomFileName2 = 'N2D_0002.dcm';
 	if (!(fs.existsSync(`${artifactsDir}/${inputDicomFileName2}`))) {
 		await page.goto('https://github.com/datalad/example-dicom-structural/blob/master/dicoms/N2D_0002.dcm');
 		await page.waitForSelector('#raw-url').then(selector => selector.click());
-		await waitFile(`${artifactsDir}/${inputDicomFileName2}`);
+		waitFile(`${artifactsDir}/${inputDicomFileName2}`);
 	}
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction("document.getElementById('modelLoadFractionDiv').textContent == 'Model loaded.'", {waitUntil: 'load', timeout: 0});
@@ -70,7 +59,7 @@ function delay(time) {
 		await fs.unlinkSync(`${artifactsDir}/${outputFileName}`);
 	}
 	await page.waitForSelector('#savePredictionsToDiskButton:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.click());
-	await waitFile(`${artifactsDir}/${outputFileName}`);
+	waitFile(`${artifactsDir}/${outputFileName}`);
 	const outputBuffer = new fs.readFileSync(`${artifactsDir}/${outputFileName}`);
 	const outputHash = crypto.createHash('sha256').update(outputBuffer).digest('hex');
 	assert(outputHash === 'c4abfd6bb2acc4cf729076031fbfa4521b5c35302c3f3e6accae69f601c247f9');
