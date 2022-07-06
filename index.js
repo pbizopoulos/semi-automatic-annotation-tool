@@ -15,7 +15,7 @@ function waitFile(fileName) {
 }
 
 (async () => {
-	const browser = await puppeteer.launch({ headless: true });
+	const browser = await puppeteer.launch({ headless: true, args: ['--use-gl=egl'] });
 	const page = await browser.newPage();
 	const artifactsDir = process.env.ARTIFACTS_DIR;
 	await page._client().send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve(artifactsDir)});
@@ -45,6 +45,7 @@ function waitFile(fileName) {
 		document.querySelector('#modelSelect').selectedIndex = 1;
 		document.querySelector('#modelSelect').onchange();
 	});
+	await page.waitForTimeout(1000);
 	await page.waitForSelector('#loadFilesInputFile:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile(`${artifactsDir}/rp_im/1.nii.gz`));
 	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.waitForSelector('#labelColorDiv1').then(selector => selector.click());
@@ -62,14 +63,14 @@ function waitFile(fileName) {
 	waitFile(`${artifactsDir}/${outputFileName}`);
 	const outputBuffer = new fs.readFileSync(`${artifactsDir}/${outputFileName}`);
 	const outputHash = crypto.createHash('sha256').update(outputBuffer).digest('hex');
-	assert(outputHash === 'c4abfd6bb2acc4cf729076031fbfa4521b5c35302c3f3e6accae69f601c247f9');
+	assert.strictEqual(outputHash, '819104fac59f81f4aa40ed155db475a0598384c6071e3d84d1974ff67a116734');
 	await page.screenshot({
 		path: `${artifactsDir}/puppeteer-screenshot.png`
 	});
 	const screenshotBuffer = new fs.readFileSync(`${artifactsDir}/puppeteer-screenshot.png`);
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
 	if (process.env.GITHUB_ACTIONS === undefined) {
-		assert(screenshotHash === '86bf8f85043b541a56db08fbbec2cd6e9b283934e89cdbd4e418446c70c85a6c');
+		assert.strictEqual(screenshotHash, 'c6ca72f74e2213e33d8bd8e239caca5323d369f649e7cbc428ae97c2f1a2a8b8');
 	}
 	await page.close();
 	await browser.close();
