@@ -1,2 +1,2 @@
 Flask-Cors==3.0.10
-tensorflowjs==3.19.0
+tensorflowjs==3.20.0
