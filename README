@@ -1,4 +1,4 @@
-Web-based Machine Learning:
+Web-based machine learning:
 - Based on TensorFlowJS
 - Provides inference and training
 - Private-oriented (data do not leave the device)
@@ -42,7 +42,7 @@ e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
 8) Create a pull request on https://github.com/pbizopoulos/web-based-machine-learning that adds the raw URL of the configuration json file.
 
 Development requirements:
-- POSIX compliant shell (any of Bash, Dash, KornShell, Yash, Zsh)
+- POSIX compliant shell (ash, bash, dash, ksh, posh, yash or zsh)
 - Git (Any version)
 - Make (bmake or GNU Make)
 - npm
@@ -55,3 +55,4 @@ Development basic commands:
 make		# Run test.
 make clean 	# Remove dependent directories.
 make help	# Show all commands.
+make -C server	# Setup server.

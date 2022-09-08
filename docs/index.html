@@ -6,6 +6,7 @@
 		<title>Web-based Machine Learning</title>
 		<link href="data:," rel="icon">
 		<link href="https://pbizopoulos.github.io/style.css" rel="stylesheet">
+		<link href="style.css" rel="stylesheet">
 		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
 		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
@@ -21,42 +22,45 @@
 			</div>
 		</div>
 		<div>
-			<div style="border-style:groove;float:left;width:20%;">
+			<div style="border-style:groove;float:left;width:25%;">
 				<div>
 					<b>Model</b>
 				</div>
 				<div>
-					<select id="modelSelect" onchange="selectModelName();" style="width:100%;">
-					</select>
+					<label for="modelSelect">Load model:</label>
+					<select id="modelSelect" name="modelSelect" onchange="selectModelName();" style="width:50%;"></select>
 				</div>
 				<div id="modelLoadFractionDiv">0%</div>
 				<div>
-					Input shape: <span id="modelInputShapeSpan"></span>
+					<label for="modelInputShapeSpan">Input shape:</label>
+					<span id="modelInputShapeSpan" name="modelInputShapeSpan"></span>
 				</div>
 				<div>
-					Prediction shape: <span id="modelPredictionShapeSpan"></span>
+					<label for="modelPredictionShapeSpan">Prediction shape:</label>
+					<span id="modelPredictionShapeSpan" name="modelPredictionShapeSpan"></span>
 				</div>
-				<hr>
 				<div>
 					<b>Input</b>
 				</div>
 				<div>
-					<input accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" id="loadFilesInputFile" type="file" multiple/>
+					<button id="loadFilesButton" onclick="document.getElementById('loadFilesInputFile').click()">Load files</button>
+					<input accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" id="loadFilesInputFile" style="display:none;" type="file" multiple>
 				</div>
 				<div>
-					<input accept=".nii,.txt" id="loadPredictionsInputFile" type="file" disabled>
+					<button id="loadPredictionsButton" onclick="document.getElementById('loadPredictionsInputFile').click()">Load predictions</button>
+					<input accept=".nii,.txt" id="loadPredictionsInputFile" style="display:none;" type="file">
 				</div>
 				<div>
-					Index: <span id="imageIndexSpan"></span>
-					<input id="imageIndexInputRange" style="width:60%" type="range" value=0 disabled>
+					<label for="imageIndexInputRange">Index: <span id="imageIndexSpan">0/0</span></label>
+					<input id="imageIndexInputRange" name="imageIndexInputRange" type="range" value=0 disabled>
 				</div>
 				<div>
-					H&times;W: <span id="imageHeightSpan"></span> &times; <span id="imageWidthSpan"></span>
+					<label for="imageHeightWidthSpan">H&times;W:</label>
+					<span id="imageHeightWidthSpan" name="imageHeightWidthSpan">0&times;0</span>
 				</div>
 				<div>
 					<button id="resetImageValueButton" onclick="resetImageValue()" disabled>Reset image value</button>
 				</div>
-				<hr>
 				<div>
 					<b>Inference</b>
 				</div>
@@ -68,33 +72,37 @@
 				</div>
 				<div id="labelListDiv"></div>
 				<div id="brushSizeDiv">
-					Brush size:
-					<input id="brushSizeInputRange" oninput="drawCanvas()" style="width:60%" type="range" value=20 disabled>
+					<label for="brushSizeInputRange">Brush size:</label>
+					<input id="brushSizeInputRange" name="brushSizeInputRange" oninput="drawCanvas()" type="range" value=20 disabled>
 				</div>
 				<div>
 					<button id="savePredictionsToDiskButton" disabled>Save predictions to disk</button>
 				</div>
-				<hr>
 				<div>
 					<b>Training</b>
 				</div>
 				<div>
-					Trainable: <span id="modelTrainableSpan"></span>
+					<label for="modelTrainableSpan">Trainable:</label>
+					<span id="modelTrainableSpan" name="modelTrainableSpan"></span>
 				</div>
 				<div>
 					<button id="trainModelLocallyButton">Train model locally</button>
 				</div>
 				<div id="epochsNumDiv">
-					Epochs: <input id="epochsNumInputNumber" style="width:20%;" type="number" value=10>
+					<label for="epochsNumInputNumber">Epochs:</label>
+					<input id="epochsNumInputNumber" name="epochsNumInputNumber" style="width:20%;" type="number" value=10>
 				</div>
 				<div id="epochCurrentDiv">
-					Current epoch: <span id="epochCurrentSpan"></span>
+					<label for="epochCurrentDiv">Current epoch:</label>
+					<span id="epochCurrentSpan" name="epochCurrentSpan"></span>
 				</div>
 				<div id="lossDiv">
-					Loss: <span id="lossSpan"></span>
+					<label for="lossSpan">Loss:</label>
+					<span id="lossSpan" name="lossSpan"></span>
 				</div>
 				<div id="accuracyDiv">
-					Accuracy: <span id="accuracySpan"></span>
+					<label for="accuracySpan">Accuracy:</label>
+					<span id="accuracySpan" name="accuracySpan"></span>
 				</div>
 				<div>
 					<button id="saveModelToDiskButton">Save model to disk</button>

@@ -46,7 +46,7 @@ function waitFile(fileName) {
 		document.querySelector('#modelSelect').onchange();
 	});
 	await page.waitForTimeout(1000);
-	await page.waitForSelector('#loadFilesInputFile:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile(`${artifactsDir}/rp_im/1.nii.gz`));
+	await page.waitForSelector('#loadFilesButton:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile(`${artifactsDir}/rp_im/1.nii.gz`));
 	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.waitForSelector('#labelColorDiv1').then(selector => selector.click());
 	await page.evaluate(() => {
@@ -70,7 +70,7 @@ function waitFile(fileName) {
 	const screenshotBuffer = new fs.readFileSync(`${artifactsDir}/puppeteer-screenshot.png`);
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
 	if (process.env.GITHUB_ACTIONS === undefined) {
-		assert.strictEqual(screenshotHash, 'c6ca72f74e2213e33d8bd8e239caca5323d369f649e7cbc428ae97c2f1a2a8b8');
+		assert.strictEqual(screenshotHash, 'eaadd57bf9055af19d2852c528f1a498f21502e4feee4ac2636bc6823ae427f3');
 	}
 	await page.close();
 	await browser.close();

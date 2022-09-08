@@ -12,12 +12,13 @@ const epochsNumDiv = document.getElementById('epochsNumDiv');
 const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
 const imageCanvas = document.getElementById('imageCanvas');
 const imageContext = imageCanvas.getContext('2d');
-const imageHeightSpan = document.getElementById('imageHeightSpan');
+const imageHeightWidthSpan = document.getElementById('imageHeightWidthSpan');
 const imageIndexInputRange = document.getElementById('imageIndexInputRange');
 const imageIndexSpan = document.getElementById('imageIndexSpan');
-const imageWidthSpan = document.getElementById('imageWidthSpan');
 const labelListDiv = document.getElementById('labelListDiv');
+const loadFilesButton = document.getElementById('loadFilesButton');
 const loadFilesInputFile = document.getElementById('loadFilesInputFile');
+const loadPredictionsButton = document.getElementById('loadPredictionsButton');
 const loadPredictionsInputFile = document.getElementById('loadPredictionsInputFile');
 const lossDiv = document.getElementById('lossDiv');
 const lossSpan = document.getElementById('lossSpan');
@@ -89,8 +90,8 @@ function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
 	epochsNumInputNumber.disabled = argument;
 	imageIndexInputRange.disabled = argument;
-	loadFilesInputFile.disabled = argument;
-	loadPredictionsInputFile.disabled = argument;
+	loadFilesButton.disabled = argument;
+	loadPredictionsButton.disabled = argument;
 	modelSelect.disabled = argument;
 	predictImageCurrentButton.disabled = argument;
 	predictImagesAllButton.disabled = argument;
@@ -152,19 +153,18 @@ function predictImageCurrent() {
 	let imageSlice = images.slice(imageOffset, imageOffset + imageSize);
 	imageSlice = new Float32Array(imageSlice);
 	tf.tidy(() => {
-		let tensor = tf.tensor(imageSlice);
-		tensor = tf.reshape(tensor, [imageCanvas.height, imageCanvas.width]);
-		tensor = tensor.expandDims(-1);
-		tensor = tf.image.resizeNearestNeighbor(tensor, modelInputShape);
-		const tensorMomentsBefore = tf.moments(tensor);
-		tensor = tensor.sub(tensorMomentsBefore.mean);
-		const tensorMomentsAfter = tf.moments(tensor);
-		tensor = tensor.div(tf.sqrt(tensorMomentsAfter.variance));
+		let imageTensor = tf.tensor(imageSlice);
+		imageTensor = tf.reshape(imageTensor, [imageCanvas.height, imageCanvas.width, 1]);
+		imageTensor = tf.image.resizeNearestNeighbor(imageTensor, modelInputShape);
+		const tensorMomentsBefore = tf.moments(imageTensor);
+		imageTensor = imageTensor.sub(tensorMomentsBefore.mean);
+		const tensorMomentsAfter = tf.moments(imageTensor);
+		imageTensor = imageTensor.div(tf.sqrt(tensorMomentsAfter.variance));
 		let preProcessedImage;
 		if (configSelected.machineLearningType === 'image classification') {
-			preProcessedImage = tensor.expandDims(0);
+			preProcessedImage = imageTensor.expandDims(0);
 		} else if (configSelected.machineLearningType === 'image segmentation') {
-			preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
+			preProcessedImage = imageTensor.squeeze(-1).expandDims(0).expandDims(0);
 		}
 		let modelPrediction = model.predict(preProcessedImage);
 		if (configSelected.machineLearningType === 'image classification') {
@@ -256,9 +256,8 @@ function readFileNifti(file) {
 				brushCanvas.width = imageCanvas.width;
 				masks = new Uint8Array(images.length);
 			}
-			imageHeightSpan.textContent = imageCanvas.height;
+			imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 			imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
-			imageWidthSpan.textContent = imageCanvas.width;
 			resetImageValue();
 		}
 		disableUI(false);
@@ -270,15 +269,14 @@ function resetData() {
 	brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
 	fileDecompressed = null;
 	imageContext.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
+	imageHeightWidthSpan.textContent = '0\u00D70';
 	imageIndexCurrent = 0;
-	imageHeightSpan.textContent = '';
 	imageIndexInputRange.value = 0;
-	imageIndexSpan.textContent = '';
+	imageIndexSpan.textContent = '0/0';
 	imageOffset = 0;
 	imageSize = 1;
-	imageValueMin = 0;
 	imageValueMax = 0;
-	imageWidthSpan.textContent = '';
+	imageValueMin = 0;
 	images = new Uint8Array(imageSize);
 	imagesNum = 0;
 	labelCurrent = 0;
@@ -315,8 +313,6 @@ function saveData(data, filename) {
 
 async function selectModelName() {
 	labelListDiv.textContent = '';
-	loadFilesInputFile.value = '';
-	loadPredictionsInputFile.value = '';
 	resetData();
 	configSelected = configArray.find(config => config.modelDownloadUrl === modelSelect.value);
 	let loadModelFunction;
@@ -420,7 +416,7 @@ async function selectModelName() {
 		brushCanvas.style.display = '';
 		brushSizeDiv.style.display = '';
 	}
-	loadFilesInputFile.disabled = false;
+	loadFilesButton.disabled = false;
 	modelSelect.disabled = false;
 }
 
@@ -455,9 +451,8 @@ imageIndexInputRange.oninput = () => {
 		labelCurrent = classAnnotations[imageIndexCurrent];
 		document.getElementById(`labelColorDiv${labelCurrent}`).click();
 	}
-	imageHeightSpan.textContent = imageCanvas.height;
+	imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
-	imageWidthSpan.textContent = imageCanvas.width;
 	drawCanvas();
 }
 
@@ -571,23 +566,25 @@ savePredictionsToDiskButton.onclick = async () => {
 
 trainModelLocallyButton.onclick = async () => {
 	disableUI(true);
-	const images_ = new Uint8Array(images);
-	let tensor = tf.tensor(images_).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width]);
-	tensor = tensor.expandDims(-1);
-	tensor = tf.image.resizeNearestNeighbor(tensor, modelInputShape);
-	const tensorMomentsBefore = tf.moments(tensor);
-	tensor = tensor.sub(tensorMomentsBefore.mean);
-	const tensorMomentsAfter = tf.moments(tensor);
-	tensor = tensor.div(tf.sqrt(tensorMomentsAfter.variance));
-	let preProcessedImage;
-	let predictions;
-	if (configSelected.machineLearningType === 'image classification') {
-		preProcessedImage = tensor;
-		predictions = tf.oneHot(classAnnotations, configSelected.classNames.length);
-	} else if (configSelected.machineLearningType === 'image segmentation') {
-		preProcessedImage = tensor.squeeze(-1).expandDims(0).expandDims(0);
-		predictions = tf.tensor(masks);
-	}
+	const imagesArray = new Uint8Array(images);
+	let [preProcessedImage, predictions] = tf.tidy(() => {
+		let imagesTensor = tf.tensor(imagesArray).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width, 1]);
+		imagesTensor = tf.image.resizeNearestNeighbor(imagesTensor, modelInputShape);
+		const tensorMomentsBefore = tf.moments(imagesTensor);
+		imagesTensor = imagesTensor.sub(tensorMomentsBefore.mean);
+		const tensorMomentsAfter = tf.moments(imagesTensor);
+		imagesTensor = imagesTensor.div(tf.sqrt(tensorMomentsAfter.variance));
+		let preProcessedImage;
+		let predictions;
+		if (configSelected.machineLearningType === 'image classification') {
+			preProcessedImage = imagesTensor;
+			predictions = tf.oneHot(classAnnotations, configSelected.classNames.length);
+		} else if (configSelected.machineLearningType === 'image segmentation') {
+			preProcessedImage = imagesTensor.squeeze(-1).expandDims(0).expandDims(0);
+			predictions = tf.tensor(masks);
+		}
+		return [preProcessedImage, predictions];
+	})
 	model.compile({
 		optimizer: configSelected.optimizer,
 		loss: configSelected.loss,
@@ -599,18 +596,14 @@ trainModelLocallyButton.onclick = async () => {
 			new tf.CustomCallback({
 				onEpochEnd: (epoch, logs) => {
 					epochCurrentSpan.textContent = epoch;
-					lossSpan.textContent = logs.loss;
+					lossSpan.textContent = logs.loss.toExponential(3);
 					accuracySpan.textContent = logs.acc;
 				}
 			})
 		]
 	});
-	tf.dispose(predictions);
 	tf.dispose(preProcessedImage);
-	tf.dispose(tensor);
-	tf.dispose(tensorMax);
-	tf.dispose(tensorMin);
-	console.log(tf.memory());
+	tf.dispose(predictions);
 	disableUI(false);
 }
 
