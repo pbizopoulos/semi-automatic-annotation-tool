@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta content="width=device-width, initial-scale=1" name="viewport">
+		<title>Semi-automatic annotation</title>
+		<link href="data:," rel="icon">
+		<link href="https://pbizopoulos.github.io/style.css" rel="stylesheet">
+		<link href="style.css" rel="stylesheet">
+		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
+		<script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
+		<script defer src="script.js"></script>
+	</head>
+	<body>
+		<div id="div-header">
+			<div id="div-navigation">
+				<a href="https://cordis.europa.eu/project/id/952179">
+					<img src="incisive-header-logo.svg" height="20">
+				</a>
+				<b>Semi-automatic annotation</b>
+			</div>
+			<div id="div-source-code-link">
+				<a href="https://github.com/pbizopoulos/semi-automatic-annotation" id="sourceCodeUrl">Source code</a>
+			</div>
+		</div>
+		<div>
+			<div style="border-style:groove;float:left;width:25%;">
+				<div>
+					<b>Model</b>
+				</div>
+				<div>
+					<label for="modelSelect">Load model:</label>
+					<select id="modelSelect" name="modelSelect" onchange="selectModelName();" style="width:50%;" disabled></select>
+				</div>
+				<div id="modelLoadFractionDiv">0%</div>
+				<div>
+					<label for="modelInputShapeSpan">Input shape:</label>
+					<span id="modelInputShapeSpan" name="modelInputShapeSpan"></span>
+				</div>
+				<div>
+					<label for="modelPredictionShapeSpan">Prediction shape:</label>
+					<span id="modelPredictionShapeSpan" name="modelPredictionShapeSpan"></span>
+				</div>
+				<div>
+					<b>Input</b>
+				</div>
+				<div>
+					<input accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" id="loadFilesInputFile" type="file" disabled multiple>
+				</div>
+				<div>
+					<input accept=".nii,.txt" id="loadPredictionsInputFile" type="file" disabled>
+				</div>
+				<div>
+					<label for="imageIndexInputRange">Index: <span id="imageIndexSpan">0/0</span></label>
+					<input id="imageIndexInputRange" name="imageIndexInputRange" type="range" value=0 disabled>
+				</div>
+				<div>
+					<label for="imageHeightWidthSpan">H&times;W:</label>
+					<span id="imageHeightWidthSpan" name="imageHeightWidthSpan">0&times;0</span>
+				</div>
+				<div>
+					<button id="resetImageValueButton" onclick="resetImageValue()" disabled>Reset image value</button>
+				</div>
+				<div>
+					<b>Inference</b>
+				</div>
+				<div>
+					<button id="predictImageCurrentButton" onclick="predictImageCurrent()" disabled>Predict current image</button>
+				</div>
+				<div>
+					<button id="predictImagesAllButton" disabled>Predict all images</button>
+				</div>
+				<div id="labelListDiv"></div>
+				<div id="brushSizeDiv">
+					<label for="brushSizeInputRange">Brush size:</label>
+					<input id="brushSizeInputRange" name="brushSizeInputRange" oninput="drawCanvas()" type="range" value=20 disabled>
+				</div>
+				<div>
+					<button id="savePredictionsToDiskButton" disabled>Save predictions to disk</button>
+				</div>
+				<div>
+					<b>Training</b>
+				</div>
+				<div>
+					<label for="modelTrainableSpan">Trainable:</label>
+					<span id="modelTrainableSpan" name="modelTrainableSpan"></span>
+				</div>
+				<div>
+					<button id="trainModelLocallyButton">Train model locally</button>
+				</div>
+				<div id="epochsNumDiv">
+					<label for="epochsNumInputNumber">Epochs:</label>
+					<input id="epochsNumInputNumber" name="epochsNumInputNumber" style="width:20%;" type="number" value=10>
+				</div>
+				<div id="epochCurrentDiv">
+					<label for="epochCurrentDiv">Current epoch:</label>
+					<span id="epochCurrentSpan" name="epochCurrentSpan"></span>
+				</div>
+				<div id="lossDiv">
+					<label for="lossSpan">Loss:</label>
+					<span id="lossSpan" name="lossSpan"></span>
+				</div>
+				<div id="accuracyDiv">
+					<label for="accuracySpan">Accuracy:</label>
+					<span id="accuracySpan" name="accuracySpan"></span>
+				</div>
+				<div>
+					<button id="saveModelToDiskButton">Save model to disk</button>
+				</div>
+				<div>
+					<button id="saveModelToServerButton">Save model to server</button>
+				</div>
+			</div>
+			<div style="float:left;position:relative;">
+				<canvas id="imageCanvas" style="position:absolute;"></canvas>
+				<canvas id="maskCanvas" style="position:absolute;opacity:0.5;"></canvas>
+				<canvas id="brushCanvas" style="position:absolute;opacity:0.5;"></canvas>
+			</div>
+		</div>
+	</body>
+</html>

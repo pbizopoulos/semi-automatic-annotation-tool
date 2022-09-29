@@ -1,0 +1,58 @@
+# Semi-automatic annotation
+Based on TensorFlowJS
+Provides inference
+[Experimental] Provides training
+Private-oriented (data do not leave the device)
+No installation needed (only a modern browser is needed)
+https://pbizopoulos.github.io/semi-automatic-annotation
+
+# End-user instructions
+1. Visit https://pbizopoulos.github.io/semi-automatic-annotation/ .
+2. Select the model depending on your task.
+3. Load your data.
+4. Predict.
+5. Correct the results if needed.
+6. Train only if correction took place.
+7. Save the predictions.
+
+# AI model development instructions
+1. Develop and train a model in TensorFlowJS, Tensorflow or PyTorch having the following considerations in mind:
+- fast inference (<1 second/data sample is recommended) and
+- small size (100MB max for a saved model is recommended).
+2. Convert the model to TensorFlowJS.
+- For TensorFlow https://www.tensorflow.org/js/tutorials/conversion/import_saved_model
+- For PyTorch https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/blob/becf52d7cdb74eaad994fda2bba503460857e386/main.py#L582
+3. Test the converted model by applying inference on a data sample.
+4. Prepare a configuration json file as follows:
+e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
+{
+	"classNames": ["Array that", "contains", "the names of the classes"],
+	"exampleDataUrl": "Optional: URL or local file of an example data of this model",
+	"loss": "Optional: loss used for training (can be any of https://js.tensorflow.org/api/latest/#Training-Losses)",
+	"machineLearningType": "type of machine learning algorithm for the model (can be any of 'image classification', 'image segmentation')",
+	"metrics": ["Optional: can be any of https://js.tensorflow.org/api/latest/#Metrics"],
+	"modelDownloadUrl": "URL or local filepath of model.json",
+	"modelUploadUrl": "Optional: URL of remote server or local directory",
+	"name": "name of the configuration (e.g. indicate imaging modality and disease)",
+	"optimizer": "Optional: optimizer used for training (can be any of https://js.tensorflow.org/api/latest/#Training-Optimizers)",
+	"projectUrl": "Optional: URL of the project that has created the model"
+}
+5. Test on a local server by using the local links in the configuration json file.
+6. Convert the local links to remote links in the configuration json file.
+7. Upload the model (model.json and shard files), the example data and the configuration json file on a server (e.g. GitHub, AWS etc.).
+8. Create a pull request on https://github.com/pbizopoulos/semi-automatic-annotation that adds the raw URL of the configuration json file.
+
+# Development requirements
+POSIX mandatory utilities
+Make
+npm
+
+# Development preparation
+git clone https://github.com/pbizopoulos/semi-automatic-annotation
+cd semi-automatic-annotation/
+
+# Development basic commands
+make		# Generate artifacts.
+make clean 	# Remove dependent directories.
+make help	# Show all commands.
+make -C server	# Setup server.
