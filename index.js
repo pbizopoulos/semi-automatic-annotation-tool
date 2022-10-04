@@ -17,7 +17,7 @@ function waitFile(fileName) {
 (async () => {
 	const browser = await puppeteer.launch({ headless: true, args: ['--use-gl=egl'] });
 	const page = await browser.newPage();
-	const artifactsDir = process.env.ARTIFACTSDIR;
+	const artifactsDir = process.env.ARTIFACTS_DIR;
 	await page._client().send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve(artifactsDir)});
 	const inputNiftiFileName = 'rp_im.zip';
 	if (!(fs.existsSync(`${artifactsDir}/${inputNiftiFileName}`))) {
