@@ -16,7 +16,7 @@
 		<div id="div-header">
 			<div id="div-navigation">
 				<a href="https://cordis.europa.eu/project/id/952179">
-					<img src="incisive-header-logo.svg" height="20">
+					<img alt="INCISIVE Cordis webpage" src="incisive-header-logo.svg" height="20">
 				</a>
 				<a href="https://pbizopoulos.github.io/incisive">Home page</a> /
 				<b>Semi-automatic annotation</b>
@@ -26,13 +26,13 @@
 			</div>
 		</div>
 		<div>
-			<div style="border-style:groove;float:left;width:25%;">
+			<div id="containerDiv">
 				<div>
 					<b>Model</b>
 				</div>
 				<div>
 					<label for="modelSelect">Load model:</label>
-					<select id="modelSelect" name="modelSelect" onchange="selectModelName();" style="width:50%;" disabled></select>
+					<select id="modelSelect" name="modelSelect" onchange="selectModelName();" disabled></select>
 				</div>
 				<div id="modelLoadFractionDiv">0%</div>
 				<div>
@@ -54,31 +54,31 @@
 				</div>
 				<div>
 					<label for="imageIndexInputRange">Index: <span id="imageIndexSpan">0/0</span></label>
-					<input id="imageIndexInputRange" name="imageIndexInputRange" type="range" value=0 disabled>
+					<input id="imageIndexInputRange" name="imageIndexInputRange" type="range" value="0" disabled>
 				</div>
 				<div>
 					<label for="imageHeightWidthSpan">H&times;W:</label>
 					<span id="imageHeightWidthSpan" name="imageHeightWidthSpan">0&times;0</span>
 				</div>
 				<div>
-					<button id="resetImageValueButton" onclick="resetImageValue()" disabled>Reset image value</button>
+					<button id="resetImageValueButton" onclick="resetImageValue()" type="submit" disabled>Reset image value</button>
 				</div>
 				<div>
 					<b>Inference</b>
 				</div>
 				<div>
-					<button id="predictImageCurrentButton" onclick="predictImageCurrent()" disabled>Predict current image</button>
+					<button id="predictImageCurrentButton" type="submit" onclick="predictImageCurrent()" disabled>Predict current image</button>
 				</div>
 				<div>
-					<button id="predictImagesAllButton" disabled>Predict all images</button>
+					<button id="predictImagesAllButton" type="submit" disabled>Predict all images</button>
 				</div>
 				<div id="labelListDiv"></div>
 				<div id="brushSizeDiv">
 					<label for="brushSizeInputRange">Brush size:</label>
-					<input id="brushSizeInputRange" name="brushSizeInputRange" oninput="drawCanvas()" type="range" value=20 disabled>
+					<input id="brushSizeInputRange" name="brushSizeInputRange" oninput="drawCanvas()" type="range" value="20" disabled>
 				</div>
 				<div>
-					<button id="savePredictionsToDiskButton" disabled>Save predictions to disk</button>
+					<button id="savePredictionsToDiskButton" type="submit" disabled>Save predictions to disk</button>
 				</div>
 				<div>
 					<b>Training</b>
@@ -88,11 +88,11 @@
 					<span id="modelTrainableSpan" name="modelTrainableSpan"></span>
 				</div>
 				<div>
-					<button id="trainModelLocallyButton">Train model locally</button>
+					<button id="trainModelLocallyButton" type="submit">Train model locally</button>
 				</div>
 				<div id="epochsNumDiv">
 					<label for="epochsNumInputNumber">Epochs:</label>
-					<input id="epochsNumInputNumber" name="epochsNumInputNumber" style="width:20%;" type="number" value=10>
+					<input id="epochsNumInputNumber" name="epochsNumInputNumber" type="number" value="10">
 				</div>
 				<div id="epochCurrentDiv">
 					<label for="epochCurrentDiv">Current epoch:</label>
@@ -107,16 +107,16 @@
 					<span id="accuracySpan" name="accuracySpan"></span>
 				</div>
 				<div>
-					<button id="saveModelToDiskButton">Save model to disk</button>
+					<button id="saveModelToDiskButton" type="submit">Save model to disk</button>
 				</div>
 				<div>
-					<button id="saveModelToServerButton">Save model to server</button>
+					<button id="saveModelToServerButton" type="submit">Save model to server</button>
 				</div>
 			</div>
-			<div style="float:left;position:relative;">
-				<canvas id="imageCanvas" style="position:absolute;"></canvas>
-				<canvas id="maskCanvas" style="position:absolute;opacity:0.5;"></canvas>
-				<canvas id="brushCanvas" style="position:absolute;opacity:0.5;"></canvas>
+			<div id="canvasDiv">
+				<canvas id="imageCanvas"></canvas>
+				<canvas id="maskCanvas"></canvas>
+				<canvas id="brushCanvas"></canvas>
 			</div>
 		</div>
 	</body>

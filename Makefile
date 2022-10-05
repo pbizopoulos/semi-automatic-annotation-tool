@@ -13,7 +13,7 @@ clean: ## Remove dependent directories.
 	rm -rf $(artifacts_dir)/ node_modules/ package-lock.json
 
 help: ## Show all commands.
-	@sed -n '/sed/d; s/\$$(artifacts_dir)/$(artifacts_dir)/g; s/\$$(code_file_name)/$(code_file_name)/g; /##/p' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.* ## "}; {printf "%-30s# %s\n", $$1, $$2}'
+	@sed -n '/sed/d; s/\$$(artifacts_dir)/$(artifacts_dir)/g; /##/p' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.* ## "}; {printf "%-30s# %s\n", $$1, $$2}'
 
 $(artifacts_dir):
 	mkdir $(artifacts_dir)

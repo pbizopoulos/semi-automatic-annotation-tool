@@ -1,3 +1,30 @@
+#canvasDiv {
+	float:left;
+	position:relative;
+}
+
+#containerDiv {
+	border-style:solid;
+	float:left;
+	width:25%;
+}
+
+#epochsNumInputNumber {
+	width:20%;
+}
+
+#modelSelect {
+	width:50%;
+}
+
 button {
 	width: 100%;
+}
+
+canvas {
+	position:absolute;
+}
+
+#maskCanvas, #brushCanvas {
+	opacity:0.5;
 }
