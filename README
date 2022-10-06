@@ -1,10 +1,10 @@
 # Semi-automatic annotation
+https://pbizopoulos.github.io/semi-automatic-annotation
 Based on TensorFlowJS
 Provides inference
 [Experimental] Provides training
 Private-oriented (data do not leave the device)
 No installation needed (only a modern browser is needed)
-https://pbizopoulos.github.io/semi-automatic-annotation
 
 # End-user instructions
 1. Visit https://pbizopoulos.github.io/semi-automatic-annotation/ .
@@ -51,8 +51,6 @@ npm
 git clone https://github.com/pbizopoulos/semi-automatic-annotation
 cd semi-automatic-annotation/
 
-# Development basic commands
-make		# Generate artifacts.
-make clean 	# Remove dependent directories.
-make help	# Show all commands.
-make -C server	# Setup server.
+# Usage
+make help		# Show help for node.
+make help -C docs/ 	# Show help for html.
