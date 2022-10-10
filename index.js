@@ -45,7 +45,7 @@ function waitFile(fileName) {
 		document.querySelector('#modelSelect').onchange();
 	});
 	await page.waitForTimeout(1000);
-	await page.waitForSelector('#loadFilesInputFile:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile(`bin/rp_im/1.nii.gz`));
+	await page.waitForSelector('#loadFilesInputFile:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
 	await page.waitForSelector('#modelSelect:not([disabled])');
 	await page.waitForSelector('#labelColorDiv1').then(selector => selector.click());
 	await page.evaluate(() => {

@@ -39,7 +39,7 @@ const configUrlArray = [
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lesion-segmentation.json',
 	'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation.json',
 	// 'https://raw.githubusercontent.com/pbizopoulos/tmp/main/lung-classification.json',
-]
+];
 const labelColorArray = [
 	[ 255, 255, 255 ],
 	[ 31, 119, 180 ],
@@ -167,7 +167,7 @@ function predictImageCurrent() {
 		let modelPrediction = model.predict(preProcessedImage);
 		if (configSelected.machineLearningType === 'image classification') {
 			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
-			const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
+			const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].textContent = `${classProbabilities[0][i].toFixed(2)}%`;
 			}
@@ -203,41 +203,41 @@ function readFileNifti(file) {
 				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
 			}
 			switch (niftiHeader.datatypeCode) {
-				case nifti.NIFTI1.TYPE_UINT8:
-					images = new Uint8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT16:
-					images = new Int16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT32:
-					images = new Int32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT32:
-					images = new Float32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT64:
-					images = new Float64Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT8:
-					images = new Int8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT16:
-					images = new Uint16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT32:
-					images = new Uint32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_RGB24:
-					images = new Uint8Array(niftiImage);
-					images = images.filter(function(value, index, Arr) {
-						return index % 3 === 0;
-					});
-					break;
-				case 2304:
-					images = new Uint32Array(niftiImage);
-					break;
-				default:
-					return;
+			case nifti.NIFTI1.TYPE_UINT8:
+				images = new Uint8Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT16:
+				images = new Int16Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT32:
+				images = new Int32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_FLOAT32:
+				images = new Float32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_FLOAT64:
+				images = new Float64Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT8:
+				images = new Int8Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_UINT16:
+				images = new Uint16Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_UINT32:
+				images = new Uint32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_RGB24:
+				images = new Uint8Array(niftiImage);
+				images = images.filter(function(value, index, Arr) {
+					return index % 3 === 0;
+				});
+				break;
+			case 2304:
+				images = new Uint32Array(niftiImage);
+				break;
+			default:
+				return;
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
 			imageIndexInputRange.max = imagesNum;
@@ -376,7 +376,7 @@ async function selectModelName() {
 		labelColorDiv.style.opacity = 0.3;
 		labelColorDiv.style.width = '15px';
 		labelColorDiv.onclick = (event) => {
-			const nodeList = document.querySelectorAll('*[id^="labelColorDiv"]')
+			const nodeList = document.querySelectorAll('*[id^="labelColorDiv"]');
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].style.opacity = 0.3;
 			}
@@ -398,7 +398,7 @@ async function selectModelName() {
 	}
 	document.getElementById('labelTextDiv1').textContent = 'Lesion'; // for review
 	if (configSelected.machineLearningType === 'image classification') {
-		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
+		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 		for (let i = 0; i < nodeList.length; i++) {
 			nodeList[i].style.display = '';
 		}
@@ -406,7 +406,7 @@ async function selectModelName() {
 		brushCanvas.style.display = 'none';
 		brushSizeDiv.style.display = 'none';
 	} else if (configSelected.machineLearningType === 'image segmentation') {
-		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]')
+		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 		for (let i = 0; i < nodeList.length; i++) {
 			nodeList[i].style.display = 'none';
 		}
@@ -420,27 +420,27 @@ async function selectModelName() {
 
 brushCanvas.oncontextmenu = (event) => {
 	event.preventDefault();
-}
+};
 
 brushCanvas.onmousedown = (event) => {
 	if (event.button === 0) {
 		drawActivated = true;
 	}
-}
+};
 
 brushCanvas.onmouseleave = () => {
 	drawActivated = false;
-}
+};
 
 brushCanvas.onmousemove = (event) => {
 	offsetX = event.offsetX;
 	offsetY = event.offsetY;
 	requestAnimationFrame(drawCanvas);
-}
+};
 
 brushCanvas.onmouseup = () => {
 	drawActivated = false;
-}
+};
 
 imageIndexInputRange.oninput = () => {
 	imageIndexCurrent = imageIndexInputRange.value;
@@ -452,7 +452,7 @@ imageIndexInputRange.oninput = () => {
 	imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 	drawCanvas();
-}
+};
 
 loadFilesInputFile.onchange = (event) => {
 	resetData();
@@ -483,7 +483,7 @@ loadFilesInputFile.onchange = (event) => {
 					});
 			});
 	}
-}
+};
 
 loadPredictionsInputFile.onchange = (event) => {
 	const file = event.currentTarget.files[0];
@@ -512,7 +512,7 @@ loadPredictionsInputFile.onchange = (event) => {
 	} else if (configSelected.machineLearningType === 'image segmentation') {
 		reader.readAsArrayBuffer(file);
 	}
-}
+};
 
 predictImagesAllButton.onclick = () => {
 	let interval;
@@ -528,15 +528,15 @@ predictImagesAllButton.onclick = () => {
 			disableUI(false);
 		}
 	}, 100);
-}
+};
 
 saveModelToDiskButton.onclick = async () => {
 	await model.save('downloads://saved-model');
-}
+};
 
 saveModelToServerButton.onclick = async () => {
 	await model.save(configSelected.modelUploadUrl);
-}
+};
 
 savePredictionsToDiskButton.onclick = async () => {
 	if (files === undefined) {
@@ -560,7 +560,7 @@ savePredictionsToDiskButton.onclick = async () => {
 		filename = 'masks.nii';
 	}
 	saveData(data, filename);
-}
+};
 
 trainModelLocallyButton.onclick = async () => {
 	disableUI(true);
@@ -582,7 +582,7 @@ trainModelLocallyButton.onclick = async () => {
 			predictions = tf.tensor(masks);
 		}
 		return [preProcessedImage, predictions];
-	})
+	});
 	model.compile({
 		optimizer: configSelected.optimizer,
 		loss: configSelected.loss,
@@ -603,7 +603,7 @@ trainModelLocallyButton.onclick = async () => {
 	tf.dispose(preProcessedImage);
 	tf.dispose(predictions);
 	disableUI(false);
-}
+};
 
 (async () => {
 	for (const [i, configUrl] of configUrlArray.entries()) {
@@ -618,10 +618,10 @@ trainModelLocallyButton.onclick = async () => {
 					.then((text) => {
 						configArray[i].format = JSON.parse(text).format;
 						configArray[i].weightPaths = JSON.parse(text).weightsManifest[0].paths;
-					})
+					});
 				option.textContent = configArray[i].name;
 				modelSelect.appendChild(option);
-			})
+			});
 	}
 	selectModelName();
 })();
