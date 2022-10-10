@@ -229,7 +229,7 @@ function readFileNifti(file) {
 				break;
 			case nifti.NIFTI1.TYPE_RGB24:
 				images = new Uint8Array(niftiImage);
-				images = images.filter(function(value, index, Arr) {
+				images = images.filter(function(value, index) {
 					return index % 3 === 0;
 				});
 				break;
