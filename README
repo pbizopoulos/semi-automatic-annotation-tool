@@ -1,5 +1,5 @@
-# Semi-automatic annotation
-https://pbizopoulos.github.io/semi-automatic-annotation
+# Semi-automatic annotation tool
+https://pbizopoulos.github.io/semi-automatic-annotation-tool
 Based on TensorFlowJS
 Provides inference
 [Experimental] Provides training
@@ -7,7 +7,7 @@ Private-oriented (data do not leave the device)
 No installation needed (only a modern browser is needed)
 
 # End-user instructions
-1. Visit https://pbizopoulos.github.io/semi-automatic-annotation/ .
+1. Visit https://pbizopoulos.github.io/semi-automatic-annotation-tool/ .
 2. Select the model depending on the task.
 3. Load the file(s).
 4. Predict.
@@ -40,7 +40,7 @@ e.g.https://github.com/pbizopoulos/tmp/raw/main/lung-classification.json
 5. Test on a local server by using the local links in the configuration json file.
 6. Convert the local links to remote links in the configuration json file.
 7. Upload the model (model.json and shard files), the example data and the configuration json file on a server (e.g. GitHub, AWS etc.).
-8. Create a pull request on https://github.com/pbizopoulos/semi-automatic-annotation that adds the raw URL of the configuration json file.
+8. Create a pull request on https://github.com/pbizopoulos/semi-automatic-annotation-tool that adds the raw URL of the configuration json file.
 
 # Development requirements
 POSIX mandatory utilities
@@ -49,8 +49,8 @@ Docker
 npm
 
 # Development preparation
-git clone https://github.com/pbizopoulos/semi-automatic-annotation
-cd semi-automatic-annotation/
+git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
+cd semi-automatic-annotation-tool/
 
 # Usage
 make help		# Show help for node.
