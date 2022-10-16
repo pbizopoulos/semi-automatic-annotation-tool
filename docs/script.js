@@ -52,15 +52,15 @@ let modelConfigurationArray = [
 		'name': 'CT lung segmentation (FPN mobilenet_v2 imagenet)',
 		'projectUrl': 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
 	},
-	{
-		'classNames': ['None', 'Lung', 'Covid-19'],
-		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/example.jpg',
-		'machineLearningType': 'image segmentation',
-		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json',
-		'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-		'name': 'CT lung and covid-19 segmentation (custom)',
-		'projectUrl': 'https://github.com/pbizopoulos/for-testing'
-	},
+	// {
+	// 	'classNames': ['None', 'Lung', 'Covid-19'],
+	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/example.jpg',
+	// 	'machineLearningType': 'image segmentation',
+	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json',
+	// 	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+	// 	'name': 'CT lung and covid-19 segmentation (custom)',
+	// 	'projectUrl': 'https://github.com/pbizopoulos/for-testing'
+	// },
 	// {
 	// 	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
 	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-classification/example.jpg',
