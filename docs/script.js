@@ -52,17 +52,26 @@ let modelConfigurationArray = [
 		'name': 'CT lung segmentation (FPN mobilenet_v2 imagenet)',
 		'projectUrl': 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
 	},
+	{
+		'classNames': ['None', 'Lung', 'Covid-19'],
+		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/example.jpg',
+		'machineLearningType': 'image segmentation',
+		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json',
+		'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+		'name': 'CT lung and covid-19 segmentation (custom)',
+		'projectUrl': 'https://github.com/pbizopoulos/for-testing'
+	},
 	// {
-	// 	"classNames": ["No Findings", "Atelectasis", "Consolidation", "Infiltration", "Pneumothorax", "Edema", "Emphysema", "Fibrosis", "Effusion", "Pneumonia", "Pleural_thickening", "Cardiomegaly", "Nodule", "Mass", "Hernia"],
-	// 	"exampleDataUrl": "https://raw.githubusercontent.com/pbizopoulos/tmp/main/lung-classification-example-data.jpg",
-	// 	"loss": "categoricalCrossentropy",
-	// 	"machineLearningType": "image classification",
-	// 	"metrics": ["accuracy"],
-	// 	"modelDownloadUrl": "https://raw.githubusercontent.com/pbizopoulos/tmp/main/mobilenet_v2.imagenet/model.json",
-	// 	"modelUploadUrl": "http://172.17.0.2:5000/upload",
-	// 	"name": "X-rays lung classification (mobilenet_v2 imagenet)",
-	// 	"optimizer": "adam",
-	// 	"projectUrl": "https://github.com/pbizopoulos/tmp"
+	// 	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
+	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-classification/example.jpg',
+	// 	'loss': 'categoricalCrossentropy',
+	// 	'machineLearningType': 'image classification',
+	// 	'metrics': ['accuracy'],
+	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-classification/model.json',
+	// 	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+	// 	'name': 'X-rays lung classification (mobilenet_v2 imagenet)',
+	// 	'optimizer': 'adam',
+	// 	'projectUrl': 'https://github.com/pbizopoulos/for-testing'
 	// }
 ];
 
@@ -162,10 +171,10 @@ function drawCanvas() {
 			maskImageData.data[4*i] = labelColorArray[maskValue][0];
 			maskImageData.data[4*i + 1] = labelColorArray[maskValue][1];
 			maskImageData.data[4*i + 2] = labelColorArray[maskValue][2];
-			if (maskValue > 0) {
-				maskImageData.data[4*i + 3] = 255;
-			} else {
+			if (maskValue === 0) {
 				maskImageData.data[4*i + 3] = 0;
+			} else {
+				maskImageData.data[4*i + 3] = 255;
 			}
 		}
 		maskContext.putImageData(maskImageData, 0, 0);
@@ -183,12 +192,13 @@ function predictImageCurrent() {
 		imageTensor = imageTensor.sub(tensorMomentsBefore.mean);
 		const tensorMomentsAfter = tf.moments(imageTensor);
 		imageTensor = imageTensor.div(tf.sqrt(tensorMomentsAfter.variance));
-		let preProcessedImage;
-		if (modelConfigurationSelected.machineLearningType === 'image classification') {
-			preProcessedImage = imageTensor.expandDims(0);
-		} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
-			preProcessedImage = imageTensor.squeeze(-1).expandDims(0).expandDims(0);
+		let modelInputsShape = model.inputs[0].shape;
+		for (let i = 0; i < modelInputsShape.length; i++) {
+			if (modelInputsShape[i] == null) {
+				modelInputsShape[i] = 1;
+			}
 		}
+		const preProcessedImage = imageTensor.reshape(modelInputsShape);
 		let modelPrediction = model.predict(preProcessedImage);
 		if (modelConfigurationSelected.machineLearningType === 'image classification') {
 			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
@@ -198,13 +208,22 @@ function predictImageCurrent() {
 			}
 		} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
-				modelPrediction = modelPrediction.reshape([512, 512, 1]);
+				if ((modelPrediction.shape[modelPrediction.shape.length - 1] !== 1) && (modelPrediction.shape[modelPrediction.shape.length - 1] !== modelConfigurationSelected.classNames.length)) {
+					modelPrediction = modelPrediction.reshape([512, 512, 1]);
+				}
 				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [imageCanvas.height, imageCanvas.width]);
 			}
-			modelPrediction = modelPrediction.dataSync();
-			for (let i = 0; i < modelPrediction.length; i++) {
-				if (modelPrediction[i] > 0.5) {
-					masks[imageOffset + i] = labelCurrent;
+			if (modelPrediction.shape[modelPrediction.shape.length - 1] === 1) {
+				modelPrediction = modelPrediction.dataSync();
+				for (let i = 0; i < modelPrediction.length; i++) {
+					if (modelPrediction[i] > 0.5) {
+						masks[imageOffset + i] = 1;
+					}
+				}
+			} else {
+				modelPrediction = modelPrediction.argMax(-1).squeeze(0).dataSync();
+				for (let i = 0; i < modelPrediction.length; i++) {
+					masks[imageOffset + i] = modelPrediction[i];
 				}
 			}
 		}
@@ -228,41 +247,41 @@ function readFileNifti(file) {
 				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
 			}
 			switch (niftiHeader.datatypeCode) {
-			case nifti.NIFTI1.TYPE_UINT8:
-				images = new Uint8Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT16:
-				images = new Int16Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT32:
-				images = new Int32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_FLOAT32:
-				images = new Float32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_FLOAT64:
-				images = new Float64Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT8:
-				images = new Int8Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_UINT16:
-				images = new Uint16Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_UINT32:
-				images = new Uint32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_RGB24:
-				images = new Uint8Array(niftiImage);
-				images = images.filter(function(value, index) {
-					return index % 3 === 0;
-				});
-				break;
-			case 2304:
-				images = new Uint32Array(niftiImage);
-				break;
-			default:
-				return;
+				case nifti.NIFTI1.TYPE_UINT8:
+					images = new Uint8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT16:
+					images = new Int16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT32:
+					images = new Int32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT32:
+					images = new Float32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT64:
+					images = new Float64Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT8:
+					images = new Int8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT16:
+					images = new Uint16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT32:
+					images = new Uint32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_RGB24:
+					images = new Uint8Array(niftiImage);
+					images = images.filter(function(value, index) {
+						return index % 3 === 0;
+					});
+					break;
+				case 2304:
+					images = new Uint32Array(niftiImage);
+					break;
+				default:
+					return;
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
 			imageIndexInputRange.max = imagesNum;
@@ -507,6 +526,8 @@ loadFilesInputFile.onchange = (event) => {
 					});
 			});
 	}
+	loadFilesInputFile.value = '';
+	loadPredictionsInputFile.value = '';
 };
 
 loadPredictionsInputFile.onchange = (event) => {
