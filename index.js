@@ -35,12 +35,6 @@ function waitFile(fileName) {
 		await page.waitForSelector('#raw-url').then(selector => selector.click());
 		waitFile(`bin/${inputDicomFileName1}`);
 	}
-	const inputDicomFileName2 = 'N2D_0002.dcm';
-	if (!(fs.existsSync(`bin/${inputDicomFileName2}`))) {
-		await page.goto('https://github.com/datalad/example-dicom-structural/blob/master/dicoms/N2D_0002.dcm');
-		await page.waitForSelector('#raw-url').then(selector => selector.click());
-		waitFile(`bin/${inputDicomFileName2}`);
-	}
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction('document.getElementById(\'modelLoadFractionDiv\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
 	await page.evaluate(() => {
@@ -72,7 +66,7 @@ function waitFile(fileName) {
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
 	if (process.env.GITHUB_ACTIONS === undefined) {
-		assert.strictEqual(screenshotHash, 'cee26438694c798921ce92bd248233918471f1e7c0a0751abd31028e506296a1');
+		assert.strictEqual(screenshotHash, '3eb6978cbcf0ef72efb40b82f9898a9aacee6a0afad7c6b212563a6eedef7bc1');
 	}
 	await page.close();
 	await browser.close();
