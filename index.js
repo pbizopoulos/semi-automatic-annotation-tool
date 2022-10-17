@@ -29,12 +29,6 @@ function waitFile(fileName) {
 	}
 	const zip = new admzip(`bin/${inputNiftiFileName}`);
 	zip.extractAllTo('bin', true);
-	const inputDicomFileName1 = 'N2D_0001.dcm';
-	if (!(fs.existsSync(`bin/${inputDicomFileName1}`))) {
-		await page.goto('https://github.com/datalad/example-dicom-structural/blob/master/dicoms/N2D_0001.dcm');
-		await page.waitForSelector('#raw-url').then(selector => selector.click());
-		waitFile(`bin/${inputDicomFileName1}`);
-	}
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction('document.getElementById(\'modelLoadFractionDiv\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
 	await page.evaluate(() => {
