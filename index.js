@@ -54,14 +54,10 @@ function waitFile(fileName) {
 	const outputBuffer = new fs.readFileSync(`bin/${outputFileName}`);
 	const outputHash = crypto.createHash('sha256').update(outputBuffer).digest('hex');
 	assert.strictEqual(outputHash, '819104fac59f81f4aa40ed155db475a0598384c6071e3d84d1974ff67a116734');
-	await page.screenshot({
-		path: 'bin/puppeteer-screenshot.png'
-	});
+	await page.screenshot({path: 'bin/puppeteer-screenshot.png'});
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-	if (process.env.GITHUB_ACTIONS === undefined) {
-		assert.strictEqual(screenshotHash, '3eb6978cbcf0ef72efb40b82f9898a9aacee6a0afad7c6b212563a6eedef7bc1');
-	}
+	assert.strictEqual(screenshotHash, '3eb6978cbcf0ef72efb40b82f9898a9aacee6a0afad7c6b212563a6eedef7bc1');
 	await page.close();
 	await browser.close();
 })();

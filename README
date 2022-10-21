@@ -42,7 +42,6 @@ No installation needed (only a modern browser is needed)
 POSIX mandatory utilities
 Make
 Docker
-npm
 
 # Development preparation
 git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
