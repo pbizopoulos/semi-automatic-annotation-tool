@@ -172,7 +172,7 @@ function predictImageCurrent() {
 		let imageTensor = tf.tensor(imageSlice);
 		imageTensor = tf.reshape(imageTensor, [imageCanvas.height, imageCanvas.width, 1]);
 		imageTensor = tf.image.resizeNearestNeighbor(imageTensor, modelInputShape);
-		if (modelConfigurationSelected.modelDownloadUrl === 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json') {
+		if (modelConfigurationSelected.modelDownloadUrl === 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json') {
 			imageTensor = imageTensor.div(4095);
 		}
 		let modelInputsShape = model.inputs[0].shape;
