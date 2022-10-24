@@ -37,41 +37,25 @@ const trainModelLocallyButton = document.getElementById('trainModelLocallyButton
 
 let modelConfigurationArray = [
 	{
-		'classNames': ['None', 'Covid-19'],
-		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lesion-segmentation-example-data.jpg',
+		'classNames': ['None', 'Lung', 'Covid-19'],
+		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
 		'machineLearningType': 'image segmentation',
-		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lesion-segmentation-a.FPN.mobilenet_v2.imagenet/model.json',
-		'name': 'CT lesion segmentation (FPN mobilenet_v2 imagenet)',
-		'projectUrl': 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
+		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
+		'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+		'name': 'CT lung and covid-19 segmentation (custom)',
+		'projectUrl': 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation'
 	},
-	{
-		'classNames': ['None', 'Lung'],
-		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation-example-data.png',
-		'machineLearningType': 'image segmentation',
-		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/python/dist/lung-segmentation.FPN.mobilenet_v2.imagenet/model.json',
-		'name': 'CT lung segmentation (FPN mobilenet_v2 imagenet)',
-		'projectUrl': 'https://github.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct'
-	},
-	// {
-	// 	'classNames': ['None', 'Lung', 'Covid-19'],
-	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/example.jpg',
-	// 	'machineLearningType': 'image segmentation',
-	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json',
-	// 	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-	// 	'name': 'CT lung and covid-19 segmentation (custom)',
-	// 	'projectUrl': 'https://github.com/pbizopoulos/for-testing'
-	// },
 	// {
 	// 	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
-	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-classification/example.jpg',
+	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
 	// 	'loss': 'categoricalCrossentropy',
 	// 	'machineLearningType': 'image classification',
 	// 	'metrics': ['accuracy'],
-	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-classification/model.json',
+	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
 	// 	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
 	// 	'name': 'X-rays lung classification (mobilenet_v2 imagenet)',
 	// 	'optimizer': 'adam',
-	// 	'projectUrl': 'https://github.com/pbizopoulos/for-testing'
+	// 	'projectUrl': 'https://github.com/pbizopoulos/nih-chest-xray-classification'
 	// }
 ];
 
@@ -188,10 +172,9 @@ function predictImageCurrent() {
 		let imageTensor = tf.tensor(imageSlice);
 		imageTensor = tf.reshape(imageTensor, [imageCanvas.height, imageCanvas.width, 1]);
 		imageTensor = tf.image.resizeNearestNeighbor(imageTensor, modelInputShape);
-		const tensorMomentsBefore = tf.moments(imageTensor);
-		imageTensor = imageTensor.sub(tensorMomentsBefore.mean);
-		const tensorMomentsAfter = tf.moments(imageTensor);
-		imageTensor = imageTensor.div(tf.sqrt(tensorMomentsAfter.variance));
+		if (modelConfigurationSelected.modelDownloadUrl === 'https://raw.githubusercontent.com/pbizopoulos/for-testing/main/image-segmentation/model.json') {
+			imageTensor = imageTensor.div(4095);
+		}
 		let modelInputsShape = model.inputs[0].shape;
 		for (let i = 0; i < modelInputsShape.length; i++) {
 			if (modelInputsShape[i] == null) {
