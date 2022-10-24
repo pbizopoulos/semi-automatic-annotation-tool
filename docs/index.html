@@ -80,37 +80,39 @@
 				<div>
 					<button id="savePredictionsToDiskButton" type="submit" disabled>Save predictions to disk</button>
 				</div>
-				<div>
-					<b>Training</b>
-				</div>
-				<div>
-					<label for="modelTrainableSpan">Trainable:</label>
-					<span id="modelTrainableSpan" name="modelTrainableSpan"></span>
-				</div>
-				<div>
-					<button id="trainModelLocallyButton" type="submit">Train model locally</button>
-				</div>
-				<div id="epochsNumDiv">
-					<label for="epochsNumInputNumber">Epochs:</label>
-					<input id="epochsNumInputNumber" name="epochsNumInputNumber" type="number" value="10">
-				</div>
-				<div id="epochCurrentDiv">
-					<label for="epochCurrentDiv">Current epoch:</label>
-					<span id="epochCurrentSpan" name="epochCurrentSpan"></span>
-				</div>
-				<div id="lossDiv">
-					<label for="lossSpan">Loss:</label>
-					<span id="lossSpan" name="lossSpan"></span>
-				</div>
-				<div id="accuracyDiv">
-					<label for="accuracySpan">Accuracy:</label>
-					<span id="accuracySpan" name="accuracySpan"></span>
-				</div>
-				<div>
-					<button id="saveModelToDiskButton" type="submit">Save model to disk</button>
-				</div>
-				<div>
-					<button id="saveModelToServerButton" type="submit">Save model to server</button>
+				<div hidden>
+					<div>
+						<b>Training</b>
+					</div>
+					<div>
+						<label for="modelTrainableSpan">Trainable:</label>
+						<span id="modelTrainableSpan" name="modelTrainableSpan"></span>
+					</div>
+					<div>
+						<button id="trainModelLocallyButton" type="submit">Train model locally</button>
+					</div>
+					<div id="epochsNumDiv">
+						<label for="epochsNumInputNumber">Epochs:</label>
+						<input id="epochsNumInputNumber" name="epochsNumInputNumber" type="number" value="10">
+					</div>
+					<div id="epochCurrentDiv">
+						<label for="epochCurrentDiv">Current epoch:</label>
+						<span id="epochCurrentSpan" name="epochCurrentSpan"></span>
+					</div>
+					<div id="lossDiv">
+						<label for="lossSpan">Loss:</label>
+						<span id="lossSpan" name="lossSpan"></span>
+					</div>
+					<div id="accuracyDiv">
+						<label for="accuracySpan">Accuracy:</label>
+						<span id="accuracySpan" name="accuracySpan"></span>
+					</div>
+					<div>
+						<button id="saveModelToDiskButton" type="submit">Save model to disk</button>
+					</div>
+					<div>
+						<button id="saveModelToServerButton" type="submit">Save model to server</button>
+					</div>
 				</div>
 			</div>
 			<div id="canvasDiv">
