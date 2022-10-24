@@ -340,7 +340,7 @@ async function selectModelName() {
 	labelListDiv.textContent = '';
 	resetData();
 	modelConfigurationSelected = modelConfigurationArray.find(modelConfiguration => modelConfiguration.modelDownloadUrl === modelSelect.value);
-	let loadModelFunction = tf.loadGraphModel;
+	let loadModelFunction = tf.loadLayersModel;
 	if (modelConfigurationSelected.format === 'graph-model') {
 		loadModelFunction = tf.loadGraphModel;
 	} else if (modelConfigurationSelected.format === 'layers-model') {

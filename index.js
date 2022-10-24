@@ -31,10 +31,6 @@ function waitFile(fileName) {
 	zip.extractAllTo('bin', true);
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction('document.getElementById(\'modelLoadFractionDiv\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
-	await page.evaluate(() => {
-		document.querySelector('#modelSelect').selectedIndex = 1;
-		document.querySelector('#modelSelect').onchange();
-	});
 	await page.waitForTimeout(1000);
 	await page.waitForSelector('#loadFilesInputFile:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
 	await page.waitForSelector('#modelSelect:not([disabled])');
