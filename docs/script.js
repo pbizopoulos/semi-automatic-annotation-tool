@@ -1,39 +1,39 @@
 'use strict';
 
-const accuracyDiv = document.getElementById('accuracyDiv');
-const accuracySpan = document.getElementById('accuracySpan');
-const brushCanvas = document.getElementById('brushCanvas');
+const accuracyDiv = document.getElementById('accuracy-div');
+const accuracySpan = document.getElementById('accuracy-span');
+const brushCanvas = document.getElementById('brush-canvas');
 const brushContext = brushCanvas.getContext('2d');
-const brushSizeDiv = document.getElementById('brushSizeDiv');
-const brushSizeInputRange = document.getElementById('brushSizeInputRange');
-const epochCurrentDiv = document.getElementById('epochCurrentDiv');
-const epochCurrentSpan = document.getElementById('epochCurrentSpan');
-const epochsNumDiv = document.getElementById('epochsNumDiv');
-const epochsNumInputNumber = document.getElementById('epochsNumInputNumber');
-const imageCanvas = document.getElementById('imageCanvas');
+const brushSizeDiv = document.getElementById('brush-size-div');
+const brushSizeInputRange = document.getElementById('brush-size-input-range');
+const epochCurrentDiv = document.getElementById('epoch-current-div');
+const epochCurrentSpan = document.getElementById('epoch-current-span');
+const epochsNumDiv = document.getElementById('epochs-num-div');
+const epochsNumInputNumber = document.getElementById('epochs-num-input-number');
+const imageCanvas = document.getElementById('image-canvas');
 const imageContext = imageCanvas.getContext('2d');
-const imageHeightWidthSpan = document.getElementById('imageHeightWidthSpan');
-const imageIndexInputRange = document.getElementById('imageIndexInputRange');
-const imageIndexSpan = document.getElementById('imageIndexSpan');
-const labelListDiv = document.getElementById('labelListDiv');
-const loadFilesInputFile = document.getElementById('loadFilesInputFile');
-const loadPredictionsInputFile = document.getElementById('loadPredictionsInputFile');
-const lossDiv = document.getElementById('lossDiv');
-const lossSpan = document.getElementById('lossSpan');
-const maskCanvas = document.getElementById('maskCanvas');
+const imageHeightWidthSpan = document.getElementById('image-height-width-span');
+const imageIndexInputRange = document.getElementById('image-index-input-range');
+const imageIndexSpan = document.getElementById('image-index-span');
+const labelListDiv = document.getElementById('label-list-div');
+const loadFilesInputFile = document.getElementById('load-files-input-file');
+const loadPredictionsInputFile = document.getElementById('load-predictions-input-file');
+const lossDiv = document.getElementById('loss-div');
+const lossSpan = document.getElementById('loss-span');
+const maskCanvas = document.getElementById('mask-canvas');
 const maskContext = maskCanvas.getContext('2d');
-const modelInputShapeSpan = document.getElementById('modelInputShapeSpan');
-const modelLoadFractionDiv = document.getElementById('modelLoadFractionDiv');
-const modelPredictionShapeSpan = document.getElementById('modelPredictionShapeSpan');
-const modelSelect = document.getElementById('modelSelect');
-const modelTrainableSpan = document.getElementById('modelTrainableSpan');
-const predictImageCurrentButton = document.getElementById('predictImageCurrentButton');
-const predictImagesAllButton = document.getElementById('predictImagesAllButton');
-const resetImageValueButton = document.getElementById('resetImageValueButton');
-const saveModelToDiskButton = document.getElementById('saveModelToDiskButton');
-const saveModelToServerButton = document.getElementById('saveModelToServerButton');
-const savePredictionsToDiskButton = document.getElementById('savePredictionsToDiskButton');
-const trainModelLocallyButton = document.getElementById('trainModelLocallyButton');
+const modelInputShapeSpan = document.getElementById('model-input-shape-span');
+const modelLoadFractionDiv = document.getElementById('model-load-fraction-div');
+const modelPredictionShapeSpan = document.getElementById('model-prediction-shape-span');
+const modelSelect = document.getElementById('model-select');
+const modelTrainableSpan = document.getElementById('model-trainable-span');
+const predictImageCurrentButton = document.getElementById('predict-image-current-button');
+const predictImagesAllButton = document.getElementById('predict-images-all-button');
+const resetImageValueButton = document.getElementById('reset-image-value-button');
+const saveModelToDiskButton = document.getElementById('save-model-to-disk-button');
+const saveModelToServerButton = document.getElementById('save-model-to-server-button');
+const savePredictionsToDiskButton = document.getElementById('save-predictions-to-disk-button');
+const trainModelLocallyButton = document.getElementById('train-model-locally-button');
 
 let modelConfigurationArray = [
 	{
@@ -396,14 +396,14 @@ async function selectModelName() {
 		labelPredictionDiv.textContent = 'NaN';
 		labelDiv.appendChild(labelPredictionDiv);
 		const labelColorDiv = document.createElement('div');
-		labelColorDiv.id = `labelColorDiv${i}`;
+		labelColorDiv.id = `label-color-div-${i}`;
 		labelColorDiv.style.backgroundColor = `rgb(${labelColorArray[i]})`;
 		labelColorDiv.style.float = 'left';
 		labelColorDiv.style.height = '15px';
 		labelColorDiv.style.opacity = 0.3;
 		labelColorDiv.style.width = '15px';
 		labelColorDiv.onclick = (event) => {
-			const nodeList = document.querySelectorAll('*[id^="labelColorDiv"]');
+			const nodeList = document.querySelectorAll('*[id^="label-color-div-"]');
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].style.opacity = 0.3;
 			}
@@ -473,7 +473,7 @@ imageIndexInputRange.oninput = () => {
 	imageOffset = imageSize * imageIndexCurrent;
 	if (modelConfigurationSelected.machineLearningType === 'image classification') {
 		labelCurrent = classAnnotations[imageIndexCurrent];
-		document.getElementById(`labelColorDiv${labelCurrent}`).click();
+		document.getElementById(`label-color-div-${labelCurrent}`).click();
 	}
 	imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
