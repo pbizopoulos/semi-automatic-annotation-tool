@@ -53,7 +53,7 @@ function waitFile(fileName) {
 	await page.screenshot({path: 'bin/puppeteer-screenshot.png'});
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-	assert.strictEqual(screenshotHash, '187d4157a8f27246784c5a46b74fa08f393a114da0df28128ac091596d6ae4d1');
+	assert.strictEqual(screenshotHash, '890152fc138f1d046ae9fce94ef44d7fef4cabe83306dce14793cf7e2b6f8d09');
 	await page.close();
 	await browser.close();
 })();
