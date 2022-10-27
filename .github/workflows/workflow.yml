@@ -10,7 +10,7 @@ jobs:
         run: |
           make check
           make
-      - name: Check code and build binaries for html.
+      - name: Check code and build binaries for browser.
         run: |
           make -C docs/ check
           make -C docs/

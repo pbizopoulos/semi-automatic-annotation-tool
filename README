@@ -49,4 +49,4 @@ cd semi-automatic-annotation-tool/
 
 # Usage
 make help		# Show help for node.
-make help -C docs/ 	# Show help for html.
+make -C docs/ help 	# Show help for html.
