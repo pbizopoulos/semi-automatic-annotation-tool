@@ -1,5 +1,6 @@
-from flask import Flask, Response, request
 from flask_cors import CORS, cross_origin
+from flask import Flask, Response, request
+from os import environ
 import io
 import tensorflowjs as tfjs
 import werkzeug.formparser
@@ -40,7 +41,8 @@ def main():
         # `model.evaluate()` etc. here.
         return Response(status=200)
 
-    app.run('0.0.0.0', 5000)
+    if environ['DEBUG'] != '1':
+        app.run('0.0.0.0', 5000)
 
 
 if __name__ == '__main__':
