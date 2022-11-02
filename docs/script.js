@@ -215,8 +215,8 @@ function predictImageCurrent() {
 }
 
 function readFileNifti(file) {
-	const reader = new FileReader();
-	reader.onloadend = (event) => {
+	const fileReader = new FileReader();
+	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
 			let niftiHeader;
 			let niftiImage;
@@ -287,7 +287,7 @@ function readFileNifti(file) {
 		}
 		disableUI(false);
 	};
-	reader.readAsArrayBuffer(file);
+	fileReader.readAsArrayBuffer(file);
 }
 
 function resetData() {
@@ -518,8 +518,8 @@ loadPredictionsInputFile.onchange = (event) => {
 	if (file === undefined) {
 		return;
 	}
-	const reader = new FileReader();
-	reader.onloadend = (event) => {
+	const fileReader = new FileReader();
+	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
 			if (modelConfigurationSelected.machineLearningType === 'image classification') {
 				const rows = event.target.result.split('\n');
@@ -536,9 +536,9 @@ loadPredictionsInputFile.onchange = (event) => {
 		}
 	};
 	if (modelConfigurationSelected.machineLearningType === 'image classification') {
-		reader.readAsText(file);
+		fileReader.readAsText(file);
 	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
-		reader.readAsArrayBuffer(file);
+		fileReader.readAsArrayBuffer(file);
 	}
 };
 
