@@ -31,7 +31,6 @@ function waitFile(fileName) {
 	zip.extractAllTo('bin', true);
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction('document.getElementById(\'model-load-fraction-div\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
-	await page.waitForTimeout(1000);
 	await page.waitForSelector('#load-files-input-file:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
 	await page.waitForSelector('#model-select:not([disabled])');
 	await page.waitForSelector('#label-color-div-1').then(selector => selector.click());
