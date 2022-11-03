@@ -15,7 +15,7 @@ function waitFile(fileName) {
 }
 
 (async () => {
-	const browser = await puppeteer.launch({headless: true, args: ['--use-gl=egl']});
+	const browser = await puppeteer.launch({args: ['--use-gl=egl']});
 	const page = await browser.newPage();
 	page.on('pageerror', pageerr => {
 		assert.fail(pageerr);
