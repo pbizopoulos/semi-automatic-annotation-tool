@@ -29,6 +29,13 @@ function waitFile(fileName) {
 	}
 	const zip = new admzip(`bin/${inputNiftiFileName}`);
 	zip.extractAllTo('bin', true);
+	const inputNiftiMasksFileName = 'masks-multiclass.nii';
+	if (!(fs.existsSync(`bin/${inputNiftiMasksFileName}`))) {
+		await page.goto('https://github.com/pbizopoulos/semi-automatic-annotation-tool/releases');
+		await page.waitForSelector('#repo-content-pjax-container > div > div:nth-child(3) > section > div > div.col-md-9 > div > div.Box-footer > div.mb-3 > details > summary').then(selector => selector.click());
+		await page.waitForSelector('#repo-content-pjax-container > div > div:nth-child(3) > section > div > div.col-md-9 > div > div.Box-footer > div.mb-3 > details > div > div > ul > li:nth-child(1) > div.d-flex.flex-justify-start.col-12.col-lg-9 > a').then(selector => selector.click());
+		waitFile(`bin/${inputNiftiMasksFileName}`);
+	}
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
 	await page.waitForFunction('document.getElementById(\'model-load-fraction-div\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
 	await page.waitForSelector('#load-files-input-file:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
@@ -48,11 +55,21 @@ function waitFile(fileName) {
 	waitFile(`bin/${outputFileName}`);
 	const outputBuffer = new fs.readFileSync(`bin/${outputFileName}`);
 	const outputHash = crypto.createHash('sha256').update(outputBuffer).digest('hex');
-	assert.strictEqual(outputHash, '3a8e856d715b1fc400b098098fb0deea70e7078f95434b9515e8d648667a5dde');
+	assert.strictEqual(outputHash, '6d1f1c28c38cab797d7500b01e5379223229b63c44bc857cbb38aab75fef75f2');
 	await page.screenshot({path: 'bin/puppeteer-screenshot.png'});
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-	assert.strictEqual(screenshotHash, 'f2d9936f89558d549c85e6c22b11e74d774070215158a94d3a3c7c01caf9a40f');
+	assert.strictEqual(screenshotHash, '3ced3e5142c5785a0cd71a4aba490933e73719e041597aa6cbe5f73b6ec4d6cb');
+	await page.waitForSelector('#load-predictions-input-file').then(selector => selector.uploadFile(`bin/${inputNiftiMasksFileName}`));
+	await page.evaluate(() => {
+		document.querySelector('#image-index-input-range').value = 10;
+		document.querySelector('#image-index-input-range').oninput();
+	});
+	await page.waitForTimeout(1000);
+	await page.screenshot({path: 'bin/puppeteer-screenshot-2.png'});
+	const screenshotBuffer2 = new fs.readFileSync('bin/puppeteer-screenshot-2.png');
+	const screenshotHash2 = crypto.createHash('sha256').update(screenshotBuffer2).digest('hex');
+	assert.strictEqual(screenshotHash2, '1990fb2da0ce33a5d14770462fccc2c8ec02ddd2fe5caa876c81e6b56272a12b');
 	await page.close();
 	await browser.close();
 })();
