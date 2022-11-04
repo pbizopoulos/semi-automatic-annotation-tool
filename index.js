@@ -39,7 +39,7 @@ function waitFile(fileName) {
 		document.querySelector('#image-index-input-range').oninput();
 	});
 	await page.waitForSelector('#reset-image-value-button').then(selector => selector.click());
-	await page.waitForSelector('#predict-images-all-button').then(selector => selector.click());
+	await page.waitForSelector('#predict-image-current-button').then(selector => selector.click());
 	const outputFileName = 'masks.nii';
 	if (fs.existsSync(`bin/${outputFileName}`)) {
 		await fs.unlinkSync(`bin/${outputFileName}`);

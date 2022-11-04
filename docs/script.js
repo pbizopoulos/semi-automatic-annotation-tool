@@ -216,6 +216,7 @@ function predictImageCurrent() {
 
 function readFileNifti(file) {
 	const fileReader = new FileReader();
+	fileReader.readAsArrayBuffer(file);
 	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
 			let niftiHeader;
@@ -230,41 +231,41 @@ function readFileNifti(file) {
 				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
 			}
 			switch (niftiHeader.datatypeCode) {
-				case nifti.NIFTI1.TYPE_UINT8:
-					images = new Uint8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT16:
-					images = new Int16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT32:
-					images = new Int32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT32:
-					images = new Float32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_FLOAT64:
-					images = new Float64Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_INT8:
-					images = new Int8Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT16:
-					images = new Uint16Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_UINT32:
-					images = new Uint32Array(niftiImage);
-					break;
-				case nifti.NIFTI1.TYPE_RGB24:
-					images = new Uint8Array(niftiImage);
-					images = images.filter(function(value, index) {
-						return index % 3 === 0;
-					});
-					break;
-				case 2304:
-					images = new Uint32Array(niftiImage);
-					break;
-				default:
-					return;
+			case nifti.NIFTI1.TYPE_UINT8:
+				images = new Uint8Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT16:
+				images = new Int16Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT32:
+				images = new Int32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_FLOAT32:
+				images = new Float32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_FLOAT64:
+				images = new Float64Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_INT8:
+				images = new Int8Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_UINT16:
+				images = new Uint16Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_UINT32:
+				images = new Uint32Array(niftiImage);
+				break;
+			case nifti.NIFTI1.TYPE_RGB24:
+				images = new Uint8Array(niftiImage);
+				images = images.filter(function(value, index) {
+					return index % 3 === 0;
+				});
+				break;
+			case 2304:
+				images = new Uint32Array(niftiImage);
+				break;
+			default:
+				return;
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
 			imageIndexInputRange.max = imagesNum;
@@ -287,7 +288,6 @@ function readFileNifti(file) {
 		}
 		disableUI(false);
 	};
-	fileReader.readAsArrayBuffer(file);
 }
 
 function resetData() {
@@ -515,10 +515,12 @@ loadFilesInputFile.onchange = (event) => {
 
 loadPredictionsInputFile.onchange = (event) => {
 	const file = event.currentTarget.files[0];
-	if (file === undefined) {
-		return;
-	}
 	const fileReader = new FileReader();
+	if (modelConfigurationSelected.machineLearningType === 'image classification') {
+		fileReader.readAsText(file);
+	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+		fileReader.readAsArrayBuffer(file);
+	}
 	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
 			if (modelConfigurationSelected.machineLearningType === 'image classification') {
@@ -535,11 +537,6 @@ loadPredictionsInputFile.onchange = (event) => {
 			}
 		}
 	};
-	if (modelConfigurationSelected.machineLearningType === 'image classification') {
-		fileReader.readAsText(file);
-	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
-		fileReader.readAsArrayBuffer(file);
-	}
 };
 
 predictImagesAllButton.onclick = () => {
