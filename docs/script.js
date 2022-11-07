@@ -324,14 +324,13 @@ function resetImageValue() {
 	drawCanvas();
 }
 
-function saveData(data, filename) {
+function saveData(data, fileName) {
 	const a = document.createElement('a');
 	document.body.appendChild(a);
-	a.style = 'display: none';
 	const blob = new Blob(data);
 	const url = window.URL.createObjectURL(blob);
 	a.href = url;
-	a.download = filename;
+	a.download = fileName;
 	a.click();
 	window.URL.revokeObjectURL(url);
 }
@@ -567,7 +566,7 @@ savePredictionsToDiskButton.onclick = async () => {
 	if (files === undefined) {
 		return;
 	}
-	let filename;
+	let fileName;
 	let data;
 	if (modelConfigurationSelected.machineLearningType === 'image classification') {
 		data = '';
@@ -576,15 +575,15 @@ savePredictionsToDiskButton.onclick = async () => {
 			data += '\n';
 		}
 		data = [data.slice(0, -1)];
-		filename = 'classAnnotations.txt';
+		fileName = 'classAnnotations.txt';
 	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
 		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
 		const tmp = new Uint16Array(niftiHeaderTmp, 0, niftiHeaderTmp.length);
 		tmp[35] = 2;
 		data = [tmp, new Uint16Array(masks.buffer, 0, masks.buffer.length)];
-		filename = 'masks.nii';
+		fileName = 'masks.nii';
 	}
-	saveData(data, filename);
+	saveData(data, fileName);
 };
 
 trainModelLocallyButton.onclick = async () => {
