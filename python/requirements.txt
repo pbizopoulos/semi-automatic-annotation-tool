@@ -1,2 +1,0 @@
-Flask-Cors==3.0.10
-tensorflowjs==4.0.0

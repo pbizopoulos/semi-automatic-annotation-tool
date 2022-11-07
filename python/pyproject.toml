@@ -1,0 +1,7 @@
+[project]
+name = "None"
+version = "0"
+dependencies = [
+	"Flask-Cors==3.0.10",
+	"tensorflowjs==4.0.0",
+]
