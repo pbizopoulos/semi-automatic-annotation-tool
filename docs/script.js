@@ -641,3 +641,6 @@ for (const modelConfiguration of modelConfigurationArray) {
 	modelSelect.appendChild(option);
 }
 selectModelName();
+window.onload = function() {
+	document.body.style.display = '';
+};
