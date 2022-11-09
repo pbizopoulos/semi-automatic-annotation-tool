@@ -59,7 +59,7 @@ function waitFile(fileName) {
 	await page.screenshot({path: 'bin/puppeteer-screenshot.png'});
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
-	assert.strictEqual(screenshotHash, '3ced3e5142c5785a0cd71a4aba490933e73719e041597aa6cbe5f73b6ec4d6cb');
+	assert.strictEqual(screenshotHash, '405c5682265ab8a76003e2f535185128d7f85d35324b71bc860e9f78cb6d3e4a');
 	await page.waitForSelector('#load-predictions-input-file').then(selector => selector.uploadFile(`bin/${inputNiftiMasksFileName}`));
 	await page.evaluate(() => {
 		document.querySelector('#image-index-input-range').value = 10;
@@ -69,7 +69,7 @@ function waitFile(fileName) {
 	await page.screenshot({path: 'bin/puppeteer-screenshot-2.png'});
 	const screenshotBuffer2 = new fs.readFileSync('bin/puppeteer-screenshot-2.png');
 	const screenshotHash2 = crypto.createHash('sha256').update(screenshotBuffer2).digest('hex');
-	assert.strictEqual(screenshotHash2, '1990fb2da0ce33a5d14770462fccc2c8ec02ddd2fe5caa876c81e6b56272a12b');
+	assert.strictEqual(screenshotHash2, '1f7eb2a36b7417f3113badb719a2f78d0e8f43890dd74b29dafed08519d2b7b6');
 	await page.close();
 	await browser.close();
 })();

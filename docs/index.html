@@ -5,7 +5,6 @@
 		<meta content="width=device-width, initial-scale=1" name="viewport">
 		<title>Semi-automatic annotation tool</title>
 		<link href="data:," rel="icon">
-		<link href="https://pbizopoulos.github.io/style.css" rel="stylesheet">
 		<link href="style.css" rel="stylesheet">
 		<script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
@@ -13,23 +12,19 @@
 		<script defer src="script.js"></script>
 	</head>
 	<body style="display:none;">
-		<div id="div-header">
-			<div id="div-navigation">
-				<a href="https://cordis.europa.eu/project/id/952179">
-					<img alt="INCISIVE Cordis webpage" src="https://raw.githubusercontent.com/pbizopoulos/incisive/main/incisive-header-logo.svg" height="20">
-				</a>
-				<a href="https://pbizopoulos.github.io/incisive">Home page</a> /
-				<b>Semi-automatic annotation tool</b>
-			</div>
-			<div id="div-source-code-link">
-				<a href="https://github.com/pbizopoulos/semi-automatic-annotation-tool">Source code</a>
-			</div>
-		</div>
+		<nav>
+			<a href="https://cordis.europa.eu/project/id/952179">
+				<img alt="INCISIVE Cordis webpage" src="https://raw.githubusercontent.com/pbizopoulos/incisive/main/incisive-header-logo.svg" height="20">
+			</a> |
+			<a href="https://pbizopoulos.github.io/incisive">Home page</a> |
+			<a href="https://github.com/pbizopoulos/semi-automatic-annotation-tool">Source code</a>
+		</nav>
+		<header>
+			<h2>Semi-automatic annotation tool</h2>
+		</header>
 		<div>
 			<div id="container-div">
-				<div>
-					<b>Model</b>
-				</div>
+				<h3>Model</h3>
 				<div>
 					<label for="model-select">Load model:</label>
 					<select id="model-select" name="model-select" onchange="selectModelName();" disabled></select>
@@ -43,9 +38,7 @@
 					<label for="model-prediction-shape-span">Prediction shape:</label>
 					<span id="model-prediction-shape-span" name="model-prediction-shape-span"></span>
 				</div>
-				<div>
-					<b>Input</b>
-				</div>
+				<h3>Input</h3>
 				<div>
 					<input accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" id="load-files-input-file" type="file" disabled multiple>
 				</div>
@@ -63,9 +56,7 @@
 				<div>
 					<button id="reset-image-value-button" onclick="resetImageValue()" type="submit" disabled>Reset image value</button>
 				</div>
-				<div>
-					<b>Inference</b>
-				</div>
+				<h3>Inference</h3>
 				<div>
 					<button id="predict-image-current-button" type="submit" onclick="predictImageCurrent()" disabled>Predict current image</button>
 				</div>
@@ -80,10 +71,8 @@
 				<div>
 					<button id="save-predictions-to-disk-button" type="submit" disabled>Save predictions to disk</button>
 				</div>
-				<div hidden>
-					<div>
-						<b>Training</b>
-					</div>
+				<div style="display:none;">
+					<h3>Training</h3>
 					<div>
 						<label for="model-trainable-span">Trainable:</label>
 						<span id="model-trainable-span" name="model-trainable-span"></span>
