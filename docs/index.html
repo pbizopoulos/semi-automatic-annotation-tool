@@ -24,7 +24,10 @@
 					<label for="model-select">Load model:</label>
 					<select id="model-select" name="model-select" onchange="selectModelName();" disabled></select>
 				</div>
-				<div id="model-load-fraction-div">0%</div>
+				<div id="model-download-div">
+					<label for="model-download-progress">Model download progress:</label>
+					<progress id="model-download-progress" max="1" name="model-download-progress" value="0"></progress>
+				</div>
 				<div>
 					<label for="model-input-shape-span">Input shape:</label>
 					<span id="model-input-shape-span" name="model-input-shape-span"></span>

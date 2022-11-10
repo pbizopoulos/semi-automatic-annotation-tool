@@ -21,8 +21,9 @@ const lossDiv = document.getElementById('loss-div');
 const lossSpan = document.getElementById('loss-span');
 const maskCanvas = document.getElementById('mask-canvas');
 const maskContext = maskCanvas.getContext('2d');
+const modelDownloadDiv = document.getElementById('model-download-div');
+const modelDownloadProgress = document.getElementById('model-download-progress');
 const modelInputShapeSpan = document.getElementById('model-input-shape-span');
-const modelLoadFractionDiv = document.getElementById('model-load-fraction-div');
 const modelPredictionShapeSpan = document.getElementById('model-prediction-shape-span');
 const modelSelect = document.getElementById('model-select');
 const modelTrainableSpan = document.getElementById('model-trainable-span');
@@ -339,7 +340,10 @@ async function selectModelName() {
 	}
 	model = await loadModelFunction(modelConfigurationSelected.modelDownloadUrl, {
 		onProgress: function(fraction) {
-			modelLoadFractionDiv.textContent = `${Math.round(100*fraction)}%.`;
+			modelDownloadProgress.value = fraction;
+			if (fraction == 1) {
+				modelDownloadDiv.style.display = 'none';
+			}
 			modelInputShapeSpan.textContent = 'NaN';
 			modelPredictionShapeSpan.textContent = 'NaN';
 			modelTrainableSpan.textContent = 'NaN';
@@ -353,7 +357,6 @@ async function selectModelName() {
 	maskCanvas.height = modelInputShape[1];
 	brushCanvas.width = modelInputShape[0];
 	brushCanvas.height = modelInputShape[1];
-	modelLoadFractionDiv.textContent = 'Model loaded.';
 	modelInputShapeSpan.textContent = modelInputShape;
 	modelPredictionShapeSpan.textContent = model.outputs[0].shape;
 	if (model.trainable) {
