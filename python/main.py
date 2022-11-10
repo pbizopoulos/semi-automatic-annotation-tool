@@ -1,9 +1,9 @@
 from flask_cors import CORS, cross_origin
 from flask import Flask, Response, request
 from os import environ
+from werkzeug import formparser
 import io
 import tensorflowjs as tfjs
-import werkzeug.formparser
 
 
 class ModelReceiver():
@@ -28,7 +28,7 @@ def main():
     @app.route('/upload', methods=['POST'])
     @cross_origin()
     def upload():
-        werkzeug.formparser.parse_form_data(request.environ, stream_factory=model_receiver.stream_factory)
+        formparser.parse_form_data(request.environ, stream_factory=model_receiver.stream_factory)
         model_receiver.model_json_writer.flush()
         model_receiver.weight_writer.flush()
         model_receiver.model_json_writer.seek(0)
