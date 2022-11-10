@@ -1,5 +1,4 @@
 'use strict';
-
 const accuracyDiv = document.getElementById('accuracy-div');
 const accuracySpan = document.getElementById('accuracy-span');
 const brushCanvas = document.getElementById('brush-canvas');
@@ -34,55 +33,49 @@ const saveModelToDiskButton = document.getElementById('save-model-to-disk-button
 const saveModelToServerButton = document.getElementById('save-model-to-server-button');
 const savePredictionsToDiskButton = document.getElementById('save-predictions-to-disk-button');
 const trainModelLocallyButton = document.getElementById('train-model-locally-button');
-
-let modelConfigurationArray = [
-	{
-		'classNames': ['None', 'Lung', 'Covid-19'],
-		'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
-		'machineLearningType': 'image segmentation',
-		'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
-		'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-		'name': 'CT lung and covid-19 segmentation (custom)',
-		'projectUrl': 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation'
-	},
-	// {
-	// 	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
-	// 	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
-	// 	'loss': 'categoricalCrossentropy',
-	// 	'machineLearningType': 'image classification',
-	// 	'metrics': ['accuracy'],
-	// 	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
-	// 	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-	// 	'name': 'X-rays lung classification (mobilenet_v2 imagenet)',
-	// 	'optimizer': 'adam',
-	// 	'projectUrl': 'https://github.com/pbizopoulos/nih-chest-xray-classification'
-	// }
-];
-
+let modelConfigurationArray = [{
+	'classNames': ['None', 'Lung', 'Covid-19'],
+	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
+	'machineLearningType': 'image segmentation',
+	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
+	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+	'name': 'CT lung and covid-19 segmentation (custom)',
+	'projectUrl': 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation'
+}, {
+	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
+	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
+	'loss': 'categoricalCrossentropy',
+	'machineLearningType': 'image classification',
+	'metrics': ['accuracy'],
+	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
+	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
+	'name': 'X-rays lung classification (mobilenet_v2 imagenet)',
+	'optimizer': 'adam',
+	'projectUrl': 'https://github.com/pbizopoulos/nih-chest-xray-classification'
+}];
 const labelColorArray = [
-	[ 255, 255, 255 ],
-	[ 31, 119, 180 ],
-	[ 174, 199, 232 ],
-	[ 255, 127, 14 ],
-	[ 255, 187, 120 ],
-	[ 44, 160, 44 ],
-	[ 152, 223, 138 ],
-	[ 214, 39, 40 ],
-	[ 255, 152, 150 ],
-	[ 148, 103, 189 ],
-	[ 197, 176, 213 ],
-	[ 140, 86, 75 ],
-	[ 196, 156, 148 ],
-	[ 227, 119, 194 ],
-	[ 247, 182, 210 ],
-	[ 127, 127, 127 ],
-	[ 199, 199, 199 ],
-	[ 188, 189, 34 ],
-	[ 219, 219, 141 ],
-	[ 23, 190, 207 ],
-	[ 158, 218, 229 ]
+	[255, 255, 255],
+	[31, 119, 180],
+	[174, 199, 232],
+	[255, 127, 14],
+	[255, 187, 120],
+	[44, 160, 44],
+	[152, 223, 138],
+	[214, 39, 40],
+	[255, 152, 150],
+	[148, 103, 189],
+	[197, 176, 213],
+	[140, 86, 75],
+	[196, 156, 148],
+	[227, 119, 194],
+	[247, 182, 210],
+	[127, 127, 127],
+	[199, 199, 199],
+	[188, 189, 34],
+	[219, 219, 141],
+	[23, 190, 207],
+	[158, 218, 229]
 ];
-
 let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 let modelConfigurationSelected;
 let drawActivated = false;
@@ -152,13 +145,13 @@ function drawCanvas() {
 		const maskImageData = new ImageData(imageCanvas.width, imageCanvas.height);
 		for (let i = 0; i < imageSize; i++) {
 			const maskValue = masks[imageOffset + i];
-			maskImageData.data[4*i] = labelColorArray[maskValue][0];
-			maskImageData.data[4*i + 1] = labelColorArray[maskValue][1];
-			maskImageData.data[4*i + 2] = labelColorArray[maskValue][2];
+			maskImageData.data[4 * i] = labelColorArray[maskValue][0];
+			maskImageData.data[4 * i + 1] = labelColorArray[maskValue][1];
+			maskImageData.data[4 * i + 2] = labelColorArray[maskValue][2];
 			if (maskValue === 0) {
-				maskImageData.data[4*i + 3] = 0;
+				maskImageData.data[4 * i + 3] = 0;
 			} else {
-				maskImageData.data[4*i + 3] = 255;
+				maskImageData.data[4 * i + 3] = 255;
 			}
 		}
 		maskContext.putImageData(maskImageData, 0, 0);
@@ -231,41 +224,41 @@ function readFileNifti(file) {
 				niftiImage = nifti.readImage(niftiHeader, fileDecompressed);
 			}
 			switch (niftiHeader.datatypeCode) {
-			case nifti.NIFTI1.TYPE_UINT8:
-				images = new Uint8Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT16:
-				images = new Int16Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT32:
-				images = new Int32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_FLOAT32:
-				images = new Float32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_FLOAT64:
-				images = new Float64Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_INT8:
-				images = new Int8Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_UINT16:
-				images = new Uint16Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_UINT32:
-				images = new Uint32Array(niftiImage);
-				break;
-			case nifti.NIFTI1.TYPE_RGB24:
-				images = new Uint8Array(niftiImage);
-				images = images.filter(function(value, index) {
-					return index % 3 === 0;
-				});
-				break;
-			case 2304:
-				images = new Uint32Array(niftiImage);
-				break;
-			default:
-				return;
+				case nifti.NIFTI1.TYPE_UINT8:
+					images = new Uint8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT16:
+					images = new Int16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT32:
+					images = new Int32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT32:
+					images = new Float32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_FLOAT64:
+					images = new Float64Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_INT8:
+					images = new Int8Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT16:
+					images = new Uint16Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_UINT32:
+					images = new Uint32Array(niftiImage);
+					break;
+				case nifti.NIFTI1.TYPE_RGB24:
+					images = new Uint8Array(niftiImage);
+					images = images.filter(function(value, index) {
+						return index % 3 === 0;
+					});
+					break;
+				case 2304:
+					images = new Uint32Array(niftiImage);
+					break;
+				default:
+					return;
 			}
 			imagesNum = niftiHeader.dims[3] - 1;
 			imageIndexInputRange.max = imagesNum;
@@ -274,7 +267,7 @@ function readFileNifti(file) {
 			imageCanvas.width = niftiHeader.dims[1];
 			imageSize = imageCanvas.height * imageCanvas.width;
 			if (modelConfigurationSelected.machineLearningType === 'image classification') {
-				classAnnotations = classAnnotations.slice(0, imagesNum+1);
+				classAnnotations = classAnnotations.slice(0, imagesNum + 1);
 			} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
 				maskCanvas.height = imageCanvas.height;
 				maskCanvas.width = imageCanvas.width;
@@ -334,7 +327,6 @@ function saveData(data, fileName) {
 	a.click();
 	window.URL.revokeObjectURL(url);
 }
-
 async function selectModelName() {
 	labelListDiv.textContent = '';
 	resetData();
@@ -346,7 +338,7 @@ async function selectModelName() {
 		loadModelFunction = tf.loadLayersModel;
 	}
 	model = await loadModelFunction(modelConfigurationSelected.modelDownloadUrl, {
-		onProgress: function (fraction) {
+		onProgress: function(fraction) {
 			modelLoadFractionDiv.textContent = `${Math.round(100*fraction)}%.`;
 			modelInputShapeSpan.textContent = 'NaN';
 			modelPredictionShapeSpan.textContent = 'NaN';
@@ -354,7 +346,7 @@ async function selectModelName() {
 			disableUI(true);
 		}
 	});
-	modelInputShape = model.inputs[0].shape.filter(x => x>3);
+	modelInputShape = model.inputs[0].shape.filter(x => x > 3);
 	imageCanvas.width = modelInputShape[0];
 	imageCanvas.height = modelInputShape[1];
 	maskCanvas.width = modelInputShape[0];
@@ -442,31 +434,25 @@ async function selectModelName() {
 	loadFilesInputFile.disabled = false;
 	modelSelect.disabled = false;
 }
-
 brushCanvas.oncontextmenu = (event) => {
 	event.preventDefault();
 };
-
 brushCanvas.onmousedown = (event) => {
 	if (event.button === 0) {
 		drawActivated = true;
 	}
 };
-
 brushCanvas.onmouseleave = () => {
 	drawActivated = false;
 };
-
 brushCanvas.onmousemove = (event) => {
 	offsetX = event.offsetX;
 	offsetY = event.offsetY;
 	requestAnimationFrame(drawCanvas);
 };
-
 brushCanvas.onmouseup = () => {
 	drawActivated = false;
 };
-
 imageIndexInputRange.oninput = () => {
 	imageIndexCurrent = imageIndexInputRange.value;
 	imageOffset = imageSize * imageIndexCurrent;
@@ -478,7 +464,6 @@ imageIndexInputRange.oninput = () => {
 	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 	drawCanvas();
 };
-
 loadFilesInputFile.onchange = (event) => {
 	resetData();
 	disableUI(true);
@@ -490,28 +475,27 @@ loadFilesInputFile.onchange = (event) => {
 	if (files[0].name.includes('.nii')) {
 		readFileNifti(files[0]);
 	} else if (files[0].name.includes('.dcm')) {
-		itk.readImageDICOMFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readFileNifti(blob);
-					});
+		itk.readImageDICOMFileSeries(files).then(function({
+			image
+		}) {
+			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
+				const blob = new Blob([data.arrayBuffer]);
+				readFileNifti(blob);
 			});
+		});
 	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
-		itk.readImageFileSeries(files)
-			.then(function ({ image }) {
-				itk.writeImageArrayBuffer(null, false, image, 'tmp.nii')
-					.then((data) => {
-						const blob = new Blob([data.arrayBuffer]);
-						readFileNifti(blob);
-					});
+		itk.readImageFileSeries(files).then(function({
+			image
+		}) {
+			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
+				const blob = new Blob([data.arrayBuffer]);
+				readFileNifti(blob);
 			});
+		});
 	}
 	loadFilesInputFile.value = '';
 	loadPredictionsInputFile.value = '';
 };
-
 loadPredictionsInputFile.onchange = (event) => {
 	const file = event.currentTarget.files[0];
 	const fileReader = new FileReader();
@@ -537,7 +521,6 @@ loadPredictionsInputFile.onchange = (event) => {
 		}
 	};
 };
-
 predictImagesAllButton.onclick = () => {
 	let interval;
 	imageIndexCurrent = 0;
@@ -553,15 +536,12 @@ predictImagesAllButton.onclick = () => {
 		}
 	}, 100);
 };
-
 saveModelToDiskButton.onclick = async () => {
 	await model.save('downloads://saved-model');
 };
-
 saveModelToServerButton.onclick = async () => {
 	await model.save(modelConfigurationSelected.modelUploadUrl);
 };
-
 savePredictionsToDiskButton.onclick = async () => {
 	if (files === undefined) {
 		return;
@@ -585,7 +565,6 @@ savePredictionsToDiskButton.onclick = async () => {
 	}
 	saveData(data, fileName);
 };
-
 trainModelLocallyButton.onclick = async () => {
 	disableUI(true);
 	const imagesArray = new Uint8Array(images);
@@ -628,15 +607,12 @@ trainModelLocallyButton.onclick = async () => {
 	tf.dispose(predictions);
 	disableUI(false);
 };
-
 for (const modelConfiguration of modelConfigurationArray) {
 	let option = document.createElement('option');
 	option.value = modelConfiguration.modelDownloadUrl;
-	fetch(option.value)
-		.then(response => response.text())
-		.then((text) => {
-			modelConfiguration.format = JSON.parse(text).format;
-		});
+	fetch(option.value).then(response => response.text()).then((text) => {
+		modelConfiguration.format = JSON.parse(text).format;
+	});
 	option.textContent = modelConfiguration.name;
 	modelSelect.appendChild(option);
 }

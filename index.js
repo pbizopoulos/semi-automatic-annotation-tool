@@ -1,5 +1,4 @@
 'use strict';
-
 const admzip = require('adm-zip');
 const assert = require('assert');
 const crypto = require('crypto');
@@ -7,20 +6,23 @@ const fs = require('fs');
 const path = require('path');
 const puppeteer = require('puppeteer');
 
-
 function waitFile(fileName) {
 	while (!fs.existsSync(fileName)) {
 		continue;
 	}
 }
-
 (async () => {
-	const browser = await puppeteer.launch({args: ['--use-gl=egl']});
+	const browser = await puppeteer.launch({
+		args: ['--use-gl=egl']
+	});
 	const page = await browser.newPage();
 	page.on('pageerror', pageerr => {
 		assert.fail(pageerr);
 	});
-	await page._client().send('Page.setDownloadBehavior', {behavior: 'allow', downloadPath: path.resolve('bin')});
+	await page._client().send('Page.setDownloadBehavior', {
+		behavior: 'allow',
+		downloadPath: path.resolve('bin')
+	});
 	const inputNiftiFileName = 'rp_im.zip';
 	if (!(fs.existsSync(`bin/${inputNiftiFileName}`))) {
 		await page.goto('https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m');
@@ -37,8 +39,14 @@ function waitFile(fileName) {
 		waitFile(`bin/${inputNiftiMasksFileName}`);
 	}
 	await page.goto(`file:${path.join(__dirname, 'docs/index.html')}`);
-	await page.waitForFunction('document.getElementById(\'model-load-fraction-div\').textContent == \'Model loaded.\'', {waitUntil: 'load', timeout: 0});
-	await page.waitForSelector('#load-files-input-file:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
+	await page.waitForFunction('document.getElementById(\'model-load-fraction-div\').textContent == \'Model loaded.\'', {
+		waitUntil: 'load',
+		timeout: 0
+	});
+	await page.waitForSelector('#load-files-input-file:not([disabled])', {
+		waitUntil: 'load',
+		timeout: 0
+	}).then(selector => selector.uploadFile('bin/rp_im/1.nii.gz'));
 	await page.waitForSelector('#model-select:not([disabled])');
 	await page.waitForSelector('#label-color-div-1').then(selector => selector.click());
 	await page.evaluate(() => {
@@ -51,12 +59,17 @@ function waitFile(fileName) {
 	if (fs.existsSync(`bin/${outputFileName}`)) {
 		await fs.unlinkSync(`bin/${outputFileName}`);
 	}
-	await page.waitForSelector('#save-predictions-to-disk-button:not([disabled])', {waitUntil: 'load', timeout: 0}).then(selector => selector.click());
+	await page.waitForSelector('#save-predictions-to-disk-button:not([disabled])', {
+		waitUntil: 'load',
+		timeout: 0
+	}).then(selector => selector.click());
 	waitFile(`bin/${outputFileName}`);
 	const outputBuffer = new fs.readFileSync(`bin/${outputFileName}`);
 	const outputHash = crypto.createHash('sha256').update(outputBuffer).digest('hex');
 	assert.strictEqual(outputHash, '6d1f1c28c38cab797d7500b01e5379223229b63c44bc857cbb38aab75fef75f2');
-	await page.screenshot({path: 'bin/puppeteer-screenshot.png'});
+	await page.screenshot({
+		path: 'bin/puppeteer-screenshot.png'
+	});
 	const screenshotBuffer = new fs.readFileSync('bin/puppeteer-screenshot.png');
 	const screenshotHash = crypto.createHash('sha256').update(screenshotBuffer).digest('hex');
 	assert.strictEqual(screenshotHash, '405c5682265ab8a76003e2f535185128d7f85d35324b71bc860e9f78cb6d3e4a');
@@ -66,7 +79,9 @@ function waitFile(fileName) {
 		document.querySelector('#image-index-input-range').oninput();
 	});
 	await page.waitForTimeout(1000);
-	await page.screenshot({path: 'bin/puppeteer-screenshot-2.png'});
+	await page.screenshot({
+		path: 'bin/puppeteer-screenshot-2.png'
+	});
 	const screenshotBuffer2 = new fs.readFileSync('bin/puppeteer-screenshot-2.png');
 	const screenshotHash2 = crypto.createHash('sha256').update(screenshotBuffer2).digest('hex');
 	assert.strictEqual(screenshotHash2, '1f7eb2a36b7417f3113badb719a2f78d0e8f43890dd74b29dafed08519d2b7b6');

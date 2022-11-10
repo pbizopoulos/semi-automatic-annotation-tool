@@ -1,4 +1,5 @@
-#brush-canvas, #mask-canvas {
+#brush-canvas,
+#mask-canvas {
 	opacity: 0.5;
 }
 
