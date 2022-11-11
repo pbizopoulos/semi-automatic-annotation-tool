@@ -12,5 +12,5 @@ cd semi-automatic-annotation-tool/
 
 # Usage
 make help		# Show help for node.
-make -C docs/ help 	# Show help for html.
-make -C python/ help 	# Show help for python.
+cd docs/ && make help 	# Show help for html.
+cd python/ && make help # Show help for python.
