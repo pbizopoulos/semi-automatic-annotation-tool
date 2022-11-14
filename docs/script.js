@@ -54,6 +54,7 @@ let modelConfigurationArray = [{
 	'optimizer': 'adam',
 	'projectUrl': 'https://github.com/pbizopoulos/nih-chest-xray-classification'
 }];
+modelConfigurationArray = modelConfigurationArray.slice(0, 1);
 const labelColorArray = [
 	[255, 255, 255],
 	[31, 119, 180],
