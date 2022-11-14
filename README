@@ -6,11 +6,9 @@ POSIX mandatory utilities
 Make
 Docker
 
-# Preparation
+# Build
 git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
 cd semi-automatic-annotation-tool/
-
-# Usage
-make help		# Show help for node.
-cd docs/ && make help 	# Show help for html.
-cd python/ && make help # Show help for python.
+cd docs/ && make DEBUG=0 && cd ..
+make DEBUG=0				# Test build.
+cd python/ && make DEBUG=0 && cd ..	# Build federated web application.
