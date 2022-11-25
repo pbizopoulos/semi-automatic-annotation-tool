@@ -5,7 +5,11 @@ updates:
     schedule:
       interval: 'monthly'
   - package-ecosystem: 'docker'
-    directory: '/server'
+    directory: '/docs/'
+    schedule:
+      interval: 'monthly'
+  - package-ecosystem: 'docker'
+    directory: '/python/'
     schedule:
       interval: 'monthly'
   - package-ecosystem: 'github-actions'
@@ -17,6 +21,6 @@ updates:
     schedule:
       interval: 'monthly'
   - package-ecosystem: 'pip'
-    directory: '/server'
+    directory: '/python/'
     schedule:
       interval: 'monthly'
