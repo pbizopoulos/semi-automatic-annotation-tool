@@ -12,21 +12,12 @@ def main():
         with ZipFile(zip_file_path, 'r') as zip_file:
             zip_file.extractall('bin')
     zip_file_path = join('bin', 'latest.zip')
-    masks_multiclass_nifti_file_path = join('bin', 'masks-multiclass.nii')
-    if not isfile(masks_multiclass_nifti_file_path):
-        with sync_playwright() as playwright:
-            browser = playwright.chromium.launch()
-            page = browser.new_page()
-            page.goto('https://github.com/pbizopoulos/semi-automatic-annotation-tool/releases/latest')
-            page.click('text=Assets')
-            with page.expect_download() as download_info:
-                page.click('text=masks-multiclass.nii')
-            download = download_info.value
-            download.save_as(masks_multiclass_nifti_file_path)
-            browser.close()
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(args=['--use-gl=egl'])
         page = browser.new_page()
+        timeout = 100000
+        page.set_default_timeout(timeout)
+        page.set_default_navigation_timeout(timeout)
         page.on('pageerror', lambda exception: (_ for _ in ()).throw(Exception(f'uncaught exception: {exception}')))
         page.goto('file:///work/docs/index.html')
         page.locator('#model-download-div').wait_for(state='hidden')
@@ -45,10 +36,6 @@ def main():
         page.screenshot(path=join('bin', 'screenshot.png'))
         with open(join('bin', 'screenshot.png'), 'rb') as file:
             assert hashlib.sha256(file.read()).hexdigest() == '664ba9b46e091ec97db7d60dbac519329e5aacbac9a3f9cc0d194efb02bdc105'
-        page.set_input_files('#load-predictions-input-file', masks_multiclass_nifti_file_path)
-        page.screenshot(path=join('bin', 'screenshot-2.png'))
-        with open(join('bin', 'screenshot-2.png'), 'rb') as file:
-            assert hashlib.sha256(file.read()).hexdigest() == '4874839618badb5fd70c078ddc9337141daf19ad433df18161272ac819dea3e6'
         browser.close()
 
 
