@@ -14,7 +14,8 @@ def main():
     zip_file_path = join('bin', 'latest.zip')
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(args=['--use-gl=egl'])
-        page = browser.new_page()
+        context = browser.new_context(record_video_dir='bin/')
+        page = context.new_page()
         timeout = 100000
         page.set_default_timeout(timeout)
         page.set_default_navigation_timeout(timeout)
@@ -36,6 +37,7 @@ def main():
         page.screenshot(path=join('bin', 'screenshot.png'))
         with open(join('bin', 'screenshot.png'), 'rb') as file:
             assert hashlib.sha256(file.read()).hexdigest() == '664ba9b46e091ec97db7d60dbac519329e5aacbac9a3f9cc0d194efb02bdc105'
+        context.close()
         browser.close()
 
 
