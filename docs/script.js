@@ -329,6 +329,7 @@ function saveData(data, fileName) {
 	a.click();
 	window.URL.revokeObjectURL(url);
 }
+
 async function selectModelName() {
 	labelListDiv.textContent = '';
 	resetData();
@@ -438,6 +439,7 @@ async function selectModelName() {
 	loadFilesInputFile.disabled = false;
 	modelSelect.disabled = false;
 }
+
 brushCanvas.oncontextmenu = (event) => {
 	event.preventDefault();
 };
@@ -591,12 +593,11 @@ trainModelLocallyButton.onclick = async () => {
 		return [preProcessedImage, predictions];
 	});
 	model.compile({
-		optimizer: modelConfigurationSelected.optimizer,
 		loss: modelConfigurationSelected.loss,
 		metrics: modelConfigurationSelected.metrics,
+		optimizer: modelConfigurationSelected.optimizer
 	});
 	await model.fit(preProcessedImage, predictions, {
-		epochs: epochsNumInputNumber.value,
 		callbacks: [
 			new tf.CustomCallback({
 				onEpochEnd: (epoch, logs) => {
@@ -605,7 +606,8 @@ trainModelLocallyButton.onclick = async () => {
 					accuracySpan.textContent = logs.acc;
 				}
 			})
-		]
+		],
+		epochs: epochsNumInputNumber.value
 	});
 	tf.dispose(preProcessedImage);
 	tf.dispose(predictions);
