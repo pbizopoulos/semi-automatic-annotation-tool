@@ -34,26 +34,29 @@ const saveModelToDiskButton = document.getElementById('save-model-to-disk-button
 const saveModelToServerButton = document.getElementById('save-model-to-server-button');
 const savePredictionsToDiskButton = document.getElementById('save-predictions-to-disk-button');
 const trainModelLocallyButton = document.getElementById('train-model-locally-button');
-let modelConfigurationArray = [{
-	'classNames': ['None', 'Lung', 'Covid-19'],
-	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
-	'machineLearningType': 'image segmentation',
-	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
-	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-	'name': 'CT lung and covid-19 segmentation (custom)',
-	'projectUrl': 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation'
-}, {
-	'classNames': ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
-	'exampleDataUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
-	'loss': 'categoricalCrossentropy',
-	'machineLearningType': 'image classification',
-	'metrics': ['accuracy'],
-	'modelDownloadUrl': 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
-	'modelUploadUrl': 'http://172.17.0.2:5000/upload',
-	'name': 'X-rays lung classification (mobilenet_v2 imagenet)',
-	'optimizer': 'adam',
-	'projectUrl': 'https://github.com/pbizopoulos/nih-chest-xray-classification'
-}];
+let modelConfigurationArray = [
+	{
+		classNames: ['None', 'Lung', 'Covid-19'],
+		exampleDataUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
+		machineLearningType: 'image segmentation',
+		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
+		modelUploadUrl: 'http://172.17.0.2:5000/upload',
+		name: 'CT lung and covid-19 segmentation (custom)',
+		projectUrl: 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation',
+	},
+	{
+		classNames: ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
+		exampleDataUrl: 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
+		loss: 'categoricalCrossentropy',
+		machineLearningType: 'image classification',
+		metrics: ['accuracy'],
+		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
+		modelUploadUrl: 'http://172.17.0.2:5000/upload',
+		name: 'X-rays lung classification (mobilenet_v2 imagenet)',
+		optimizer: 'adam',
+		projectUrl: 'https://github.com/pbizopoulos/nih-chest-xray-classification',
+	},
+];
 modelConfigurationArray = modelConfigurationArray.slice(0, 1);
 const labelColorArray = [
 	[255, 255, 255],
@@ -76,7 +79,7 @@ const labelColorArray = [
 	[188, 189, 34],
 	[219, 219, 141],
 	[23, 190, 207],
-	[158, 218, 229]
+	[158, 218, 229],
 ];
 let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 let modelConfigurationSelected;
@@ -155,7 +158,7 @@ function drawCanvas() {
 	for (let i = 0; i < imageCanvas.height; i++) {
 		const rowOffset = i * imageCanvas.width;
 		for (let j = 0; j < imageCanvas.width; j++) {
-			const imageValue = 255 * (images[imageOffset + rowOffset + j] - imageValueMin) / (imageValueMax - imageValueMin);
+			const imageValue = (255 * (images[imageOffset + rowOffset + j] - imageValueMin)) / (imageValueMax - imageValueMin);
 			const offsetMult4 = (rowOffset + j) * 4;
 			imageDataImage.data[offsetMult4] = imageValue;
 			imageDataImage.data[offsetMult4 + 1] = imageValue;
@@ -220,18 +223,14 @@ function loadFilesInputFileOnChange(event) {
 	if (files[0].name.includes('.nii')) {
 		readFileNifti(files[0]);
 	} else if (files[0].name.includes('.dcm')) {
-		itk.readImageDICOMFileSeries(files).then(function({
-			image
-		}) {
+		itk.readImageDICOMFileSeries(files).then(function ({ image }) {
 			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
 				const blob = new Blob([data.arrayBuffer]);
 				readFileNifti(blob);
 			});
 		});
-	} else if ((files[0].name.includes('.png')) || (files[0].name.includes('.jpg'))) {
-		itk.readImageFileSeries(files).then(function({
-			image
-		}) {
+	} else if (files[0].name.includes('.png') || files[0].name.includes('.jpg')) {
+		itk.readImageFileSeries(files).then(function ({ image }) {
 			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
 				const blob = new Blob([data.arrayBuffer]);
 				readFileNifti(blob);
@@ -256,7 +255,7 @@ function loadPredictionsInputFileOnChange(event) {
 				const rows = event.target.result.split('\n');
 				for (const [i, row] of rows.entries()) {
 					const row_elements = row.split(',');
-					classAnnotations[i] = modelConfigurationSelected.classNames.findIndex((element) => element == row_elements[1]);
+					classAnnotations[i] = modelConfigurationSelected.classNames.findIndex((element) => element === row_elements[1]);
 				}
 			} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
 				const niftiHeader = nifti.readHeader(event.target.result);
@@ -294,7 +293,7 @@ function predictImageCurrent() {
 			}
 		} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
 			if (modelPrediction.size !== imageSize) {
-				if ((modelPrediction.shape[modelPrediction.shape.length - 1] !== 1) && (modelPrediction.shape[modelPrediction.shape.length - 1] !== modelConfigurationSelected.classNames.length)) {
+				if (modelPrediction.shape[modelPrediction.shape.length - 1] !== 1 && modelPrediction.shape[modelPrediction.shape.length - 1] !== modelConfigurationSelected.classNames.length) {
 					modelPrediction = modelPrediction.reshape([512, 512, 1]);
 				}
 				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [imageCanvas.height, imageCanvas.width]);
@@ -376,7 +375,7 @@ function readFileNifti(file) {
 					break;
 				case nifti.NIFTI1.TYPE_RGB24:
 					images = new Uint8Array(niftiImage);
-					images = images.filter(function(value, index) {
+					images = images.filter((value, index) => {
 						return index % 3 === 0;
 					});
 					break;
@@ -489,7 +488,7 @@ async function savePredictionsToDiskButtonOnClick() {
 async function selectModelName() {
 	labelListDiv.textContent = '';
 	resetData();
-	modelConfigurationSelected = modelConfigurationArray.find(modelConfiguration => modelConfiguration.modelDownloadUrl === modelSelect.value);
+	modelConfigurationSelected = modelConfigurationArray.find((modelConfiguration) => modelConfiguration.modelDownloadUrl === modelSelect.value);
 	let loadModelFunction = tf.loadLayersModel;
 	if (modelConfigurationSelected.format === 'graph-model') {
 		loadModelFunction = tf.loadGraphModel;
@@ -497,18 +496,18 @@ async function selectModelName() {
 		loadModelFunction = tf.loadLayersModel;
 	}
 	model = await loadModelFunction(modelConfigurationSelected.modelDownloadUrl, {
-		onProgress: function(fraction) {
+		onProgress: (fraction) => {
 			modelDownloadProgress.value = fraction;
-			if (fraction == 1) {
+			if (fraction === 1) {
 				modelDownloadDiv.style.display = 'none';
 			}
 			modelInputShapeSpan.textContent = 'NaN';
 			modelPredictionShapeSpan.textContent = 'NaN';
 			modelTrainableSpan.textContent = 'NaN';
 			disableUI(true);
-		}
+		},
 	});
-	modelInputShape = model.inputs[0].shape.filter(x => x > 3);
+	modelInputShape = model.inputs[0].shape.filter((x) => x > 3);
 	imageCanvas.width = modelInputShape[0];
 	imageCanvas.height = modelInputShape[1];
 	maskCanvas.width = modelInputShape[0];
@@ -620,7 +619,7 @@ async function trainModelLocallyButtonOnClick() {
 	model.compile({
 		loss: modelConfigurationSelected.loss,
 		metrics: modelConfigurationSelected.metrics,
-		optimizer: modelConfigurationSelected.optimizer
+		optimizer: modelConfigurationSelected.optimizer,
 	});
 	await model.fit(preProcessedImage, predictions, {
 		callbacks: [
@@ -629,10 +628,10 @@ async function trainModelLocallyButtonOnClick() {
 					epochCurrentSpan.textContent = epoch;
 					lossSpan.textContent = logs.loss.toExponential(3);
 					accuracySpan.textContent = logs.acc;
-				}
-			})
+				},
+			}),
 		],
-		epochs: epochsNumInputNumber.value
+		epochs: epochsNumInputNumber.value,
 	});
 	tf.dispose(preProcessedImage);
 	tf.dispose(predictions);
@@ -642,13 +641,15 @@ async function trainModelLocallyButtonOnClick() {
 for (const modelConfiguration of modelConfigurationArray) {
 	let option = document.createElement('option');
 	option.value = modelConfiguration.modelDownloadUrl;
-	fetch(option.value).then(response => response.text()).then((text) => {
-		modelConfiguration.format = JSON.parse(text).format;
-	});
+	fetch(option.value)
+		.then((response) => response.text())
+		.then((text) => {
+			modelConfiguration.format = JSON.parse(text).format;
+		});
 	option.textContent = modelConfiguration.name;
 	modelSelect.appendChild(option);
 }
 selectModelName();
-window.onload = function() {
+window.onload = () => {
 	document.body.style.display = '';
 };
