@@ -1,8 +1,9 @@
-from os.path import isfile, join
-from playwright.sync_api import sync_playwright
-from zipfile import ZipFile
-import gdown
 import hashlib
+from os.path import isfile, join
+from zipfile import ZipFile
+
+import gdown
+from playwright.sync_api import sync_playwright
 
 
 def main():

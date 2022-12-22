@@ -1,9 +1,10 @@
-from flask_cors import CORS, cross_origin
-from flask import Flask, Response, request
-from os import environ
-from werkzeug import formparser
 import io
+from os import environ
+
 import tensorflowjs as tfjs
+from flask import Flask, Response, request
+from flask_cors import CORS, cross_origin
+from werkzeug import formparser
 
 
 class ModelReceiver():
@@ -13,10 +14,11 @@ class ModelReceiver():
             self.model_json_bytes = io.BytesIO()
             self.model_json_writer = io.BufferedWriter(self.model_json_bytes)
             return self.model_json_writer
-        elif filename == 'model.weights.bin':
+        if filename == 'model.weights.bin':
             self.weight_bytes = io.BytesIO()
             self.weight_writer = io.BufferedWriter(self.weight_bytes)
             return self.weight_writer
+        return None
 
 
 def main():
