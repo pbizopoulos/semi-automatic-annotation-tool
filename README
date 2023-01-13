@@ -2,8 +2,8 @@
 https://pbizopoulos.github.io/semi-automatic-annotation-tool
 
 # Requirements
-POSIX mandatory utilities
-Make
+POSIX shell & utilities
+Git
 Docker
 
 # Check code and build
