@@ -2,11 +2,11 @@
 https://pbizopoulos.github.io/semi-automatic-annotation-tool
 
 # Requirements
-POSIX shell & utilities
+POSIX Utilities
 Git
 Docker
 
-# Check code and build
+# Check and build code
 git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
 cd semi-automatic-annotation-tool/
 cd docs/ && make check all && cd ..
