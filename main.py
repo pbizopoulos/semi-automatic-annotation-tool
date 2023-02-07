@@ -21,7 +21,7 @@ def main():
         page.set_default_timeout(timeout)
         page.set_default_navigation_timeout(timeout)
         page.on('pageerror', lambda exception: (_ for _ in ()).throw(Exception(f'uncaught exception: {exception}')))
-        page.goto('file:///work/docs/index.html')
+        page.goto('file:///usr/src/app/docs/index.html')
         page.locator('#model-download-div').wait_for(state='hidden')
         page.set_input_files('#load-files-input-file', join('bin', 'rp_im', '1.nii.gz'))
         page.locator('#image-index-input-range').fill('2')
