@@ -21,7 +21,7 @@ class ModelReceiver():
         return None
 
 
-def main():
+def main() -> None:
     app = Flask('model-server')
     CORS(app)
     app.config['CORS_HEADER'] = 'Content-Type'
@@ -29,7 +29,7 @@ def main():
 
     @app.route('/upload', methods=['POST'])
     @cross_origin()
-    def upload():
+    def upload() -> Response:
         formparser.parse_form_data(request.environ, stream_factory=model_receiver.stream_factory)
         model_receiver.model_json_writer.flush()
         model_receiver.weight_writer.flush()

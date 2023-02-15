@@ -2,8 +2,11 @@
 name = "UNKNOWN"
 version = "0.0.0"
 dependencies = [
-	"gdown==4.6.0",
+	"gdown==4.6.3",
 ]
 
 [project.optional-dependencies]
-dev = ["ruff==0.0.243"]
+dev = [
+	"mypy==1.0.0",
+	"ruff==0.0.246",
+]
