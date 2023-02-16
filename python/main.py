@@ -9,14 +9,14 @@ from werkzeug import formparser
 
 class ModelReceiver():
 
-    def stream_factory(self, total_content_length, content_type, filename, content_length=None): # noqa: ANN001, ANN201
+    def stream_factory(self, total_content_length, content_type, filename, content_length=None): # type: ignore[no-untyped-def] # noqa: ANN001, ANN201
         if filename == 'model.json':
             self.model_json_bytes = io.BytesIO()
-            self.model_json_writer = io.BufferedWriter(self.model_json_bytes)
+            self.model_json_writer = io.BufferedWriter(self.model_json_bytes) # type: ignore[arg-type]
             return self.model_json_writer
         if filename == 'model.weights.bin':
             self.weight_bytes = io.BytesIO()
-            self.weight_writer = io.BufferedWriter(self.weight_bytes)
+            self.weight_writer = io.BufferedWriter(self.weight_bytes) # type: ignore[arg-type]
             return self.weight_writer
         return None
 
@@ -28,7 +28,7 @@ def main() -> None:
     model_receiver = ModelReceiver()
 
     @app.route('/upload', methods=['POST'])
-    @cross_origin()
+    @cross_origin() # type: ignore[misc]
     def upload() -> Response:
         formparser.parse_form_data(request.environ, stream_factory=model_receiver.stream_factory)
         model_receiver.model_json_writer.flush()

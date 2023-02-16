@@ -19,7 +19,7 @@ def main() -> None:
         timeout = 100000
         page.set_default_timeout(timeout)
         page.set_default_navigation_timeout(timeout)
-        page.on('pageerror', lambda exception: (_ for _ in ()).throw(Exception(f'uncaught exception: {exception}')))
+        page.on('pageerror', lambda exception: (_ for _ in ()).throw(Exception(f'uncaught exception: {exception}'))) # type: ignore[call-overload]
         page.goto('file:///usr/src/app/docs/index.html')
         page.locator('#model-download-div').wait_for(state='hidden')
         page.set_input_files('#load-files-input-file', 'bin/rp_im/1.nii.gz')
