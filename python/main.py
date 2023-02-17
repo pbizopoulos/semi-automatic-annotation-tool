@@ -9,7 +9,7 @@ from werkzeug import formparser
 
 class ModelReceiver():
 
-    def stream_factory(self: 'ModelReceiver', total_content_length, content_type, filename, content_length=None): # type: ignore[no-untyped-def] # noqa: ANN001, ANN201
+    def stream_factory(self: 'ModelReceiver', total_content_length, content_type, filename, content_length=None): # type: ignore[no-untyped-def] # noqa: ANN001, ANN201, ARG002
         if filename == 'model.json':
             self.model_json_bytes = io.BytesIO()
             self.model_json_writer = io.BufferedWriter(self.model_json_bytes) # type: ignore[arg-type]
