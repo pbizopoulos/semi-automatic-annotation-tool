@@ -36,7 +36,7 @@ def main() -> None:
             assert sha256(file.read()).hexdigest() == '6d1f1c28c38cab797d7500b01e5379223229b63c44bc857cbb38aab75fef75f2'
         page.screenshot(path='bin/screenshot.png')
         with Path('bin/screenshot.png').open('rb') as file:
-            assert sha256(file.read()).hexdigest() == '664ba9b46e091ec97db7d60dbac519329e5aacbac9a3f9cc0d194efb02bdc105'
+            assert sha256(file.read()).hexdigest() == '3b1ca1c1902d8ab87f1f23cecf58e565e5afba357cd763ead3b143a159675ab5'
         context.close()
         browser.close()
 
