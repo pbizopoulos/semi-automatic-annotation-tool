@@ -3,7 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import gdown
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Error, sync_playwright
 
 
 def main() -> None:
@@ -19,7 +19,7 @@ def main() -> None:
         timeout = 100000
         page.set_default_timeout(timeout)
         page.set_default_navigation_timeout(timeout)
-        page.on('pageerror', lambda exception: print(f'uncaught exception: {exception}')) # noqa: 201
+        page.on('pageerror', page_error)
         page.goto('file:///usr/src/app/docs/index.html')
         page.locator('#model-download-div').wait_for(state='hidden')
         page.set_input_files('#load-files-input-file', 'bin/rp_im/1.nii.gz')
@@ -39,6 +39,10 @@ def main() -> None:
             assert sha256(file.read()).hexdigest() == '3b1ca1c1902d8ab87f1f23cecf58e565e5afba357cd763ead3b143a159675ab5'
         context.close()
         browser.close()
+
+
+def page_error(exception: Error) -> None:
+    raise exception
 
 
 if __name__ == '__main__':
