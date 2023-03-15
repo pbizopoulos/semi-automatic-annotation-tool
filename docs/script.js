@@ -36,12 +36,12 @@ const savePredictionsToDiskButton = document.getElementById('save-predictions-to
 const trainModelLocallyButton = document.getElementById('train-model-locally-button');
 let modelConfigurationArray = [
 	{
-		classNames: ['None', 'Lung', 'Lesion'], // replace Lesion with Covid-19 after plenary
+		classNames: ['None', 'Lung', 'Covid-19'],
 		exampleDataUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
 		machineLearningType: 'image segmentation',
 		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
 		modelUploadUrl: 'http://172.17.0.2:5000/upload',
-		name: 'CT lung and lesion segmentation (custom)', // replace lesion with covid-19 after plenary
+		name: 'CT lung and covid-19 segmentation (custom)',
 		projectUrl: 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation',
 	},
 	{
