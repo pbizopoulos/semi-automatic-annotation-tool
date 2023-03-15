@@ -41,7 +41,7 @@ let modelConfigurationArray = [
 		machineLearningType: 'image segmentation',
 		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
 		modelUploadUrl: 'http://172.17.0.2:5000/upload',
-		name: 'CT lung and covid-19 segmentation (custom)',
+		name: 'CT lung and lesion segmentation (custom)', // replace lesion with covid-19 after plenary
 		projectUrl: 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation',
 	},
 	{
