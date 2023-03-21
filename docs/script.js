@@ -1,60 +1,60 @@
-'use strict';
-const accuracyDiv = document.getElementById('accuracy-div');
-const accuracySpan = document.getElementById('accuracy-span');
-const brushCanvas = document.getElementById('brush-canvas');
-const brushContext = brushCanvas.getContext('2d');
-const brushSizeDiv = document.getElementById('brush-size-div');
-const brushSizeInputRange = document.getElementById('brush-size-input-range');
-const epochCurrentDiv = document.getElementById('epoch-current-div');
-const epochCurrentSpan = document.getElementById('epoch-current-span');
-const epochsNumDiv = document.getElementById('epochs-num-div');
-const epochsNumInputNumber = document.getElementById('epochs-num-input-number');
-const imageCanvas = document.getElementById('image-canvas');
-const imageContext = imageCanvas.getContext('2d');
-const imageHeightWidthSpan = document.getElementById('image-height-width-span');
-const imageIndexInputRange = document.getElementById('image-index-input-range');
-const imageIndexSpan = document.getElementById('image-index-span');
-const labelListDiv = document.getElementById('label-list-div');
-const loadFilesInputFile = document.getElementById('load-files-input-file');
-const loadPredictionsInputFile = document.getElementById('load-predictions-input-file');
-const lossDiv = document.getElementById('loss-div');
-const lossSpan = document.getElementById('loss-span');
-const maskCanvas = document.getElementById('mask-canvas');
-const maskContext = maskCanvas.getContext('2d');
-const modelDownloadDiv = document.getElementById('model-download-div');
-const modelDownloadProgress = document.getElementById('model-download-progress');
-const modelInputShapeSpan = document.getElementById('model-input-shape-span');
-const modelPredictionShapeSpan = document.getElementById('model-prediction-shape-span');
-const modelSelect = document.getElementById('model-select');
-const modelTrainableSpan = document.getElementById('model-trainable-span');
-const predictImageCurrentButton = document.getElementById('predict-image-current-button');
-const predictImagesAllButton = document.getElementById('predict-images-all-button');
-const resetImageValueButton = document.getElementById('reset-image-value-button');
-const saveModelToDiskButton = document.getElementById('save-model-to-disk-button');
-const saveModelToServerButton = document.getElementById('save-model-to-server-button');
-const savePredictionsToDiskButton = document.getElementById('save-predictions-to-disk-button');
-const trainModelLocallyButton = document.getElementById('train-model-locally-button');
+"use strict";
+const accuracyDiv = document.getElementById("accuracy-div");
+const accuracySpan = document.getElementById("accuracy-span");
+const brushCanvas = document.getElementById("brush-canvas");
+const brushContext = brushCanvas.getContext("2d");
+const brushSizeDiv = document.getElementById("brush-size-div");
+const brushSizeInputRange = document.getElementById("brush-size-input-range");
+const epochCurrentDiv = document.getElementById("epoch-current-div");
+const epochCurrentSpan = document.getElementById("epoch-current-span");
+const epochsNumDiv = document.getElementById("epochs-num-div");
+const epochsNumInputNumber = document.getElementById("epochs-num-input-number");
+const imageCanvas = document.getElementById("image-canvas");
+const imageContext = imageCanvas.getContext("2d");
+const imageHeightWidthSpan = document.getElementById("image-height-width-span");
+const imageIndexInputRange = document.getElementById("image-index-input-range");
+const imageIndexSpan = document.getElementById("image-index-span");
+const labelListDiv = document.getElementById("label-list-div");
+const loadFilesInputFile = document.getElementById("load-files-input-file");
+const loadPredictionsInputFile = document.getElementById("load-predictions-input-file");
+const lossDiv = document.getElementById("loss-div");
+const lossSpan = document.getElementById("loss-span");
+const maskCanvas = document.getElementById("mask-canvas");
+const maskContext = maskCanvas.getContext("2d");
+const modelDownloadDiv = document.getElementById("model-download-div");
+const modelDownloadProgress = document.getElementById("model-download-progress");
+const modelInputShapeSpan = document.getElementById("model-input-shape-span");
+const modelPredictionShapeSpan = document.getElementById("model-prediction-shape-span");
+const modelSelect = document.getElementById("model-select");
+const modelTrainableSpan = document.getElementById("model-trainable-span");
+const predictImageCurrentButton = document.getElementById("predict-image-current-button");
+const predictImagesAllButton = document.getElementById("predict-images-all-button");
+const resetImageValueButton = document.getElementById("reset-image-value-button");
+const saveModelToDiskButton = document.getElementById("save-model-to-disk-button");
+const saveModelToServerButton = document.getElementById("save-model-to-server-button");
+const savePredictionsToDiskButton = document.getElementById("save-predictions-to-disk-button");
+const trainModelLocallyButton = document.getElementById("train-model-locally-button");
 let modelConfigurationArray = [
 	{
-		classNames: ['None', 'Lung', 'Covid-19'],
-		exampleDataUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg',
-		machineLearningType: 'image segmentation',
-		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json',
-		modelUploadUrl: 'http://172.17.0.2:5000/upload',
-		name: 'CT lung and covid-19 segmentation (custom)',
-		projectUrl: 'https://github.com/pbizopoulos/multiclass-covid-19-segmentation',
+		classNames: ["None", "Lung", "Covid-19"],
+		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/example.jpg",
+		machineLearningType: "image segmentation",
+		modelDownloadUrl: "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json",
+		modelUploadUrl: "http://172.17.0.2:5000/upload",
+		name: "CT lung and covid-19 segmentation (custom)",
+		projectUrl: "https://github.com/pbizopoulos/multiclass-covid-19-segmentation",
 	},
 	{
-		classNames: ['No Findings', 'Atelectasis', 'Consolidation', 'Infiltration', 'Pneumothorax', 'Edema', 'Emphysema', 'Fibrosis', 'Effusion', 'Pneumonia', 'Pleural_thickening', 'Cardiomegaly', 'Nodule', 'Mass', 'Hernia'],
-		exampleDataUrl: 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg',
-		loss: 'categoricalCrossentropy',
-		machineLearningType: 'image classification',
-		metrics: ['accuracy'],
-		modelDownloadUrl: 'https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json',
-		modelUploadUrl: 'http://172.17.0.2:5000/upload',
-		name: 'X-rays lung classification (mobilenet_v2 imagenet)',
-		optimizer: 'adam',
-		projectUrl: 'https://github.com/pbizopoulos/nih-chest-xray-classification',
+		classNames: ["No Findings", "Atelectasis", "Consolidation", "Infiltration", "Pneumothorax", "Edema", "Emphysema", "Fibrosis", "Effusion", "Pneumonia", "Pleural_thickening", "Cardiomegaly", "Nodule", "Mass", "Hernia"],
+		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/example.jpg",
+		loss: "categoricalCrossentropy",
+		machineLearningType: "image classification",
+		metrics: ["accuracy"],
+		modelDownloadUrl: "https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/dist/model.json",
+		modelUploadUrl: "http://172.17.0.2:5000/upload",
+		name: "X-rays lung classification (mobilenet_v2 imagenet)",
+		optimizer: "adam",
+		projectUrl: "https://github.com/pbizopoulos/nih-chest-xray-classification",
 	},
 ];
 modelConfigurationArray = modelConfigurationArray.slice(0, 1);
@@ -167,7 +167,7 @@ function drawCanvas() {
 		}
 	}
 	imageContext.putImageData(imageDataImage, 0, 0);
-	if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+	if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 		brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
 		brushContext.fillStyle = `rgb(${labelColorArray[labelCurrent]})`;
 		brushContext.beginPath();
@@ -203,7 +203,7 @@ function drawCanvas() {
 function imageIndexInputRangeOnInput() {
 	imageIndexCurrent = imageIndexInputRange.value;
 	imageOffset = imageSize * imageIndexCurrent;
-	if (modelConfigurationSelected.machineLearningType === 'image classification') {
+	if (modelConfigurationSelected.machineLearningType === "image classification") {
 		labelCurrent = classAnnotations[imageIndexCurrent];
 		document.getElementById(`label-color-div-${labelCurrent}`).click();
 	}
@@ -220,44 +220,44 @@ function loadFilesInputFileOnChange(event) {
 		disableUI(false);
 		return;
 	}
-	if (files[0].name.includes('.nii')) {
+	if (files[0].name.includes(".nii")) {
 		readFileNifti(files[0]);
-	} else if (files[0].name.includes('.dcm')) {
+	} else if (files[0].name.includes(".dcm")) {
 		itk.readImageDICOMFileSeries(files).then(function ({ image }) {
-			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
+			itk.writeImageArrayBuffer(null, false, image, "tmp.nii").then((data) => {
 				const blob = new Blob([data.arrayBuffer]);
 				readFileNifti(blob);
 			});
 		});
-	} else if (files[0].name.includes('.png') || files[0].name.includes('.jpg')) {
+	} else if (files[0].name.includes(".png") || files[0].name.includes(".jpg")) {
 		itk.readImageFileSeries(files).then(function ({ image }) {
-			itk.writeImageArrayBuffer(null, false, image, 'tmp.nii').then((data) => {
+			itk.writeImageArrayBuffer(null, false, image, "tmp.nii").then((data) => {
 				const blob = new Blob([data.arrayBuffer]);
 				readFileNifti(blob);
 			});
 		});
 	}
-	loadFilesInputFile.value = '';
-	loadPredictionsInputFile.value = '';
+	loadFilesInputFile.value = "";
+	loadPredictionsInputFile.value = "";
 }
 
 function loadPredictionsInputFileOnChange(event) {
 	const file = event.currentTarget.files[0];
 	const fileReader = new FileReader();
-	if (modelConfigurationSelected.machineLearningType === 'image classification') {
+	if (modelConfigurationSelected.machineLearningType === "image classification") {
 		fileReader.readAsText(file);
-	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+	} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 		fileReader.readAsArrayBuffer(file);
 	}
 	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
-			if (modelConfigurationSelected.machineLearningType === 'image classification') {
-				const rows = event.target.result.split('\n');
+			if (modelConfigurationSelected.machineLearningType === "image classification") {
+				const rows = event.target.result.split("\n");
 				for (const [i, row] of rows.entries()) {
-					const row_elements = row.split(',');
+					const row_elements = row.split(",");
 					classAnnotations[i] = modelConfigurationSelected.classNames.findIndex((element) => element === row_elements[1]);
 				}
-			} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+			} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 				const niftiHeader = nifti.readHeader(event.target.result);
 				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
 				masks = new Uint8Array(niftiImage);
@@ -274,7 +274,7 @@ function predictImageCurrent() {
 		let imageTensor = tf.tensor(imageSlice);
 		imageTensor = tf.reshape(imageTensor, [imageCanvas.height, imageCanvas.width, 1]);
 		imageTensor = tf.image.resizeNearestNeighbor(imageTensor, modelInputShape);
-		if (modelConfigurationSelected.modelDownloadUrl === 'https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json') {
+		if (modelConfigurationSelected.modelDownloadUrl === "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json") {
 			imageTensor = imageTensor.div(4095);
 		}
 		let modelInputsShape = model.inputs[0].shape;
@@ -285,13 +285,13 @@ function predictImageCurrent() {
 		}
 		const preProcessedImage = imageTensor.reshape(modelInputsShape);
 		let modelPrediction = model.predict(preProcessedImage);
-		if (modelConfigurationSelected.machineLearningType === 'image classification') {
+		if (modelConfigurationSelected.machineLearningType === "image classification") {
 			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
 			const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 			for (let i = 0; i < nodeList.length; i++) {
 				nodeList[i].textContent = `${classProbabilities[0][i].toFixed(2)}%`;
 			}
-		} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+		} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 			if (modelPrediction.size !== imageSize) {
 				if (modelPrediction.shape[modelPrediction.shape.length - 1] !== 1 && modelPrediction.shape[modelPrediction.shape.length - 1] !== modelConfigurationSelected.classNames.length) {
 					modelPrediction = modelPrediction.reshape([512, 512, 1]);
@@ -391,9 +391,9 @@ function readFileNifti(file) {
 			imageCanvas.height = niftiHeader.dims[2];
 			imageCanvas.width = niftiHeader.dims[1];
 			imageSize = imageCanvas.height * imageCanvas.width;
-			if (modelConfigurationSelected.machineLearningType === 'image classification') {
+			if (modelConfigurationSelected.machineLearningType === "image classification") {
 				classAnnotations = classAnnotations.slice(0, imagesNum + 1);
-			} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+			} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 				maskCanvas.height = imageCanvas.height;
 				maskCanvas.width = imageCanvas.width;
 				brushCanvas.height = imageCanvas.height;
@@ -412,10 +412,10 @@ function resetData() {
 	brushContext.clearRect(0, 0, brushCanvas.width, brushCanvas.height);
 	fileDecompressed = null;
 	imageContext.clearRect(0, 0, imageCanvas.width, imageCanvas.height);
-	imageHeightWidthSpan.textContent = '0\u00D70';
+	imageHeightWidthSpan.textContent = "0\u00D70";
 	imageIndexCurrent = 0;
 	imageIndexInputRange.value = 0;
-	imageIndexSpan.textContent = '0/0';
+	imageIndexSpan.textContent = "0/0";
 	imageOffset = 0;
 	imageSize = 1;
 	imageValueMax = 0;
@@ -443,7 +443,7 @@ function resetImageValue() {
 }
 
 function saveData(data, fileName) {
-	const a = document.createElement('a');
+	const a = document.createElement("a");
 	document.body.appendChild(a);
 	const blob = new Blob(data);
 	const url = window.URL.createObjectURL(blob);
@@ -454,7 +454,7 @@ function saveData(data, fileName) {
 }
 
 async function saveModelToDiskButtonOnClick() {
-	await model.save('downloads://saved-model');
+	await model.save("downloads://saved-model");
 }
 
 async function saveModelToServerButtonOnClick() {
@@ -467,43 +467,43 @@ async function savePredictionsToDiskButtonOnClick() {
 	}
 	let fileName;
 	let data;
-	if (modelConfigurationSelected.machineLearningType === 'image classification') {
-		data = '';
+	if (modelConfigurationSelected.machineLearningType === "image classification") {
+		data = "";
 		for (const [i, classAnnotation] of classAnnotations.entries()) {
-			data += [files[i].name, modelConfigurationSelected.classNames[classAnnotation]].join(',');
-			data += '\n';
+			data += [files[i].name, modelConfigurationSelected.classNames[classAnnotation]].join(",");
+			data += "\n";
 		}
 		data = [data.slice(0, -1)];
-		fileName = 'classAnnotations.txt';
-	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+		fileName = "classAnnotations.txt";
+	} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
 		const tmp = new Uint16Array(niftiHeaderTmp, 0, niftiHeaderTmp.length);
 		tmp[35] = 2;
 		data = [tmp, new Uint16Array(masks.buffer, 0, masks.buffer.length)];
-		fileName = 'masks.nii';
+		fileName = "masks.nii";
 	}
 	saveData(data, fileName);
 }
 
 async function selectModelName() {
-	labelListDiv.textContent = '';
+	labelListDiv.textContent = "";
 	resetData();
 	modelConfigurationSelected = modelConfigurationArray.find((modelConfiguration) => modelConfiguration.modelDownloadUrl === modelSelect.value);
 	let loadModelFunction = tf.loadLayersModel;
-	if (modelConfigurationSelected.format === 'graph-model') {
+	if (modelConfigurationSelected.format === "graph-model") {
 		loadModelFunction = tf.loadGraphModel;
-	} else if (modelConfigurationSelected.format === 'layers-model') {
+	} else if (modelConfigurationSelected.format === "layers-model") {
 		loadModelFunction = tf.loadLayersModel;
 	}
 	model = await loadModelFunction(modelConfigurationSelected.modelDownloadUrl, {
 		onProgress: (fraction) => {
 			modelDownloadProgress.value = fraction;
 			if (fraction === 1) {
-				modelDownloadDiv.style.display = 'none';
+				modelDownloadDiv.style.display = "none";
 			}
-			modelInputShapeSpan.textContent = 'NaN';
-			modelPredictionShapeSpan.textContent = 'NaN';
-			modelTrainableSpan.textContent = 'NaN';
+			modelInputShapeSpan.textContent = "NaN";
+			modelPredictionShapeSpan.textContent = "NaN";
+			modelTrainableSpan.textContent = "NaN";
 			disableUI(true);
 		},
 	});
@@ -517,42 +517,42 @@ async function selectModelName() {
 	modelInputShapeSpan.textContent = modelInputShape;
 	modelPredictionShapeSpan.textContent = model.outputs[0].shape;
 	if (model.trainable) {
-		accuracyDiv.style.display = '';
-		epochCurrentDiv.style.display = '';
-		epochsNumDiv.style.display = '';
-		lossDiv.style.display = '';
-		modelTrainableSpan.textContent = 'True';
-		saveModelToDiskButton.style.display = '';
-		saveModelToServerButton.style.display = '';
-		trainModelLocallyButton.style.display = '';
+		accuracyDiv.style.display = "";
+		epochCurrentDiv.style.display = "";
+		epochsNumDiv.style.display = "";
+		lossDiv.style.display = "";
+		modelTrainableSpan.textContent = "True";
+		saveModelToDiskButton.style.display = "";
+		saveModelToServerButton.style.display = "";
+		trainModelLocallyButton.style.display = "";
 	} else {
-		accuracyDiv.style.display = 'none';
-		epochCurrentDiv.style.display = 'none';
-		epochsNumDiv.style.display = 'none';
-		lossDiv.style.display = 'none';
-		modelTrainableSpan.textContent = 'False';
-		saveModelToDiskButton.style.display = 'none';
-		saveModelToServerButton.style.display = 'none';
-		trainModelLocallyButton.style.display = 'none';
+		accuracyDiv.style.display = "none";
+		epochCurrentDiv.style.display = "none";
+		epochsNumDiv.style.display = "none";
+		lossDiv.style.display = "none";
+		modelTrainableSpan.textContent = "False";
+		saveModelToDiskButton.style.display = "none";
+		saveModelToServerButton.style.display = "none";
+		trainModelLocallyButton.style.display = "none";
 	}
 	for (const [i, labelText] of modelConfigurationSelected.classNames.entries()) {
-		const labelDiv = document.createElement('div');
+		const labelDiv = document.createElement("div");
 		labelDiv.id = `labelDiv${i}`;
 		labelListDiv.appendChild(labelDiv);
-		const labelPredictionDiv = document.createElement('text');
+		const labelPredictionDiv = document.createElement("text");
 		labelPredictionDiv.id = `labelPredictionDiv${i}`;
-		labelPredictionDiv.style.float = 'left';
-		labelPredictionDiv.style.width = '50px';
-		labelPredictionDiv.style.height = '15px';
-		labelPredictionDiv.textContent = 'NaN';
+		labelPredictionDiv.style.float = "left";
+		labelPredictionDiv.style.width = "50px";
+		labelPredictionDiv.style.height = "15px";
+		labelPredictionDiv.textContent = "NaN";
 		labelDiv.appendChild(labelPredictionDiv);
-		const labelColorDiv = document.createElement('div');
+		const labelColorDiv = document.createElement("div");
 		labelColorDiv.id = `label-color-div-${i}`;
 		labelColorDiv.style.backgroundColor = `rgb(${labelColorArray[i]})`;
-		labelColorDiv.style.float = 'left';
-		labelColorDiv.style.height = '15px';
+		labelColorDiv.style.float = "left";
+		labelColorDiv.style.height = "15px";
 		labelColorDiv.style.opacity = 0.3;
-		labelColorDiv.style.width = '15px';
+		labelColorDiv.style.width = "15px";
 		labelColorDiv.onclick = (event) => {
 			const nodeList = document.querySelectorAll('*[id^="label-color-div-"]');
 			for (let i = 0; i < nodeList.length; i++) {
@@ -560,36 +560,36 @@ async function selectModelName() {
 			}
 			event.currentTarget.style.opacity = 1;
 			labelCurrent = parseInt(event.currentTarget.id.match(/\d+/)[0]);
-			if (modelConfigurationSelected.machineLearningType === 'image classification') {
+			if (modelConfigurationSelected.machineLearningType === "image classification") {
 				classAnnotations[imageIndexCurrent] = labelCurrent;
 			}
 		};
 		labelDiv.appendChild(labelColorDiv);
-		const labelTextDiv = document.createElement('text');
+		const labelTextDiv = document.createElement("text");
 		labelTextDiv.id = `labelTextDiv${i}`;
-		labelTextDiv.style.float = 'left';
-		labelTextDiv.style.height = '15px';
+		labelTextDiv.style.float = "left";
+		labelTextDiv.style.height = "15px";
 		labelTextDiv.textContent = labelText;
 		labelDiv.appendChild(labelTextDiv);
-		const br = document.createElement('br');
+		const br = document.createElement("br");
 		labelDiv.appendChild(br);
 	}
-	if (modelConfigurationSelected.machineLearningType === 'image classification') {
+	if (modelConfigurationSelected.machineLearningType === "image classification") {
 		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 		for (let i = 0; i < nodeList.length; i++) {
-			nodeList[i].style.display = '';
+			nodeList[i].style.display = "";
 		}
-		maskCanvas.style.display = 'none';
-		brushCanvas.style.display = 'none';
-		brushSizeDiv.style.display = 'none';
-	} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+		maskCanvas.style.display = "none";
+		brushCanvas.style.display = "none";
+		brushSizeDiv.style.display = "none";
+	} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
 		for (let i = 0; i < nodeList.length; i++) {
-			nodeList[i].style.display = 'none';
+			nodeList[i].style.display = "none";
 		}
-		maskCanvas.style.display = '';
-		brushCanvas.style.display = '';
-		brushSizeDiv.style.display = '';
+		maskCanvas.style.display = "";
+		brushCanvas.style.display = "";
+		brushSizeDiv.style.display = "";
 	}
 	loadFilesInputFile.disabled = false;
 	modelSelect.disabled = false;
@@ -607,10 +607,10 @@ async function trainModelLocallyButtonOnClick() {
 		imagesTensor = imagesTensor.div(tf.sqrt(tensorMomentsAfter.variance));
 		let preProcessedImage;
 		let predictions;
-		if (modelConfigurationSelected.machineLearningType === 'image classification') {
+		if (modelConfigurationSelected.machineLearningType === "image classification") {
 			preProcessedImage = imagesTensor;
 			predictions = tf.oneHot(classAnnotations, modelConfigurationSelected.classNames.length);
-		} else if (modelConfigurationSelected.machineLearningType === 'image segmentation') {
+		} else if (modelConfigurationSelected.machineLearningType === "image segmentation") {
 			preProcessedImage = imagesTensor.squeeze(-1).expandDims(0).expandDims(0);
 			predictions = tf.tensor(masks);
 		}
@@ -639,7 +639,7 @@ async function trainModelLocallyButtonOnClick() {
 }
 
 for (const modelConfiguration of modelConfigurationArray) {
-	let option = document.createElement('option');
+	let option = document.createElement("option");
 	option.value = modelConfiguration.modelDownloadUrl;
 	fetch(option.value)
 		.then((response) => response.text())
@@ -651,5 +651,5 @@ for (const modelConfiguration of modelConfigurationArray) {
 }
 selectModelName();
 window.onload = () => {
-	document.body.style.display = '';
+	document.body.style.display = "";
 };

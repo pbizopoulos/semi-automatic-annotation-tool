@@ -9,12 +9,12 @@ from werkzeug import formparser
 
 class ModelReceiver():
 
-    def stream_factory(self: 'ModelReceiver', total_content_length, content_type, filename, content_length=None): # type: ignore[no-untyped-def] # noqa: ANN001, ANN201, ARG002
-        if filename == 'model.json':
+    def stream_factory(self: "ModelReceiver", total_content_length, content_type, filename, content_length=None): # type: ignore[no-untyped-def] # noqa: ANN001, ANN201, ARG002
+        if filename == "model.json":
             self.model_json_bytes = io.BytesIO()
             self.model_json_writer = io.BufferedWriter(self.model_json_bytes) # type: ignore[arg-type]
             return self.model_json_writer
-        if filename == 'model.weights.bin':
+        if filename == "model.weights.bin":
             self.weight_bytes = io.BytesIO()
             self.weight_writer = io.BufferedWriter(self.weight_bytes) # type: ignore[arg-type]
             return self.weight_writer
@@ -22,12 +22,12 @@ class ModelReceiver():
 
 
 def main() -> None:
-    app = Flask('model-server')
+    app = Flask("model-server")
     CORS(app)
-    app.config['CORS_HEADER'] = 'Content-Type'
+    app.config["CORS_HEADER"] = "Content-Type"
     model_receiver = ModelReceiver()
 
-    @app.route('/upload', methods=['POST'])
+    @app.route("/upload", methods=["POST"])
     @cross_origin() # type: ignore[misc]
     def upload() -> Response:
         formparser.parse_form_data(request.environ, stream_factory=model_receiver.stream_factory)
@@ -43,9 +43,9 @@ def main() -> None:
         # `model.evaluate()` etc. here.
         return Response(status=200)
 
-    if environ['DEBUG'] != '1':
-        app.run('0.0.0.0', 5000) # noqa: S104
+    if environ["DEBUG"] != "1":
+        app.run("0.0.0.0", 5000) # noqa: S104
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
