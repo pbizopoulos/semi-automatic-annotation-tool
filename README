@@ -9,5 +9,5 @@ Docker
 # Download, check and build
 git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
 cd semi-automatic-annotation-tool/
-cd docs/ && make check all && cd ..
-make check all
+cd docs/ && make clean check all && cd ..
+make clean check all
