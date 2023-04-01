@@ -277,7 +277,7 @@ function predictImageCurrent() {
 		if (modelConfigurationSelected.modelDownloadUrl === "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json") {
 			imageTensor = imageTensor.div(4095);
 		}
-		let modelInputsShape = model.inputs[0].shape;
+		const modelInputsShape = model.inputs[0].shape;
 		for (let i = 0; i < modelInputsShape.length; i++) {
 			if (modelInputsShape[i] == null) {
 				modelInputsShape[i] = 1;
@@ -317,10 +317,9 @@ function predictImageCurrent() {
 }
 
 function predictImagesAllButtonOnClick() {
-	let interval;
 	imageIndexCurrent = 0;
 	disableUI(true);
-	interval = setInterval(() => {
+	const interval = setInterval(() => {
 		imageIndexInputRange.value = imageIndexCurrent;
 		imageIndexInputRange.oninput();
 		predictImageCurrent();
@@ -598,7 +597,7 @@ async function selectModelName() {
 async function trainModelLocallyButtonOnClick() {
 	disableUI(true);
 	const imagesArray = new Uint8Array(images);
-	let [preProcessedImage, predictions] = tf.tidy(() => {
+	const [preProcessedImage, predictions] = tf.tidy(() => {
 		let imagesTensor = tf.tensor(imagesArray).reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width, 1]);
 		imagesTensor = tf.image.resizeNearestNeighbor(imagesTensor, modelInputShape);
 		const tensorMomentsBefore = tf.moments(imagesTensor);
@@ -639,7 +638,7 @@ async function trainModelLocallyButtonOnClick() {
 }
 
 for (const modelConfiguration of modelConfigurationArray) {
-	let option = document.createElement("option");
+	const option = document.createElement("option");
 	option.value = modelConfiguration.modelDownloadUrl;
 	fetch(option.value)
 		.then((response) => response.text())
