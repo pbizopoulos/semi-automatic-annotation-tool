@@ -10,4 +10,4 @@ Docker
 git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool
 cd semi-automatic-annotation-tool/
 cd docs/ && make clean check all && cd ..
-make clean check all
+cd python/ && make clean check all && cd ..

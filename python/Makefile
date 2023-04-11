@@ -15,10 +15,10 @@ clean:
 	printf '*\n!pyproject.toml\n' > $@
 
 .gitignore:
-	printf 'bin/\n' > $@
+	printf '.env\nbin/\n' > $@
 
 Dockerfile:
-	printf 'FROM python\nENV HOME=/usr/src/app/bin\nENV PYTHONDONTWRITEBYTECODE=1\nWORKDIR /usr/src/app\nCOPY pyproject.toml .\nRUN python3 -m pip install --upgrade pip && python3 -m pip install .[dev]\n' > $@
+	printf 'FROM python\nENV HOME=/usr/src/app/bin\nWORKDIR /usr/src/app\nCOPY pyproject.toml .\nRUN python3 -m pip install --upgrade pip && python3 -m pip install .[dev]\n' > $@
 
 bin:
 	mkdir $@
@@ -29,6 +29,7 @@ bin/done: .dockerignore .gitignore Dockerfile bin main.py pyproject.toml
 		$$(test -t 0 && printf '%s' '--interactive --tty') \
 		--detach-keys 'ctrl-^,ctrl-^' \
 		--env DEBUG=$(DEBUG) \
+		--env PYTHONDONTWRITEBYTECODE=1 \
 		--rm \
 		--user $$(id -u):$$(id -g) \
 		--volume $$(pwd):/usr/src/app/ \
@@ -41,11 +42,12 @@ bin/check/done: .dockerignore .gitignore Dockerfile bin main.py pyproject.toml
 		--rm \
 		--user $$(id -u):$$(id -g) \
 		--volume $$(pwd):/usr/src/app/ \
-		$$(docker image build --quiet .) /bin/sh -c 'mypy main.py && ruff main.py'
+		$$(docker image build --quiet .) /bin/sh -c 'mypy --cache-dir bin/check/mypy --ignore-missing-imports --install-types --non-interactive --strict main.py && ruff --cache-dir bin/check/ruff --fix --ignore D,E501,S101 --select ALL main.py'
+	if ls -a | grep -v -E -x '.|..|.dockerignore|.env|.gitignore|Dockerfile|Makefile|bin|dist|docs|main.py|pyproject.toml|python|source_code_simplifier.py|tests' | grep -q .; then echo "Error: Non-Makefile files found."; false; fi
 	touch $@
 
 main.py:
 	touch $@
 
 pyproject.toml:
-	printf '[project]\nname = "UNKNOWN"\nversion = "0.0.0"\n\n[project.optional-dependencies]\ndev = [\n\t"mypy",\n\t"ruff",\n]\n\n[tool.mypy]\ncache_dir = "bin/check/mypy"\nignore_missing_imports = true\ninstall_types = true\nnon_interactive = true\nstrict = true\n\n[tool.ruff]\ncache-dir = "bin/check/ruff"\nfix = true\nignore = ["E501", "S101"]\nselect = ["A", "ANN", "ARG", "B", "BLE", "C", "C40", "C90", "COM", "DJ", "DTZ", "E", "EM", "ERA", "EXE", "F", "FBT", "G", "I", "ICN", "INP", "ISC", "N", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "Q", "RET", "RSE", "RUF", "S", "SLF", "SIM", "T10", "T20", "TCH", "TID", "TRY", "UP", "YTT", "W"]\n' > $@
+	printf '[project]\nname = "UNKNOWN"\nversion = "0.0.0"\n\n[project.optional-dependencies]\ndev = [\n\t"mypy",\n\t"ruff",\n]\n' > $@
