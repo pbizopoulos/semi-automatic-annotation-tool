@@ -33,10 +33,10 @@ def main() -> None:
         download = download_info.value
         download.save_as("bin/masks.nii")
         with Path("bin/masks.nii").open("rb") as file:
-            assert sha256(file.read()).hexdigest() == "6d1f1c28c38cab797d7500b01e5379223229b63c44bc857cbb38aab75fef75f2"
+            assert sha256(file.read()).hexdigest() == "5c242f1e89e7f9ee6b066e687c9f382f4fce94339234a6a0f6cc643a6833c550"
         page.screenshot(path="bin/screenshot.png")
         with Path("bin/screenshot.png").open("rb") as file:
-            assert sha256(file.read()).hexdigest() == "3b1ca1c1902d8ab87f1f23cecf58e565e5afba357cd763ead3b143a159675ab5"
+            assert sha256(file.read()).hexdigest() == "222201e6cdae9b12973dc65185ae913090e5c21d506c8d90e278eb321c2283ab"
         context.close()
         browser.close()
 
