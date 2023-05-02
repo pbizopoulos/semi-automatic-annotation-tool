@@ -37,7 +37,7 @@ const trainModelLocallyButton = document.getElementById("train-model-locally-but
 let modelConfigurationArray = [
 	{
 		classNames: ["None", "Lung", "Covid-19"],
-		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/python/dist/example.jpg",
+		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/comprehensive-comparison-of-deep-learning-models-for-lung-and-covid-19-lesion-segmentation-in-ct/main/latex/python/assets/lesion-segmentation-example-data.jpg",
 		machineLearningType: "image segmentation",
 		modelDownloadUrl: "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/python/dist/model.json",
 		modelUploadUrl: "http://172.17.0.2:5000/upload",
@@ -46,7 +46,7 @@ let modelConfigurationArray = [
 	},
 	{
 		classNames: ["No Findings", "Atelectasis", "Consolidation", "Infiltration", "Pneumothorax", "Edema", "Emphysema", "Fibrosis", "Effusion", "Pneumonia", "Pleural_thickening", "Cardiomegaly", "Nodule", "Mass", "Hernia"],
-		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/python/dist/example.jpg",
+		exampleDataUrl: "https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/python/assets/00000001_000.png",
 		loss: "categoricalCrossentropy",
 		machineLearningType: "image classification",
 		metrics: ["accuracy"],
@@ -274,7 +274,7 @@ function predictImageCurrent() {
 		let imageTensor = tf.tensor(imageSlice);
 		imageTensor = tf.reshape(imageTensor, [imageCanvas.height, imageCanvas.width, 1]);
 		imageTensor = tf.image.resizeNearestNeighbor(imageTensor, modelInputShape);
-		if (modelConfigurationSelected.modelDownloadUrl === "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/dist/model.json") {
+		if (modelConfigurationSelected.modelDownloadUrl === "https://raw.githubusercontent.com/pbizopoulos/multiclass-covid-19-segmentation/main/assets/00000001_000.png") {
 			imageTensor = imageTensor.div(4095);
 		}
 		const modelInputsShape = model.inputs[0].shape;
