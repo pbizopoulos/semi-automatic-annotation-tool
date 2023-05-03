@@ -10,11 +10,17 @@ from playwright.sync_api import Error, sync_playwright
 class TestWebApplication(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None: # noqa: ANN102
-        zip_file_path = Path("bin/rp_im.zip")
+        bin_file_path = Path("bin")
+        if not bin_file_path.exists():
+            bin_file_path.mkdir(parents=True)
+        data_file_path = Path("data")
+        if not data_file_path.exists():
+            data_file_path.mkdir(parents=True)
+        zip_file_path = Path("data/rp_im.zip")
         if not zip_file_path.is_file():
             gdown.download("https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m", zip_file_path.as_posix(), quiet=False)
             with ZipFile(zip_file_path, "r") as zip_file:
-                zip_file.extractall("bin")
+                zip_file.extractall("data")
 
     def test_web_application(self: "TestWebApplication") -> None:
         with sync_playwright() as playwright:
@@ -27,7 +33,7 @@ class TestWebApplication(unittest.TestCase):
             page.on("pageerror", self.page_error)
             page.goto("https://semi-automatic-annotation-tool.incisive.iti.gr/")
             page.locator("#model-download-div").wait_for(state="hidden")
-            page.set_input_files("#load-files-input-file", "bin/rp_im/1.nii.gz")
+            page.set_input_files("#load-files-input-file", "data/rp_im/1.nii.gz")
             page.locator("#image-index-input-range").fill("2")
             page.locator("#label-color-div-1").click()
             page.screenshot(path="bin/before.png")
