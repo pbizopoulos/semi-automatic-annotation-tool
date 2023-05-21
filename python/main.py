@@ -9,7 +9,7 @@ from playwright.sync_api import Error, sync_playwright
 
 class TestWebApplication(unittest.TestCase):
     @classmethod
-    def setUpClass(cls) -> None: # noqa: ANN102
+    def setUpClass(cls) -> None:  # noqa: ANN102
         bin_file_path = Path("bin")
         if not bin_file_path.exists():
             bin_file_path.mkdir(parents=True)
@@ -18,7 +18,11 @@ class TestWebApplication(unittest.TestCase):
             data_file_path.mkdir(parents=True)
         zip_file_path = Path("data/rp_im.zip")
         if not zip_file_path.is_file():
-            gdown.download("https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m", zip_file_path.as_posix(), quiet=False)
+            gdown.download(
+                "https://drive.google.com/uc?id=1ruTiKdmqhqdbE9xOEmjQGing76nrTK2m",
+                zip_file_path.as_posix(),
+                quiet=False,
+            )
             with ZipFile(zip_file_path, "r") as zip_file:
                 zip_file.extractall("data")
 
@@ -44,10 +48,16 @@ class TestWebApplication(unittest.TestCase):
             download = download_info.value
             download.save_as("bin/masks.nii")
             with Path("bin/masks.nii").open("rb") as file:
-                assert sha256(file.read()).hexdigest() == "5c242f1e89e7f9ee6b066e687c9f382f4fce94339234a6a0f6cc643a6833c550"
+                assert (
+                    sha256(file.read()).hexdigest()
+                    == "5c242f1e89e7f9ee6b066e687c9f382f4fce94339234a6a0f6cc643a6833c550"  # noqa: E501
+                )
             page.screenshot(path="bin/screenshot.png")
             with Path("bin/screenshot.png").open("rb") as file:
-                assert sha256(file.read()).hexdigest() == "222201e6cdae9b12973dc65185ae913090e5c21d506c8d90e278eb321c2283ab"
+                assert (
+                    sha256(file.read()).hexdigest()
+                    == "222201e6cdae9b12973dc65185ae913090e5c21d506c8d90e278eb321c2283ab"  # noqa: E501
+                )
             context.close()
             browser.close()
 
