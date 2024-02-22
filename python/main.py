@@ -42,16 +42,18 @@ class TestWebApplication(unittest.TestCase):
             download = download_info.value
             download.save_as("tmp/masks.nii")
             with Path("tmp/masks.nii").open("rb") as file:
-                assert (
+                if (
                     sha256(file.read()).hexdigest()
-                    == "c3f3d3726d03498a6fdb9a0ba919f56252ef87e739f26210be580f9a8a2eaf89"  # noqa: E501
-                )
+                    != "c3f3d3726d03498a6fdb9a0ba919f56252ef87e739f26210be580f9a8a2eaf89"  # noqa: E501
+                ):
+                    raise AssertionError
             page.screenshot(path="tmp/screenshot.png")
             with Path("tmp/screenshot.png").open("rb") as file:
-                assert (
+                if (
                     sha256(file.read()).hexdigest()
-                    == "ffb1a4b84d3e0a1eb1e60397d289459066e464149d29fff2a353851275f4e38b"  # noqa: E501
-                )
+                    != "ffb1a4b84d3e0a1eb1e60397d289459066e464149d29fff2a353851275f4e38b"  # noqa: E501
+                ):
+                    raise AssertionError
             context.close()
             browser.close()
 
