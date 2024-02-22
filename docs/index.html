@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="utf-8">
+        <meta content="width=device-width, initial-scale=1" name="viewport">
+        <title>Semi-automatic annotation tool</title>
+        <link href="data:," rel="icon">
+        <link href="style.css" rel="stylesheet">
+        <script defer src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/nifti-reader-js@0.5.4/release/current/nifti-reader.js"></script>
+        <script defer src="https://unpkg.com/itk@14.1.1/umd/itk.js"></script>
+        <script defer src="script.js"></script>
+    </head>
+
+    <body style="display:none;">
+        <nav>
+            <a href="https://cordis.europa.eu/project/id/952179"><img alt="INCISIVE Cordis webpage" src="https://incisive-project.eu/wp-content/uploads/2021/01/incisive-header-logo.svg" height="20"></a> | <a href="https://github.com/pbizopoulos/semi-automatic-annotation-tool">Source code</a> | <a href="https://pbizopoulos.github.io/incisive">Home page</a> / <b>Semi-automatic annotation tool</b>
+        </nav>
+        <div>
+            <div id="container-div">
+                <h3>Model</h3>
+                <div>
+                    <label for="model-select">Load model:</label>
+                    <select id="model-select" name="model-select" onchange="selectModelName();" disabled></select>
+                </div>
+                <div id="model-download-div">
+                    <label for="model-download-progress">Model download progress:</label>
+                    <progress id="model-download-progress" max="1" name="model-download-progress" value="0"></progress>
+                </div>
+                <div>
+                    <label for="model-input-shape-span">Input shape:</label>
+                    <span id="model-input-shape-span" name="model-input-shape-span"></span>
+                </div>
+                <div>
+                    <label for="model-prediction-shape-span">Prediction shape:</label>
+                    <span id="model-prediction-shape-span" name="model-prediction-shape-span"></span>
+                </div>
+                <h3>Input</h3>
+                <div>
+                    <input accept=".dcm,.nii,.nii.gz,.png,.jpg,.jpeg" id="load-files-input-file" type="file" disabled multiple>
+                </div>
+                <div>
+                    <input accept=".nii,.txt" id="load-predictions-input-file" type="file" disabled>
+                </div>
+                <div>
+                    <label for="image-index-input-range">Index: <span id="image-index-span">0/0</span></label>
+                    <input id="image-index-input-range" name="image-index-input-range" type="range" value="0" disabled>
+                </div>
+                <div>
+                    <label for="image-height-width-span">H&times;W:</label>
+                    <span id="image-height-width-span" name="image-height-width-span">0&times;0</span>
+                </div>
+                <div>
+                    <button id="reset-image-value-button" onclick="resetImageValue()" type="submit" disabled>Reset image value</button>
+                </div>
+                <h3>Inference</h3>
+                <div>
+                    <button id="predict-image-current-button" type="submit" onclick="predictImageCurrent()" disabled>Predict current image</button>
+                </div>
+                <div>
+                    <button id="predict-images-all-button" type="submit" disabled>Predict all images</button>
+                </div>
+                <div id="label-list-div"></div>
+                <div id="brush-size-div">
+                    <label for="brush-size-input-range">Brush size:</label>
+                    <input id="brush-size-input-range" name="brush-size-input-range" oninput="drawCanvas()" type="range" value="20" disabled>
+                </div>
+                <div>
+                    <button id="save-predictions-to-disk-button" type="submit" disabled>Save predictions to disk</button>
+                </div>
+                <div style="display:none;">
+                    <h3>Training</h3>
+                    <div>
+                        <label for="model-trainable-span">Trainable:</label>
+                        <span id="model-trainable-span" name="model-trainable-span"></span>
+                    </div>
+                    <div>
+                        <button id="train-model-locally-button" type="submit">Train model locally</button>
+                    </div>
+                    <div id="epochs-num-div">
+                        <label for="epochs-num-input-number">Epochs:</label>
+                        <input id="epochs-num-input-number" name="epochs-num-input-number" type="number" value="10">
+                    </div>
+                    <div id="epoch-current-div">
+                        <label for="epoch-current-div">Current epoch:</label>
+                        <span id="epoch-current-span" name="epoch-current-span"></span>
+                    </div>
+                    <div id="loss-div">
+                        <label for="loss-span">Loss:</label>
+                        <span id="loss-span" name="loss-span"></span>
+                    </div>
+                    <div id="accuracy-div">
+                        <label for="accuracy-span">Accuracy:</label>
+                        <span id="accuracy-span" name="accuracy-span"></span>
+                    </div>
+                    <div>
+                        <button id="save-model-to-disk-button" type="submit">Save model to disk</button>
+                    </div>
+                    <div>
+                        <button id="save-model-to-server-button" type="submit">Save model to server</button>
+                    </div>
+                </div>
+            </div>
+            <div id="canvas-div">
+                <canvas id="image-canvas"></canvas>
+                <canvas id="mask-canvas"></canvas>
+                <canvas id="brush-canvas"></canvas>
+            </div>
+        </div>
+    </body>
+
+</html>

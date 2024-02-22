@@ -1,0 +1,19 @@
+# Semi-automatic annotation tool
+https://pbizopoulos.github.io/semi-automatic-annotation-tool
+
+# Requirements
+POSIX Shell & Utilities
+Git
+Docker
+
+# Download
+git clone https://github.com/pbizopoulos/semi-automatic-annotation-tool $HOME/github.com/pbizopoulos/semi-automatic-annotation-tool
+cd $HOME/github.com/pbizopoulos/semi-automatic-annotation-tool/
+
+# Development
+cd docs/ && make clean check all && cd ..
+cd python/ && make clean check all && cd ..
+
+# Staging
+cd docs/ && make STAGING=1
+

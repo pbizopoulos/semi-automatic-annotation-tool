@@ -1,0 +1,31 @@
+#brush-canvas,
+#mask-canvas {
+  opacity: 0.5;
+}
+
+#canvas-div {
+  float: left;
+  position: relative;
+}
+
+#container-div {
+  border-style: solid;
+  float: left;
+  width: 25%;
+}
+
+#epochs-num-input-number {
+  width: 20%;
+}
+
+#model-select {
+  width: 50%;
+}
+
+button {
+  width: 100%;
+}
+
+canvas {
+  position: absolute;
+}
