@@ -1,13 +1,7 @@
-const accuracyDiv = document.getElementById("accuracy-div");
-const accuracySpan = document.getElementById("accuracy-span");
 const brushCanvas = document.getElementById("brush-canvas");
 const brushContext = brushCanvas.getContext("2d");
 const brushSizeDiv = document.getElementById("brush-size-div");
 const brushSizeInputRange = document.getElementById("brush-size-input-range");
-const epochCurrentDiv = document.getElementById("epoch-current-div");
-const epochCurrentSpan = document.getElementById("epoch-current-span");
-const epochsNumDiv = document.getElementById("epochs-num-div");
-const epochsNumInputNumber = document.getElementById("epochs-num-input-number");
 const imageCanvas = document.getElementById("image-canvas");
 const imageContext = imageCanvas.getContext("2d");
 const imageHeightWidthSpan = document.getElementById("image-height-width-span");
@@ -18,8 +12,6 @@ const loadFilesInputFile = document.getElementById("load-files-input-file");
 const loadPredictionsInputFile = document.getElementById(
 	"load-predictions-input-file",
 );
-const lossDiv = document.getElementById("loss-div");
-const lossSpan = document.getElementById("loss-span");
 const maskCanvas = document.getElementById("mask-canvas");
 const maskContext = maskCanvas.getContext("2d");
 const modelDownloadDiv = document.getElementById("model-download-div");
@@ -31,7 +23,6 @@ const modelPredictionShapeSpan = document.getElementById(
 	"model-prediction-shape-span",
 );
 const modelSelect = document.getElementById("model-select");
-const modelTrainableSpan = document.getElementById("model-trainable-span");
 const predictImageCurrentButton = document.getElementById(
 	"predict-image-current-button",
 );
@@ -41,17 +32,8 @@ const predictImagesAllButton = document.getElementById(
 const resetImageValueButton = document.getElementById(
 	"reset-image-value-button",
 );
-const saveModelToDiskButton = document.getElementById(
-	"save-model-to-disk-button",
-);
-const saveModelToServerButton = document.getElementById(
-	"save-model-to-server-button",
-);
 const savePredictionsToDiskButton = document.getElementById(
 	"save-predictions-to-disk-button",
-);
-const trainModelLocallyButton = document.getElementById(
-	"train-model-locally-button",
 );
 let modelConfigurationArray = [
 	{
@@ -65,36 +47,6 @@ let modelConfigurationArray = [
 		name: "CT lung and covid-19 segmentation (custom)",
 		projectUrl:
 			"https://github.com/pbizopoulos/multiclass-covid-19-segmentation",
-	},
-	{
-		classNames: [
-			"No Findings",
-			"Atelectasis",
-			"Consolidation",
-			"Infiltration",
-			"Pneumothorax",
-			"Edema",
-			"Emphysema",
-			"Fibrosis",
-			"Effusion",
-			"Pneumonia",
-			"Pleural_thickening",
-			"Cardiomegaly",
-			"Nodule",
-			"Mass",
-			"Hernia",
-		],
-		exampleDataUrl:
-			"https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/python/prm/images/00000001_000.png",
-		loss: "categoricalCrossentropy",
-		machineLearningType: "image classification",
-		metrics: ["accuracy"],
-		modelDownloadUrl:
-			"https://raw.githubusercontent.com/pbizopoulos/nih-chest-xray-classification/main/python/prm/model/model.json",
-		modelUploadUrl: "http://172.17.0.2:5000/upload",
-		name: "X-rays lung classification (mobilenet_v2 imagenet)",
-		optimizer: "adam",
-		projectUrl: "https://github.com/pbizopoulos/nih-chest-xray-classification",
 	},
 ];
 modelConfigurationArray = modelConfigurationArray.slice(0, 1);
@@ -121,7 +73,7 @@ const labelColorArray = [
 	[23, 190, 207],
 	[158, 218, 229],
 ];
-let classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
+const classAnnotations = new Uint8Array(1000); // tmp hardcoded max value, remove later
 let modelConfigurationSelected;
 let drawActivated = false;
 let fileDecompressed;
@@ -148,10 +100,7 @@ imageIndexInputRange.oninput = imageIndexInputRangeOnInput;
 loadFilesInputFile.onchange = loadFilesInputFileOnChange;
 loadPredictionsInputFile.onchange = loadPredictionsInputFileOnChange;
 predictImagesAllButton.onclick = predictImagesAllButtonOnClick;
-saveModelToDiskButton.onclick = saveModelToDiskButtonOnClick;
-saveModelToServerButton.onclick = saveModelToServerButtonOnClick;
 savePredictionsToDiskButton.onclick = savePredictionsToDiskButtonOnClick;
-trainModelLocallyButton.onclick = trainModelLocallyButtonOnClick;
 
 function brushCanvasOnContextMenu(event) {
 	event.preventDefault();
@@ -179,7 +128,6 @@ function brushCanvasOnMouseUp() {
 
 function disableUI(argument) {
 	brushSizeInputRange.disabled = argument;
-	epochsNumInputNumber.disabled = argument;
 	imageIndexInputRange.disabled = argument;
 	loadFilesInputFile.disabled = argument;
 	loadPredictionsInputFile.disabled = argument;
@@ -187,10 +135,7 @@ function disableUI(argument) {
 	predictImageCurrentButton.disabled = argument;
 	predictImagesAllButton.disabled = argument;
 	resetImageValueButton.disabled = argument;
-	saveModelToDiskButton.disabled = argument;
-	saveModelToServerButton.disabled = argument;
 	savePredictionsToDiskButton.disabled = argument;
-	trainModelLocallyButton.disabled = argument;
 }
 
 function drawCanvas() {
@@ -256,12 +201,6 @@ function drawCanvas() {
 function imageIndexInputRangeOnInput() {
 	imageIndexCurrent = imageIndexInputRange.value;
 	imageOffset = imageSize * imageIndexCurrent;
-	if (
-		modelConfigurationSelected.machineLearningType === "image classification"
-	) {
-		labelCurrent = classAnnotations[imageIndexCurrent];
-		document.getElementById(`label-color-div-${labelCurrent}`).click();
-	}
 	imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 	imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 	drawCanvas();
@@ -299,36 +238,13 @@ function loadFilesInputFileOnChange(event) {
 function loadPredictionsInputFileOnChange(event) {
 	const file = event.currentTarget.files[0];
 	const fileReader = new FileReader();
-	if (
-		modelConfigurationSelected.machineLearningType === "image classification"
-	) {
-		fileReader.readAsText(file);
-	} else if (
-		modelConfigurationSelected.machineLearningType === "image segmentation"
-	) {
-		fileReader.readAsArrayBuffer(file);
-	}
+	fileReader.readAsArrayBuffer(file);
 	fileReader.onloadend = (event) => {
 		if (event.target.readyState === FileReader.DONE) {
-			if (
-				modelConfigurationSelected.machineLearningType ===
-				"image classification"
-			) {
-				const rows = event.target.result.split("\n");
-				for (const [i, row] of rows.entries()) {
-					const row_elements = row.split(",");
-					classAnnotations[i] = modelConfigurationSelected.classNames.findIndex(
-						(element) => element === row_elements[1],
-					);
-				}
-			} else if (
-				modelConfigurationSelected.machineLearningType === "image segmentation"
-			) {
-				const niftiHeader = nifti.readHeader(event.target.result);
-				const niftiImage = nifti.readImage(niftiHeader, event.target.result);
-				masks = new Uint8Array(niftiImage);
-				drawCanvas();
-			}
+			const niftiHeader = nifti.readHeader(event.target.result);
+			const niftiImage = nifti.readImage(niftiHeader, event.target.result);
+			masks = new Uint8Array(niftiImage);
+			drawCanvas();
 		}
 	};
 }
@@ -358,42 +274,30 @@ function predictImageCurrent() {
 		}
 		const preProcessedImage = imageTensor.reshape(modelInputsShape);
 		let modelPrediction = model.predict(preProcessedImage);
-		if (
-			modelConfigurationSelected.machineLearningType === "image classification"
-		) {
-			const classProbabilities = modelPrediction.softmax().mul(100).arraySync();
-			const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
-			for (let i = 0; i < nodeList.length; i++) {
-				nodeList[i].textContent = `${classProbabilities[0][i].toFixed(2)}%`;
+		if (modelPrediction.size !== imageSize) {
+			if (
+				modelPrediction.shape[modelPrediction.shape.length - 1] !== 1 &&
+				modelPrediction.shape[modelPrediction.shape.length - 1] !==
+					modelConfigurationSelected.classNames.length
+			) {
+				modelPrediction = modelPrediction.reshape([512, 512, 1]);
 			}
-		} else if (
-			modelConfigurationSelected.machineLearningType === "image segmentation"
-		) {
-			if (modelPrediction.size !== imageSize) {
-				if (
-					modelPrediction.shape[modelPrediction.shape.length - 1] !== 1 &&
-					modelPrediction.shape[modelPrediction.shape.length - 1] !==
-						modelConfigurationSelected.classNames.length
-				) {
-					modelPrediction = modelPrediction.reshape([512, 512, 1]);
+			modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [
+				imageCanvas.height,
+				imageCanvas.width,
+			]);
+		}
+		if (modelPrediction.shape[modelPrediction.shape.length - 1] === 1) {
+			modelPrediction = modelPrediction.dataSync();
+			for (let i = 0; i < modelPrediction.length; i++) {
+				if (modelPrediction[i] > 0.5) {
+					masks[imageOffset + i] = 1;
 				}
-				modelPrediction = tf.image.resizeNearestNeighbor(modelPrediction, [
-					imageCanvas.height,
-					imageCanvas.width,
-				]);
 			}
-			if (modelPrediction.shape[modelPrediction.shape.length - 1] === 1) {
-				modelPrediction = modelPrediction.dataSync();
-				for (let i = 0; i < modelPrediction.length; i++) {
-					if (modelPrediction[i] > 0.5) {
-						masks[imageOffset + i] = 1;
-					}
-				}
-			} else {
-				modelPrediction = modelPrediction.argMax(-1).squeeze(0).dataSync();
-				for (let i = 0; i < modelPrediction.length; i++) {
-					masks[imageOffset + i] = modelPrediction[i];
-				}
+		} else {
+			modelPrediction = modelPrediction.argMax(-1).squeeze(0).dataSync();
+			for (let i = 0; i < modelPrediction.length; i++) {
+				masks[imageOffset + i] = modelPrediction[i];
 			}
 		}
 	});
@@ -474,20 +378,11 @@ function readFileNifti(file) {
 			imageCanvas.height = niftiHeader.dims[2];
 			imageCanvas.width = niftiHeader.dims[1];
 			imageSize = imageCanvas.height * imageCanvas.width;
-			if (
-				modelConfigurationSelected.machineLearningType ===
-				"image classification"
-			) {
-				classAnnotations = classAnnotations.slice(0, imagesNum + 1);
-			} else if (
-				modelConfigurationSelected.machineLearningType === "image segmentation"
-			) {
-				maskCanvas.height = imageCanvas.height;
-				maskCanvas.width = imageCanvas.width;
-				brushCanvas.height = imageCanvas.height;
-				brushCanvas.width = imageCanvas.width;
-				masks = new Uint8Array(images.length);
-			}
+			maskCanvas.height = imageCanvas.height;
+			maskCanvas.width = imageCanvas.width;
+			brushCanvas.height = imageCanvas.height;
+			brushCanvas.width = imageCanvas.width;
+			masks = new Uint8Array(images.length);
 			imageHeightWidthSpan.textContent = `${imageCanvas.height}\u00D7${imageCanvas.width}`;
 			imageIndexSpan.textContent = `${imageIndexCurrent}/${imagesNum}`;
 			resetImageValue();
@@ -541,43 +436,15 @@ function saveData(data, fileName) {
 	window.URL.revokeObjectURL(url);
 }
 
-async function saveModelToDiskButtonOnClick() {
-	await model.save("downloads://saved-model");
-}
-
-async function saveModelToServerButtonOnClick() {
-	await model.save(modelConfigurationSelected.modelUploadUrl);
-}
-
 async function savePredictionsToDiskButtonOnClick() {
 	if (files === undefined) {
 		return;
 	}
-	let fileName;
-	let data;
-	if (
-		modelConfigurationSelected.machineLearningType === "image classification"
-	) {
-		data = "";
-		for (const [i, classAnnotation] of classAnnotations.entries()) {
-			data += [
-				files[i].name,
-				modelConfigurationSelected.classNames[classAnnotation],
-			].join(",");
-			data += "\n";
-		}
-		data = [data.slice(0, -1)];
-		fileName = "classAnnotations.txt";
-	} else if (
-		modelConfigurationSelected.machineLearningType === "image segmentation"
-	) {
-		const niftiHeaderTmp = fileDecompressed.slice(0, 352);
-		const tmp = new Uint16Array(niftiHeaderTmp, 0, niftiHeaderTmp.length);
-		tmp[35] = 2;
-		data = [tmp, new Uint16Array(masks.buffer, 0, masks.buffer.length)];
-		fileName = "masks.nii";
-	}
-	saveData(data, fileName);
+	const niftiHeaderTmp = fileDecompressed.slice(0, 352);
+	const tmp = new Uint16Array(niftiHeaderTmp, 0, niftiHeaderTmp.length);
+	tmp[35] = 2;
+	const data = [tmp, new Uint16Array(masks.buffer, 0, masks.buffer.length)];
+	saveData(data, "masks.nii");
 }
 
 async function selectModelName() {
@@ -601,7 +468,6 @@ async function selectModelName() {
 			}
 			modelInputShapeSpan.textContent = "NaN";
 			modelPredictionShapeSpan.textContent = "NaN";
-			modelTrainableSpan.textContent = "NaN";
 			disableUI(true);
 		},
 	});
@@ -614,25 +480,6 @@ async function selectModelName() {
 	brushCanvas.height = modelInputShape[1];
 	modelInputShapeSpan.textContent = modelInputShape;
 	modelPredictionShapeSpan.textContent = model.outputs[0].shape;
-	if (model.trainable) {
-		accuracyDiv.style.display = "";
-		epochCurrentDiv.style.display = "";
-		epochsNumDiv.style.display = "";
-		lossDiv.style.display = "";
-		modelTrainableSpan.textContent = "True";
-		saveModelToDiskButton.style.display = "";
-		saveModelToServerButton.style.display = "";
-		trainModelLocallyButton.style.display = "";
-	} else {
-		accuracyDiv.style.display = "none";
-		epochCurrentDiv.style.display = "none";
-		epochsNumDiv.style.display = "none";
-		lossDiv.style.display = "none";
-		modelTrainableSpan.textContent = "False";
-		saveModelToDiskButton.style.display = "none";
-		saveModelToServerButton.style.display = "none";
-		trainModelLocallyButton.style.display = "none";
-	}
 	for (const [
 		i,
 		labelText,
@@ -661,12 +508,6 @@ async function selectModelName() {
 			}
 			event.currentTarget.style.opacity = 1;
 			labelCurrent = parseInt(event.currentTarget.id.match(/\d+/)[0]);
-			if (
-				modelConfigurationSelected.machineLearningType ===
-				"image classification"
-			) {
-				classAnnotations[imageIndexCurrent] = labelCurrent;
-			}
 		};
 		labelDiv.appendChild(labelColorDiv);
 		const labelTextDiv = document.createElement("text");
@@ -678,84 +519,15 @@ async function selectModelName() {
 		const br = document.createElement("br");
 		labelDiv.appendChild(br);
 	}
-	if (
-		modelConfigurationSelected.machineLearningType === "image classification"
-	) {
-		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
-		for (let i = 0; i < nodeList.length; i++) {
-			nodeList[i].style.display = "";
-		}
-		maskCanvas.style.display = "none";
-		brushCanvas.style.display = "none";
-		brushSizeDiv.style.display = "none";
-	} else if (
-		modelConfigurationSelected.machineLearningType === "image segmentation"
-	) {
-		const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
-		for (let i = 0; i < nodeList.length; i++) {
-			nodeList[i].style.display = "none";
-		}
-		maskCanvas.style.display = "";
-		brushCanvas.style.display = "";
-		brushSizeDiv.style.display = "";
+	const nodeList = document.querySelectorAll('*[id^="labelPredictionDiv"]');
+	for (let i = 0; i < nodeList.length; i++) {
+		nodeList[i].style.display = "none";
 	}
+	maskCanvas.style.display = "";
+	brushCanvas.style.display = "";
+	brushSizeDiv.style.display = "";
 	loadFilesInputFile.disabled = false;
 	modelSelect.disabled = false;
-}
-
-async function trainModelLocallyButtonOnClick() {
-	disableUI(true);
-	const imagesArray = new Uint8Array(images);
-	const [preProcessedImage, predictions] = tf.tidy(() => {
-		let imagesTensor = tf
-			.tensor(imagesArray)
-			.reshape([imagesNum + 1, imageCanvas.height, imageCanvas.width, 1]);
-		imagesTensor = tf.image.resizeNearestNeighbor(
-			imagesTensor,
-			modelInputShape,
-		);
-		const tensorMomentsBefore = tf.moments(imagesTensor);
-		imagesTensor = imagesTensor.sub(tensorMomentsBefore.mean);
-		const tensorMomentsAfter = tf.moments(imagesTensor);
-		imagesTensor = imagesTensor.div(tf.sqrt(tensorMomentsAfter.variance));
-		let preProcessedImage;
-		let predictions;
-		if (
-			modelConfigurationSelected.machineLearningType === "image classification"
-		) {
-			preProcessedImage = imagesTensor;
-			predictions = tf.oneHot(
-				classAnnotations,
-				modelConfigurationSelected.classNames.length,
-			);
-		} else if (
-			modelConfigurationSelected.machineLearningType === "image segmentation"
-		) {
-			preProcessedImage = imagesTensor.squeeze(-1).expandDims(0).expandDims(0);
-			predictions = tf.tensor(masks);
-		}
-		return [preProcessedImage, predictions];
-	});
-	model.compile({
-		loss: modelConfigurationSelected.loss,
-		metrics: modelConfigurationSelected.metrics,
-		optimizer: modelConfigurationSelected.optimizer,
-	});
-	await model.fit(preProcessedImage, predictions, {
-		callbacks: [
-			new tf.CustomCallback({
-				onEpochEnd: (epoch, logs) => {
-					epochCurrentSpan.textContent = epoch;
-					lossSpan.textContent = logs.loss.toExponential(3);
-					accuracySpan.textContent = logs.acc;
-				},
-			}),
-		],
-		epochs: epochsNumInputNumber.value,
-	});
-	tf.dispose(preProcessedImage);
-	tf.dispose(predictions);
-	disableUI(false);
 }
 
 for (const modelConfiguration of modelConfigurationArray) {
